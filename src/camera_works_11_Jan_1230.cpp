@@ -16,10 +16,13 @@
 #include <libsc/st7735r.h>
 #include <libsc/lcd.h>
 #include <libsc/k60/ov7725.h>
-#include "libsc/k60/ov7725_configurator.h"
+#include <libsc/k60/ov7725_configurator.h>
 #include <libsc/lcd_typewriter.h>
+#include <libsc/futaba_s3010.h>
 #include <vector>
 #include <math.h>
+#include <libsc/alternate_motor.h>
+#include "coord.h"
 
 namespace libbase
 {
@@ -80,20 +83,34 @@ k60::Ov7725::Config getCameraConfig()
     return config;
 }
 
-void Print2D(){
-    for (int y=0; y<Height; y++){
-        for (int x=0; x<Width; x++){
-            lcdP->SetRegion(Lcd::Rect(x, y, 1, 1));
-            if (!camptr[y][x]){
-                lcdP->FillColor(0xFFFF);
-            } else {
-                lcdP->FillColor(0x0000);
-            }
-        }
-    }
-
+FutabaS3010::Config getServoConfig()
+{
+    FutabaS3010::Config config;
+    config.id = 0;
+    return config;
 }
 
+AlternateMotor::Config getMotorConfig()
+{
+    AlternateMotor::Config config;
+    config.id = 0;
+    return config;
+}
+/*
+void Print2D(){
+	for (int y=0; y<Height; y++){
+		for (int x=0; x<Width; x++){
+			lcdP->SetRegion(Lcd::Rect(x, y, 1, 1));
+			if (!camptr[y][x]){
+				lcdP->FillColor(0xFFFF);
+			} else {
+				lcdP->FillColor(0x0000);
+			}
+		}
+	}
+
+}
+*/
 int main(void)
 {
     System::Init();
@@ -104,6 +121,15 @@ int main(void)
     St7735r lcd(getLcdConfig());
     lcdP = &lcd;
 
+    FutabaS3010 Servo(getServoConfig());
+
+    AlternateMotor Motor(getMotorConfig());
+
+    Motor.SetPower(100);
+    Motor.SetClockwise(false);
+
+    Servo.SetDegree(90*10);
+
     int32_t ticks = System::Time();
     while (true){
         while(ticks!=libsc::System::Time()){
@@ -111,11 +137,28 @@ int main(void)
             if(ticks%10==0){
                 ticks = System::Time();
                 const Byte* camBuffer = camera.LockBuffer();
-                //	extract_cam(camBuffer);
-                //	Print2D();
+                extract_cam(camBuffer);
+//				Print2D();
                 lcdP->SetRegion(Lcd::Rect(0, 0, Width, Height));
                 lcdP->FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
                 camera.UnlockBuffer();
+                int middle_coor = 40;
+                int right_coor = 0;
+                int left_coor = 0;
+                for(int i=50;i<55;i++){
+                    for(int j=40;j<80;j++){
+                        if(camptr[i][j] == 1) {right_coor += j;break;}
+                        else if (j == 79) right_coor+=j;
+                    }
+                }
+                right_coor /= 5;
+                for(int i=50;i<55;i++){
+                    for(int j=40;j>0;j--)
+                        if(camptr[i][j] == 1) {left_coor += j;break;}
+                }
+                left_coor /= 5;
+                int temp_coor = (left_coor + right_coor)/2;
+                Servo.SetDegree((90+temp_coor - 40)*10);
             }
         }
     }
