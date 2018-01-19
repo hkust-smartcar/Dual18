@@ -6,6 +6,14 @@
  * Refer to LICENSE for details
  */
 
+/*
+ * main.cpp
+ *
+ * Author:
+ * Copyright (c) 2014-2015 HKUST SmartCar Team
+ * Refer to LICENSE for details
+ */
+
 #include <cassert>
 #include <cstring>
 #include <functional>
@@ -53,9 +61,7 @@ bool camptr[Height][Width];
 inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
 	return ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1);
 }
-inline void set_cam_bit(int x, int y, const Byte* camBuffer) {
-	camBuffer[y * 10 + x / 8] >> (7 - (x % 8)) = 1;
-}
+
 //
 //void extract_cam (const Byte* camBuffer) {
 //    Uint pos = 0;
@@ -133,6 +139,12 @@ Encoder::Config getEncoderConfig(){
 	return config;
 }
 
+Led::Config getLedConfig(int led_id){
+	Led::Config config;
+	config.id = led_id;
+	return config;
+}
+
 /*
  void Print2D(){
  for (int y=0; y<Height; y++){
@@ -148,8 +160,178 @@ Encoder::Config getEncoderConfig(){
 
  }
  */
+
+struct Bits{
+	int x, y;
+	bool is_count_before;
+};
+
+bool is_equal(Bits first, Bits second){
+	if((first.x == second.x)&&(first.y == second.y)&&(first.is_count_before == second.is_count_before)){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+
+bool see_the_right_cycle_or_not(int top_line, int bottom_line, const Byte* camBuffer){
+	int right_count = 0;
+	int do_not_need_to_count =0;
+	vector<Bits> left_my_bit;
+	vector<Bits> right_my_bit;
+	for(int j=top_line;j<bottom_line;j++){
+		for(int i=40;i<80;i++){
+			if(ret_cam_bit(i, j, camBuffer) != 1){
+				Bits mybit;
+				mybit.x = i;
+				mybit.y = j;
+				mybit.is_count_before = true;
+				right_my_bit.push_back(mybit);
+				right_count++;
+	//							lcdP->SetRegion(Lcd::Rect(i,j,1,1));
+	//							lcdP->FillColor(Lcd::kBlack);
+				}
+			else {break;}
+		}
+	}
+
+	for(int i=40;i<80;i++){
+		for(int j=bottom_line-1;j>=top_line;j--){
+			if(ret_cam_bit(i, j, camBuffer) != 1){
+	//							lcdP->SetRegion(Lcd::Rect(i,j,1,1));
+	//							lcdP->FillColor(Lcd::kBlack);
+				Bits mybit2;
+				mybit2.x =i;
+				mybit2.y =j;
+				mybit2.is_count_before = true;
+				for (int i=0; i<right_my_bit.size(); i++){
+					if (is_equal(mybit2,right_my_bit[i])){
+						do_not_need_to_count++;
+						break;
+					}
+				}
+				right_count++;
+			}
+			else {break;}
+		}
+	}
+	right_count = right_count-do_not_need_to_count;
+	do_not_need_to_count = 0;
+
+
+	for(int j=top_line;j<bottom_line;j++){
+		for(int i=40;i<80;i++){
+			if(ret_cam_bit(i, j, camBuffer) == 1){
+				right_count++;
+			}
+		}
+	}
+	bool see_the_right_corner = false;
+	if(right_count<290){
+		see_the_right_corner = true;
+	}
+	if(see_the_right_corner == true){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+
+bool see_the_left_cycle_or_not(int top_line, int bottom_line, const Byte* camBuffer){
+	int left_count = 0;
+	int do_not_need_to_count =0;
+	vector<Bits> left_my_bit;
+	vector<Bits> right_my_bit;
+	for(int j=top_line;j<bottom_line;j++){
+		for(int k=39;k>=0;k--){
+			if(ret_cam_bit(k, j, camBuffer) != 1){
+				Bits mybit;
+				mybit.x = k;
+				mybit.y = j;
+				mybit.is_count_before = true;
+				left_my_bit.push_back(mybit);
+				left_count++;
+			}
+			else {
+				break;
+			}
+		}
+	}
+
+	for(int i=0;i<40;i++){
+		for(int j=bottom_line-1;j>=top_line;j--){
+			if(ret_cam_bit(i, j, camBuffer) != 1){
+				Bits mybit2;
+				mybit2.x =i;
+				mybit2.y =j;
+				mybit2.is_count_before = true;
+				for (int i=0; i<right_my_bit.size(); i++){
+					if (is_equal(mybit2,right_my_bit[i])){
+						do_not_need_to_count++;
+						break;
+					}
+				}
+				left_count++;
+			}
+			else {break;}
+		}
+	}
+	left_count = left_count-do_not_need_to_count;
+	do_not_need_to_count = 0;
+
+
+	for(int j=top_line;j<bottom_line;j++){
+		for(int i=0;i<40;i++){
+			if(ret_cam_bit(i, j, camBuffer) == 1){
+				left_count++;
+			}
+		}
+	}
+	bool see_the_left_corner = false;
+	if(left_count<290){
+		see_the_left_corner = true;
+	}
+	if(see_the_left_corner == true){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+
 int main(void) {
 	System::Init();
+
+	//	bool Motor_start = true;
+	int32_t ticks = System::Time();
+//	int32_t brake_ticks = System::Time();
+	int pre_temp = 0;
+	int temp = 0;
+	float derivative;
+	int top_line = 20;
+	int bottom_line = 30;
+	int Tstate = 0;
+	int Lstate = 0;
+	float Kp = 0.9;
+	float Kd = 0.9;
+	bool left_corner = false;
+	bool right_corner = false;
+
+	enum track_state{
+		regular = 0,
+		right_loop,
+		left_loop,
+		magnetic,
+		finish
+	};
+
+	enum loop_state{
+		start = 0,
+		mid,
+		end
+	};
 
 	k60::Ov7725 camera(getCameraConfig());
 	camera.Start();
@@ -161,23 +343,17 @@ int main(void) {
 
 	FutabaS3010 Servo(getServoConfig());
 
+	Led led1(getLedConfig(0));
+	Led led2(getLedConfig(1));
+
 	AlternateMotor Motor(getMotorConfig());
-	Motor.SetPower(150);
+	Motor.SetPower(140);
 	Motor.SetClockwise(false);
 
 //	Adc MagSensor1(getMagSensorConfig(Pin::Name::kPtb0));
 //	Adc MagSensor2(getMagSensorConfig(Pin::Name::kPtb1));
 //	Adc MagSensor3(getMagSensorConfig(Pin::Name::kPtc10));
 //	Adc MagSensor4(getMagSensorConfig(Pin::Name::kPtc11));
-
-	int32_t ticks = System::Time();
-//    int32_t brake_ticks = System::Time();
-	int pre_temp = 0;
-	int temp = 0;
-	float derivative;
-	int Kp = 30;
-	int Kd = 40;
-//	bool Motor_start = true;
 
 //	Joystick::Config t = getJoystickConfig(
 //			[ ](const uint8_t id, const Joystick::State state) {
@@ -195,13 +371,13 @@ int main(void) {
     		getJoystickConfig(
     				[&Kp,&Kd](const uint8_t id, const Joystick::State state){
     		if(state == Joystick::State::kLeft)
-    			Kp += 1;
+    			Kp -= 0.01;
     		else if(state == Joystick::State::kRight)
-    			Kp -= 1;
+    			Kp += 0.01;
     		else if(state == Joystick::State::kDown)
-    			Kd -= 1;
+    			Kd += 0.01;
     		else if(state == Joystick::State::kUp)
-    			Kd+= 1;
+    			Kd -= 0.01;
     }
     				)
 	);
@@ -211,55 +387,27 @@ int main(void) {
 			ticks = libsc::System::Time();
 			if (ticks % 10 == 0) {
 				ticks = System::Time();
-				char c[15];
-				const Byte* camBuffer = camera.LockBuffer();
-//                extract_cam(camBuffer);
-////				Print2D();
-                lcdP->SetRegion(Lcd::Rect(0, 0, Width, Height));
-				lcdP->FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
-				camera.UnlockBuffer();
-				lcdP->SetRegion(Lcd::Rect(0,Kp , Width, 2));
-				lcdP->FillColor(Lcd::kRed);
-				lcdP->SetRegion(Lcd::Rect(0,Kd , Width, 2));
-				lcdP->FillColor(Lcd::kBlue);
+
 				int l_count = 0;
 				int r_count = 0;
-				int l_correct = 0;
-				int r_correct = 0;
+				int l_large = 0;
+				int r_large = 0;
 				int l_small = 0;
 				int r_small = 0;
-				for(int j=Kp;j<=Kd;j++){
-					for(int i=40;i<80;i++){
-						if(ret_cam_bit(i, j, camBuffer) != 1){
-							lcdP->SetRegion(Lcd::Rect(i,j,1,1));
-							lcdP->FillColor(Lcd::kBlack);}
-						else break;
-					}
-					for(int k=40;k>=0;k--){
-						if(ret_cam_bit(k, j, camBuffer) != 1){
-							lcdP->SetRegion(Lcd::Rect(k,j,1,1));
-							lcdP->FillColor(Lcd::kBlack);}
-						else break;
-					}
-				}
-				for(int i=0;i<80;i++){
-					for(int j=Kd;j>=Kp;j--){
-						if(ret_cam_bit(i, j, camBuffer) != 1){
-							lcdP->SetRegion(Lcd::Rect(i,j,1,1));
-							lcdP->FillColor(Lcd::kBlack);}
-						else break;
-					}
-				}
-//				for(int j=0;j<60;j++){
-//					int i=41;
-//					for(;i<80 && ret_cam_bit(i, j, camBuffer) != 1;i++);
-//					int k=39;
-//					for(;k>=0 && ret_cam_bit(k, j, camBuffer) != 1;k--);
-//					lcdP->SetRegion(Lcd::Rect(i-1,j,2,1));
-//					lcdP->FillColor(Lcd::kRed);
-//					lcdP->SetRegion(Lcd::Rect(k,j,2,1));
-//					lcdP->FillColor(Lcd::kBlue);
-//				}
+				char c[15];
+
+				const Byte* camBuffer = camera.LockBuffer();
+//                extract_cam(camBuffer);
+//				Print2D();
+//                lcdP->SetRegion(Lcd::Rect(0, 0, Width, Height));
+//				lcdP->FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
+//				lcdP->SetRegion(Lcd::Rect(0,Red_line , Width, 2));
+//				lcdP->FillColor(Lcd::kRed);
+//				lcdP->SetRegion(Lcd::Rect(0,Blue_line , Width, 2));
+//				lcdP->FillColor(Lcd::kBlue);
+				camera.UnlockBuffer();
+
+
 				for (int j = 51; j < 55; j++) {
 					int l_counter = 0;
 					int r_counter = 0;
@@ -271,52 +419,114 @@ int main(void) {
 						r_counter++;
 					l_count += l_counter;
 					r_count += r_counter;
-//                		lcdP->SetRegion(Lcd::Rect(40-l_counter-2,j-2,5,5));
+//                		lcdP->SetRegion(Lcd::Rect(40-l_counter-1,j-1,3,3));
 //                		lcdP->FillColor(Lcd::kGreen);
-//                		lcdP->SetRegion(Lcd::Rect(40+r_counter-2,j-2,5,5));
+//                		lcdP->SetRegion(Lcd::Rect(40+r_counter-1,j-1,3,3));
 //                		lcdP->FillColor(Lcd::kCyan);
 					if (l_counter > 37)
-						l_correct++;
+						l_large++;
 					if (r_counter > 37)
-						r_correct++;
+						r_large++;
 					if (l_counter < 4)
 						l_small++;
 					if (r_counter < 4)
 						r_small++;
 				}
+
 				temp = ((r_count - l_count) * 100) / (r_count + l_count);
-				if ((l_correct && r_correct) || l_small || r_small)
+				if ((l_large && r_large) || l_small || r_small)
 					temp = pre_temp;
 				derivative = (-temp + pre_temp) / 10;
-				Servo.SetDegree(900 - (0.87 * (-temp) + 0.8 * derivative) * 16);
-//                if(((0.9*(-temp)+0.8*derivative)*16>45 || (0.9*(-temp)+0.8*derivative)*16<-45) && System::Time() - brake_ticks >= 2000){
-//                		brake_ticks = System::Time();
-//                		Motor.SetPower(20);
-//                	    Motor.SetClockwise(true);
-//                	    System::DelayMs(10);
-//                	    Motor.SetPower(200);
-//                	    Motor.SetClockwise(false);
-//                }
-//
-                lcdP->SetRegion(Lcd::Rect(0,62,120,15));
-                sprintf(c,"Red :%d",Kp);
-                writer.WriteBuffer(c,15);
-                lcdP->SetRegion(Lcd::Rect(0,79,120,15));
-				sprintf(c,"Blue :%d",Kd);
-				writer.WriteBuffer(c,15);
+				if(Tstate == regular){
+					right_corner = see_the_right_cycle_or_not(top_line, bottom_line, camBuffer);
+					left_corner = see_the_left_cycle_or_not(top_line, bottom_line, camBuffer);
+					if(right_corner && !left_corner){
+						Tstate = right_loop;
+						led1.Switch();
+						led2.Switch();
+					}
+					else if(!right_corner && left_corner)
+						Tstate = left_loop;
+					else
+						Tstate = regular;
+				}
+				else if(Tstate == right_loop){
+					if(Lstate == loop_state::start){
+						if(!l_large){
+							temp = 40;
+							derivative = 0;
+						}
+						else if(l_large) {
+							temp = 40;
+							derivative = 0;
+							Lstate = loop_state::mid;
+						}
+					}
+					else if(Lstate == loop_state::mid){
+						if(!l_large) Lstate = loop_state::end;
+					}
+					else if(Lstate == loop_state::end){
+						if(l_large){
+							Tstate = regular;
+							Lstate = loop_state::start;
+							temp = 40;
+							derivative = 0;
+						}
+					}
+				}
+				else if(Tstate == left_loop){
+					if(Lstate == loop_state::start){
+						if(!r_large){
+							temp = -40;
+							derivative = 0;
+						}
+						else if(r_large) {
+							temp = -40;
+							derivative = 0;
+							Lstate = loop_state::mid;
+						}
+					}
+					else if(Lstate == loop_state::mid){
+						if(!r_large) Lstate = loop_state::end;
+					}
+					else if(Lstate == loop_state::end){
+						if(r_large){
+							Tstate = regular;
+							Lstate = loop_state::start;
+							temp = -40;
+							derivative = 0;
+						}
+					}
+				}
+				Servo.SetDegree(900 - (0.9 * (-temp) + 0.8 * derivative) * 16.1);
+//				if(((0.9*(-temp)+0.8*derivative)*16>40 || (0.9*(-temp)+0.8*derivative)*16<-40) && System::Time() - brake_ticks >= 3000){
+//					brake_ticks = System::Time();
+//					Motor.SetPower(20);
+//					Motor.SetClockwise(true);
+//					System::DelayMs(20);
+//					Motor.SetPower(160);
+//					Motor.SetClockwise(false);
+//				}
+				pre_temp = temp;
+
+//                lcdP->SetRegion(Lcd::Rect(0,62,120,15));
+//                sprintf(c,"Track :%d",Tstate);
+//                writer.WriteBuffer(c,15);
+//                lcdP->SetRegion(Lcd::Rect(0,79,120,15));
+//				sprintf(c,"Loop :%d",Lstate);
+//				writer.WriteBuffer(c,15);
 //				lcdP->SetRegion(Lcd::Rect(0,96,120,15));
 //				sprintf(c,"Mag3 :%d",MagSensor3.GetResult());
 //				writer.WriteBuffer(c,15);
 //				lcdP->SetRegion(Lcd::Rect(0,113,120,15));
 //				sprintf(c,"Mag4 :%d",MagSensor4.GetResult());
 //				writer.WriteBuffer(c,15);
-//				lcdP->SetRegion(Lcd::Rect(0,130,120, 15));
+//				lcdP->SetRegion(Lcd::Rect(0,113,100, 15));
 //				sprintf(c, "Kp: %f", Kp);
 //				writer.WriteBuffer(c, 15);
-//				lcdP->SetRegion(Lcd::Rect(55,130, 50, 15));
+//				lcdP->SetRegion(Lcd::Rect(0,130,100, 15));
 //				sprintf(c, "Kd: %f", Kd);
 //				writer.WriteBuffer(c, 15);
-				pre_temp = temp;
 			}
 		}
 	}
