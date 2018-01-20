@@ -54,22 +54,6 @@ inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
     return ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1);
 }
 
-//
-//void extract_cam (const Byte* camBuffer) {
-//    Uint pos = 0;
-//    int bit_pos = 8;
-//    for(Uint i=0; i < Height; i++){
-//        for(Uint j = 0;j<Width; j++){
-//            if (--bit_pos < 0) // Update after 8 bits are read
-//            {
-//                bit_pos = 7;// to track which position in a branch of Byte(Totally 8) is being read now.
-//                ++pos;// to track which position in Byte array is being read now.
-//            }
-//            camptr[i][j] = GET_BIT(camBuffer[pos], bit_pos);
-//        }
-//    }
-//}
-
 St7735r* lcdP;
 
 St7735r::Config getLcdConfig() {
@@ -137,22 +121,6 @@ Led::Config getLedConfig(int led_id){
     return config;
 }
 
-/*
- void Print2D(){
- for (int y=0; y<Height; y++){
- for (int x=0; x<Width; x++){
- lcdP->SetRegion(Lcd::Rect(x, y, 1, 1));
- if (!camptr[y][x]){
- lcdP->FillColor(0xFFFF);
- } else {
- lcdP->FillColor(0x0000);
- }
- }
- }
-
- }
- */
-
 struct Bits{
     int x, y;
     bool is_count_before;
@@ -207,15 +175,15 @@ bool see_the_right_cycle_or_not(int top_line, int bottom_line, const Byte* camBu
     do_not_need_to_count = 0;
 
 
-//	for(int j=top_line;j<bottom_line;j++){
-//		for(int i=40;i<80;i++){
-//			if(ret_cam_bit(i, j, camBuffer) == 1){
-//				right_count++;
-//			}
-//		}
-//	}
-//	if(right_count<235) return true;
-//	else return false;
+	for(int j=top_line;j<bottom_line;j++){
+		for(int i=40;i<80;i++){
+			if(ret_cam_bit(i, j, camBuffer) == 1){
+				right_count++;
+			}
+		}
+	}
+	if(right_count<235) return true;
+	else return false;
     return right_count;
 }
 
@@ -261,15 +229,15 @@ int see_the_left_cycle_or_not(int top_line, int bottom_line, const Byte* camBuff
     do_not_need_to_count = 0;
 
 
-//	for(int j=top_line;j<bottom_line;j++){
-//		for(int i=0;i<40;i++){
-//			if(ret_cam_bit(i, j, camBuffer) == 1){
-//				left_count++;
-//			}
-//		}
-//	}
-//	if(left_count<235) return true;
-//	else return false;
+	for(int j=top_line;j<bottom_line;j++){
+		for(int i=0;i<40;i++){
+			if(ret_cam_bit(i, j, camBuffer) == 1){
+				left_count++;
+			}
+		}
+	}
+	if(left_count<235) return true;
+	else return false;
     return left_count;
 }
 
