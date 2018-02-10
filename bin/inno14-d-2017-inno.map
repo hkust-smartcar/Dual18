@@ -350,93 +350,93 @@ Discarded input sections
  .text          0x0000000000000000        0x0 obj/main-d-2017-inno.o
  .data          0x0000000000000000        0x0 obj/main-d-2017-inno.o
  .bss           0x0000000000000000        0x0 obj/main-d-2017-inno.o
- .gnu.lto_.inline.368b3531f7cad480
+ .gnu.lto_.inline.1de63e12b90b3f79
                 0x0000000000000000      0x186 obj/main-d-2017-inno.o
- .gnu.lto__ZL20__gthread_key_deletei.368b3531f7cad480
+ .gnu.lto__ZL20__gthread_key_deletei.1de63e12b90b3f79
                 0x0000000000000000      0x122 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt14_Function_baseC2Ev.368b3531f7cad480
+ .gnu.lto__ZNSt14_Function_baseC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x139 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt14_Function_baseD2Ev.368b3531f7cad480
+ .gnu.lto__ZNSt14_Function_baseD2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x1e0 obj/main-d-2017-inno.o
- .gnu.lto__ZNKSt14_Function_base8_M_emptyEv.368b3531f7cad480
+ .gnu.lto__ZNKSt14_Function_base8_M_emptyEv.1de63e12b90b3f79
                 0x0000000000000000      0x149 obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc3Lcd4RectC2Ejjjj.368b3531f7cad480
+ .gnu.lto__ZN5libsc3Lcd4RectC2Ejjjj.1de63e12b90b3f79
                 0x0000000000000000      0x137 obj/main-d-2017-inno.o
- .gnu.lto__Z12getLcdConfigv.368b3531f7cad480
+ .gnu.lto__Z12getLcdConfigv.1de63e12b90b3f79
                 0x0000000000000000      0x12e obj/main-d-2017-inno.o
- .gnu.lto__Z15GetWriterConfigPN5libsc7St7735rE.368b3531f7cad480
+ .gnu.lto__Z15GetWriterConfigPN5libsc7St7735rE.1de63e12b90b3f79
                 0x0000000000000000      0x12c obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc3k606Ov77256ConfigC2Ev.368b3531f7cad480
+ .gnu.lto__ZN5libsc3k606Ov77256ConfigC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x124 obj/main-d-2017-inno.o
- .gnu.lto__Z15getCameraConfigv.368b3531f7cad480
+ .gnu.lto__Z15getCameraConfigv.1de63e12b90b3f79
                 0x0000000000000000      0x12a obj/main-d-2017-inno.o
- .gnu.lto__Z14getServoConfigv.368b3531f7cad480
+ .gnu.lto__Z14getServoConfigv.1de63e12b90b3f79
                 0x0000000000000000      0x10d obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc5Motor6ConfigC2Ev.368b3531f7cad480
+ .gnu.lto__ZN5libsc5Motor6ConfigC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x10d obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc14AlternateMotor6ConfigC2Ev.368b3531f7cad480
+ .gnu.lto__ZN5libsc14AlternateMotor6ConfigC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x149 obj/main-d-2017-inno.o
- .gnu.lto__Z14getMotorConfigv.368b3531f7cad480
+ .gnu.lto__Z14getMotorConfigv.1de63e12b90b3f79
                 0x0000000000000000      0x126 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt8functionIFvPN7libbase3k603AdcEtEED2Ev.368b3531f7cad480
+ .gnu.lto__ZNSt8functionIFvPN7libbase3k603AdcEtEED2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x168 obj/main-d-2017-inno.o
- .gnu.lto__ZN7libbase3k603Adc6ConfigD2Ev.368b3531f7cad480
+ .gnu.lto__ZN7libbase3k603Adc6ConfigD2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x147 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEED2Ev.368b3531f7cad480
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEED2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x168 obj/main-d-2017-inno.o
- .gnu.lto__Z12getLedConfigi.368b3531f7cad480
+ .gnu.lto__Z12getLedConfigi.1de63e12b90b3f79
                 0x0000000000000000      0x131 obj/main-d-2017-inno.o
- .gnu.lto__ZN7libbase3k603Mcg12GetMcgConfigEv.368b3531f7cad480
+ .gnu.lto__ZN7libbase3k603Mcg12GetMcgConfigEv.1de63e12b90b3f79
                 0x0000000000000000      0x115 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt15binary_functionIPN7libbase3k603AdcEtvEC2Ev.368b3531f7cad480
+ .gnu.lto__ZNSt15binary_functionIPN7libbase3k603AdcEtvEC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x111 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt31_Maybe_unary_or_binary_functionIvIPN7libbase3k603AdcEtEEC2Ev.368b3531f7cad480
+ .gnu.lto__ZNSt31_Maybe_unary_or_binary_functionIvIPN7libbase3k603AdcEtEEC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x12d obj/main-d-2017-inno.o
- .gnu.lto__ZNSt8functionIFvPN7libbase3k603AdcEtEEC2Ev.368b3531f7cad480
+ .gnu.lto__ZNSt8functionIFvPN7libbase3k603AdcEtEEC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x18b obj/main-d-2017-inno.o
- .gnu.lto__ZN7libbase3k603Adc6ConfigC2Ev.368b3531f7cad480
+ .gnu.lto__ZN7libbase3k603Adc6ConfigC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x194 obj/main-d-2017-inno.o
- .gnu.lto__Z18getMagSensorConfigN7libbase3k603Pin4NameE.368b3531f7cad480
+ .gnu.lto__Z18getMagSensorConfigN7libbase3k603Pin4NameE.1de63e12b90b3f79
                 0x0000000000000000      0x142 obj/main-d-2017-inno.o
- .gnu.lto_main.368b3531f7cad480
+ .gnu.lto_main.1de63e12b90b3f79
                 0x0000000000000000      0x7d9 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt15binary_functionIhN5libsc8Joystick5StateEvEC2Ev.368b3531f7cad480
+ .gnu.lto__ZNSt15binary_functionIhN5libsc8Joystick5StateEvEC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x111 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt31_Maybe_unary_or_binary_functionIvIhN5libsc8Joystick5StateEEEC2Ev.368b3531f7cad480
+ .gnu.lto__ZNSt31_Maybe_unary_or_binary_functionIvIhN5libsc8Joystick5StateEEEC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x12d obj/main-d-2017-inno.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEC2Ev.368b3531f7cad480
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x18b obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc8Joystick6ConfigC2Ev.368b3531f7cad480
+ .gnu.lto__ZN5libsc8Joystick6ConfigC2Ev.1de63e12b90b3f79
                 0x0000000000000000      0x215 obj/main-d-2017-inno.o
- .gnu.lto__ZSt4moveIRSt9_Any_dataEONSt16remove_referenceIT_E4typeEOS3_.368b3531f7cad480
+ .gnu.lto__ZSt4moveIRSt9_Any_dataEONSt16remove_referenceIT_E4typeEOS3_.1de63e12b90b3f79
                 0x0000000000000000      0x10b obj/main-d-2017-inno.o
- .gnu.lto__ZSt4swapISt9_Any_dataEvRT_S2_.368b3531f7cad480
+ .gnu.lto__ZSt4swapISt9_Any_dataEvRT_S2_.1de63e12b90b3f79
                 0x0000000000000000      0x1ce obj/main-d-2017-inno.o
- .gnu.lto__ZSt4moveIRPFbRSt9_Any_dataRKS0_St18_Manager_operationEEONSt16remove_referenceIT_E4typeEOS9_.368b3531f7cad480
+ .gnu.lto__ZSt4moveIRPFbRSt9_Any_dataRKS0_St18_Manager_operationEEONSt16remove_referenceIT_E4typeEOS9_.1de63e12b90b3f79
                 0x0000000000000000      0x10b obj/main-d-2017-inno.o
- .gnu.lto__ZSt4swapIPFbRSt9_Any_dataRKS0_St18_Manager_operationEEvRT_S8_.368b3531f7cad480
+ .gnu.lto__ZSt4swapIPFbRSt9_Any_dataRKS0_St18_Manager_operationEEvRT_S8_.1de63e12b90b3f79
                 0x0000000000000000      0x1ff obj/main-d-2017-inno.o
- .gnu.lto__ZNKSt8functionIFvhN5libsc8Joystick5StateEEEcvbEv.368b3531f7cad480
+ .gnu.lto__ZNKSt8functionIFvhN5libsc8Joystick5StateEEEcvbEv.1de63e12b90b3f79
                 0x0000000000000000      0x175 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEC2ERKS4_.368b3531f7cad480
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEC2ERKS4_.1de63e12b90b3f79
                 0x0000000000000000      0x2b4 obj/main-d-2017-inno.o
- .gnu.lto__ZSt4moveIRPFvRKSt9_Any_datahN5libsc8Joystick5StateEEEONSt16remove_referenceIT_E4typeEOSA_.368b3531f7cad480
+ .gnu.lto__ZSt4moveIRPFvRKSt9_Any_datahN5libsc8Joystick5StateEEEONSt16remove_referenceIT_E4typeEOSA_.1de63e12b90b3f79
                 0x0000000000000000      0x10b obj/main-d-2017-inno.o
- .gnu.lto__ZSt4swapIPFvRKSt9_Any_datahN5libsc8Joystick5StateEEEvRT_S9_.368b3531f7cad480
+ .gnu.lto__ZSt4swapIPFvRKSt9_Any_datahN5libsc8Joystick5StateEEEvRT_S9_.1de63e12b90b3f79
                 0x0000000000000000      0x1ff obj/main-d-2017-inno.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEE4swapERS4_.368b3531f7cad480
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEE4swapERS4_.1de63e12b90b3f79
                 0x0000000000000000      0x1e0 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEaSERKS4_.368b3531f7cad480
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEaSERKS4_.1de63e12b90b3f79
                 0x0000000000000000      0x17b obj/main-d-2017-inno.o
- .gnu.lto__Z17getJoystickConfigSt8functionIFvhN5libsc8Joystick5StateEEE.368b3531f7cad480
+ .gnu.lto__Z17getJoystickConfigSt8functionIFvhN5libsc8Joystick5StateEEE.1de63e12b90b3f79
                 0x0000000000000000      0x16b obj/main-d-2017-inno.o
- .gnu.lto_.symbol_nodes.368b3531f7cad480
+ .gnu.lto_.symbol_nodes.1de63e12b90b3f79
                 0x0000000000000000      0x37b obj/main-d-2017-inno.o
- .gnu.lto_.refs.368b3531f7cad480
+ .gnu.lto_.refs.1de63e12b90b3f79
                 0x0000000000000000       0x62 obj/main-d-2017-inno.o
- .gnu.lto_.decls.368b3531f7cad480
+ .gnu.lto_.decls.1de63e12b90b3f79
                 0x0000000000000000     0x92ea obj/main-d-2017-inno.o
- .gnu.lto_.symtab.368b3531f7cad480
+ .gnu.lto_.symtab.1de63e12b90b3f79
                 0x0000000000000000     0x19b1 obj/main-d-2017-inno.o
  .gnu.lto_.opts
                 0x0000000000000000       0xd7 obj/main-d-2017-inno.o
