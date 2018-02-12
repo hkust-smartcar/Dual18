@@ -22,6 +22,9 @@
 #include "libbase/k60/pit.h"
 #include "libbase/k60/uart.h"
 #include "libsc/dir_encoder.h"
+#include "libbase/k60/adc.h"
+#include <libsc/futaba_s3010.h>
+#include <libsc/alternate_motor.h>
 
 using libsc::Led;
 using libsc::Lcd;
@@ -34,6 +37,9 @@ using libsc::k60::JyMcuBt106;
 using libbase::k60::Pit;
 using libbase::k60::Uart;
 using libsc::DirEncoder;
+using libbase::k60::Adc;
+using libsc::FutabaS3010;
+using libsc::AlternateMotor;
 
 class myConfig{
 public:
@@ -96,6 +102,39 @@ public:
     	return config;
     }
 
+    static Adc::Config GetAdcConfig(int id){
+    	Adc::Config config;
+    	if (id == 0){
+    		config.adc = Adc::Name::kAdc0Ad8;
+    	}
+    	else if (id == 1){
+    		config.adc = Adc::Name::kAdc0Ad9;
+    	}
+    	else if (id == 2){
+    		config.adc = Adc::Name::kAdc1Ad5B;
+    	}
+    	else {
+    		config.adc = Adc::Name::kAdc1Ad6B;
+    	}
+    	config.resolution = Adc::Config::Resolution::k8Bit;
+    	config.speed = Adc::Config::SpeedMode::kExSlow;
+    	config.is_continuous_mode =true;
+    	config.avg_pass =Adc::Config::AveragePass::k32;
+    	return config;
+    }
+
+    static FutabaS3010::Config GetServoConfig(){
+    		FutabaS3010::Config config;
+    		config.id = 0;
+    		return config;
+    }
+
+    static AlternateMotor::Config GetMotorConfig(){
+    		AlternateMotor::Config config;
+    		config.id = 1;
+    		config.multiplier = 100;
+    		return config;
+    }
 };
 
 

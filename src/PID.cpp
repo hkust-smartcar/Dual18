@@ -20,6 +20,17 @@ float PID::getPID(int32_t encoderCount){
 	return output;
 }
 
+float PID::getPID(float setPoint, float measuredValue){
+	dTime = System::Time() - lastTime;
+	currentVelocity = measuredValue;
+	currentError = setPoint - measuredValue;
+	float output = ((currentError) * kP) + (accumlateError) * kI * (dTime) + ((currentError - lastError) * kD) / (dTime);
+	lastTime = System::Time();
+	accumlateError += currentError;
+	lastError = currentError;
+	return output;
+}
+
 PID::~PID() {
 	// TODO Auto-generated destructor stub
 }
