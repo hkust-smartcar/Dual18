@@ -98,24 +98,24 @@ int main() {
     uint32_t lastTime = 0;
 	int count = 0;
 	uint32_t left_sum = 0, right_sum = 0;
-	double previous_error = 0, integral = 0;
-//	const int dt = 10;
-//	const double kp = 3000, ki = 0.1, kd = 0;
 
     DirEncoder dirEncoder(myConfig::GetEncoderConfig());
     PID servoPID(3000,0);
-    PID motorLPID(0.3,0.4,0.5, &dirEncoder);
-    PID motorRPID(0.6,0.7,0.8, &dirEncoder);
+    PID motorLPID(0.3,0.0,0.0, &dirEncoder);
+    PID motorRPID(0.6,0.0,0.0, &dirEncoder);
     bt mBT(&servoPID, &motorLPID, &motorRPID);
 
-    Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&motor](const uint8_t id, const Joystick::State state){
+    bool start = false;
+    Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&motor, &start](const uint8_t id, const Joystick::State state){
     	if(state == Joystick::State::kLeft){
     		int a = 0;
     	}
     	else if (state == Joystick::State::kUp){
-			motor.SetPower(130);
+    		start = true;
+			motor.SetPower(110);
 		}
 		else if (state == Joystick::State::kDown){
+			start = false;
 			motor.SetPower(0);
 		}
     })));
@@ -125,9 +125,7 @@ int main() {
     while(1){
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
-    		if(lastTime % 20 == 0){
-    			dirEncoder.Update();
-    			motorLPID.getPID(dirEncoder.GetCount());
+    		if(lastTime % 100 == 0){
 				mBT.sendVelocity();
     		}
 //    		if(lastTime % 600 == 0){
@@ -166,11 +164,11 @@ int main() {
 //    		}
 
 			uint16_t left_mag, right_mag;
-			float angle;
-			double left_x, right_x;
-			const double left_k = 767.2497;
-			const double right_k = 854.7614;
-			const double h = 6.2;
+			float angle = 0;
+			float left_x, right_x;
+			const float left_k = 767.2497;
+			const float right_k = 854.7614;
+			const float h = 6.2;
 			if (lastTime % 10 == 0){
 
 				led3.Switch();
@@ -183,7 +181,7 @@ int main() {
 				left_x = _sqrt(left_k*h/left_mag-h*h);
 				right_x = _sqrt(right_k*h/right_mag-h*h);
 
-				double ratio = left_x/(right_x+left_x);
+				float ratio = left_x/(right_x+left_x);
 //				double error, derivative, output;
 //				error = 0.5-ratio;
 //				integral = integral + error*dt;
@@ -192,35 +190,47 @@ int main() {
 //				previous_error = error;
 //				angle = 900+output;
 				angle = servoPID.getPID(0.5,(float)ratio);
-				servo.SetDegree((uint16_t)(angle+900));
+				angle += 900;
+//				Angle = angle;
+				if (angle > 1800) {
+					angle = 1800;
+				}
+				else if (angle < 0){
+					angle = 0;
+				}
+				servo.SetDegree((uint16_t)(angle));
 			}
 
 			if (lastTime % 100 == 0){
-//				char c[10];
-//				lcd.SetRegion(Lcd::Rect(0,0,128,15));
-//				sprintf(c,"R: %d",left_mag);
-//				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,15,128,15));
-//				sprintf(c,"R: %d",right_mag);
-//				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,30,128,15));
-//				sprintf(c,"X: %f",left_x);
-//				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,45,128,15));
-//				sprintf(c,"X: %f",right_x);
-//				writer.WriteBuffer(c,10);\
-//				lcd.SetRegion(Lcd::Rect(0,60,128,15));
-//				sprintf(c,"D: %f",right_x-left_x);
-//				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,75,128,15));
-//				sprintf(c,"A: %f",angle);
-//				writer.WriteBuffer(c,10);
+				char c[10];
+				lcd.SetRegion(Lcd::Rect(0,0,128,15));
+				sprintf(c,"R: %d",left_mag);
+				writer.WriteBuffer(c,10);
+				lcd.SetRegion(Lcd::Rect(0,15,128,15));
+				sprintf(c,"R: %d",right_mag);
+				writer.WriteBuffer(c,10);
+				lcd.SetRegion(Lcd::Rect(0,30,128,15));
+				sprintf(c,"X: %f",left_x);
+				writer.WriteBuffer(c,10);
+				lcd.SetRegion(Lcd::Rect(0,45,128,15));
+				sprintf(c,"X: %f",right_x);
+				writer.WriteBuffer(c,10);\
+				lcd.SetRegion(Lcd::Rect(0,60,128,15));
+				sprintf(c,"R: %f",left_x/(right_x+left_x));
+				writer.WriteBuffer(c,10);
+				lcd.SetRegion(Lcd::Rect(0,75,128,15));
+				sprintf(c,"A: %f",angle);
+				writer.WriteBuffer(c,10);
 //				lcd.SetRegion(Lcd::Rect(0,90,128,15));
 //				sprintf(c,"O: %f",output);
 //				writer.WriteBuffer(c,10);
 //				lcd.SetRegion(Lcd::Rect(0,90,128,15));
 //				sprintf(c,"I: %f",integral);
 //				writer.WriteBuffer(c,10);
+				if(start){
+					dirEncoder.Update();
+					motor.SetPower(motorLPID.getPID(0 - dirEncoder.GetCount()));
+				}
 			}
     	}
     }
