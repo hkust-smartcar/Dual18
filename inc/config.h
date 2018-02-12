@@ -21,7 +21,7 @@
 #include "libsc/k60/jy_mcu_bt_106.h"
 #include "libbase/k60/pit.h"
 #include "libbase/k60/uart.h"
-#include "sprite.h"
+#include "libsc/dir_encoder.h"
 
 using libsc::Led;
 using libsc::Lcd;
@@ -33,6 +33,7 @@ using libsc::BatteryMeter;
 using libsc::k60::JyMcuBt106;
 using libbase::k60::Pit;
 using libbase::k60::Uart;
+using libsc::DirEncoder;
 
 class myConfig{
 public:
@@ -75,7 +76,7 @@ public:
         //TODO: finish it
     	JyMcuBt106::Config config;
     	config.id = 0;
-    	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
+    	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k9600;
     	config.rx_isr = isr;
     	return config;
     }
@@ -89,17 +90,12 @@ public:
     	return pitConfig;
     }
 
-    static Sprite::Config GetSpriteConfig(uint16_t fg, uint16_t bg, unsigned int width, unsigned int height, int x, int y, libsc::Lcd* pLcd){
-    	Sprite::Config config;
-    	config.fg_color = fg;
-    	config.bg_color = bg;
-    	config.height = height;
-    	config.width = width;
-    	config.x = x;
-   		config.y = y;
-   		config.pLcd = pLcd;
-   		return config;
+    static DirEncoder::Config GetEncoderConfig(){
+    	DirEncoder::Config config;
+    	config.id = 0;
+    	return config;
     }
+
 };
 
 
