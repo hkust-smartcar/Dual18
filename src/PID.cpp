@@ -13,9 +13,9 @@ float PID::getPID(int32_t encoderCount){
 	encoder->Update();
 	currentVelocity = encoderCount;
 	currentError = desireVelocity + encoderCount;
+	accumlateError += currentError;
 	float output = ((currentError) * kP) + ((accumlateError) * kI * (dTime + 1)) + (((currentError - lastError) * kD) / (dTime + 1)); //prevent division by 0 error
 	lastTime = System::Time();
-	accumlateError += currentError;
 	lastError = currentError;
 	if(output >= 200){
 		output = 200;

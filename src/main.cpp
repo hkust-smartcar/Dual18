@@ -112,11 +112,9 @@ int main() {
     	}
     	else if (state == Joystick::State::kUp){
     		start = true;
-			motor.SetPower(110);
 		}
 		else if (state == Joystick::State::kDown){
 			start = false;
-			motor.SetPower(0);
 		}
     })));
 
@@ -228,7 +226,6 @@ int main() {
 //				sprintf(c,"I: %f",integral);
 //				writer.WriteBuffer(c,10);
 				if(start){
-					dirEncoder.Update();
 					motor.SetPower(motorLPID.getPID(0 - dirEncoder.GetCount()));
 				}
 			}
