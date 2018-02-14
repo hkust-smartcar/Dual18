@@ -111,7 +111,7 @@ public:
     		config.adc = Adc::Name::kAdc0Ad9;
     	}
     	else if (id == 2){
-    		config.adc = Adc::Name::kAdc1Ad5B;
+    		config.adc = Adc::Name::kAdc1Ad7B;
     	}
     	else {
     		config.adc = Adc::Name::kAdc1Ad6B;
