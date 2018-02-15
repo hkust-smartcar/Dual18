@@ -96,13 +96,11 @@ int main() {
     lcd.FillColor(lcd.kWhite);
 
     uint32_t lastTime = 0;
-	int count = 0;
-	uint32_t left_sum = 0, right_sum = 0;
 
     DirEncoder dirEncoder(myConfig::GetEncoderConfig());
     PID servoPID(3000,0);
-    PID motorLPID(0.3,0.0,0.0, &dirEncoder);
-    PID motorRPID(0.6,0.0,0.0, &dirEncoder);
+    PID motorLPID(1.0,0.0,0.0, &dirEncoder);
+    PID motorRPID(0.0,0.0,0.0, &dirEncoder);
     bt mBT(&servoPID, &motorLPID, &motorRPID);
 
     bool start = false;
@@ -123,111 +121,14 @@ int main() {
     while(1){
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
-    		if(lastTime % 100 == 0){
-				mBT.sendVelocity();
-    		}
-//    		if(lastTime % 600 == 0){
-//    			char c[10];
-//    			lcd.SetRegion(Lcd::Rect(0,0,128,15));
-//    			sprintf(c,"servoP: %f", servoPID.getkP());
-//    			writer.WriteBuffer(c,15);
-//    			lcd.SetRegion(Lcd::Rect(0,15,128,15));
-//    			sprintf(c,"servoD: %f", servoPID.getkD());
-//    			writer.WriteBuffer(c,15);
-//    			lcd.SetRegion(Lcd::Rect(0,30,128,15));
-//    			dirEncoder.Update();
-//    			sprintf(c,"%dLMotorT: %f", dirEncoder.GetCount(),motorLPID.getDesiredVelocty());
-//    			writer.WriteBuffer(c,15);
-//    			lcd.SetRegion(Lcd::Rect(0,45,128,15));
-//    			sprintf(c,"LMotorP: %f", motorLPID.getkP());
-//    			writer.WriteBuffer(c,15);
-//    			lcd.SetRegion(Lcd::Rect(0,60,128,15));
-//    			sprintf(c,"LMotorI: %f", motorLPID.getkI());
-//    			writer.WriteBuffer(c,15);
-//    			lcd.SetRegion(Lcd::Rect(0,75,128,15));
-//    			sprintf(c,"LMotorD: %f", motorLPID.getkD());
-//    			writer.WriteBuffer(c,15);
-//    			lcd.SetRegion(Lcd::Rect(0,90,128,15));
-//    			sprintf(c,"RMotorT: %f", motorRPID.getDesiredVelocty());
-//    			writer.WriteBuffer(c,15);
-//    			lcd.SetRegion(Lcd::Rect(0,105,128,15));
-//    			sprintf(c,"RMotorP: %f", motorRPID.getkP());
-//    			writer.WriteBuffer(c,15);
-//    			lcd.SetRegion(Lcd::Rect(0,120,128,15));
-//    			sprintf(c,"RMotorI: %f", motorRPID.getkI());
-//    			writer.WriteBuffer(c,15);
-//    			lcd.SetRegion(Lcd::Rect(0,135,128,15));
-//    			sprintf(c,"%dRMotorD: %f",mBT.buffer.size(), motorRPID.getkD());
-//    			writer.WriteBuffer(c,15);
-//    		}
-
-			uint16_t left_mag, right_mag;
-			float angle = 0;
-			float left_x, right_x;
-			const float left_k = 767.2497;
-			const float right_k = 854.7614;
-			const float h = 6.2;
-			if (lastTime % 10 == 0){
-
+			if (lastTime % 40 == 0){
 				led3.Switch();
-
-				count++;
-				left_mag = mag0.GetResult();
-				right_mag = mag1.GetResult();
-				left_sum += left_mag;
-				right_sum += right_mag;
-				left_x = _sqrt(left_k*h/left_mag-h*h);
-				right_x = _sqrt(right_k*h/right_mag-h*h);
-
-				float ratio = left_x/(right_x+left_x);
-//				double error, derivative, output;
-//				error = 0.5-ratio;
-//				integral = integral + error*dt;
-//				derivative = (error-previous_error)/dt;
-//				output = kp*error + ki*integral + kd*derivative;
-//				previous_error = error;
-//				angle = 900+output;
-				angle = servoPID.getPID(0.5,(float)ratio);
-				angle += 900;
-//				Angle = angle;
-				if (angle > 1800) {
-					angle = 1800;
-				}
-				else if (angle < 0){
-					angle = 0;
-				}
-				servo.SetDegree((uint16_t)(angle));
-			}
-
-			if (lastTime % 100 == 0){
+				motor.SetPower(motorLPID.getPID());
+				mBT.sendVelocity();
 				char c[10];
 				lcd.SetRegion(Lcd::Rect(0,0,128,15));
-				sprintf(c,"R: %d",left_mag);
+				sprintf(c,"Motor: %d",motor.GetPower());
 				writer.WriteBuffer(c,10);
-				lcd.SetRegion(Lcd::Rect(0,15,128,15));
-				sprintf(c,"R: %d",right_mag);
-				writer.WriteBuffer(c,10);
-				lcd.SetRegion(Lcd::Rect(0,30,128,15));
-				sprintf(c,"X: %f",left_x);
-				writer.WriteBuffer(c,10);
-				lcd.SetRegion(Lcd::Rect(0,45,128,15));
-				sprintf(c,"X: %f",right_x);
-				writer.WriteBuffer(c,10);\
-				lcd.SetRegion(Lcd::Rect(0,60,128,15));
-				sprintf(c,"R: %f",left_x/(right_x+left_x));
-				writer.WriteBuffer(c,10);
-				lcd.SetRegion(Lcd::Rect(0,75,128,15));
-				sprintf(c,"A: %f",angle);
-				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,90,128,15));
-//				sprintf(c,"O: %f",output);
-//				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,90,128,15));
-//				sprintf(c,"I: %f",integral);
-//				writer.WriteBuffer(c,10);
-				if(start){
-					motor.SetPower(motorLPID.getPID(0 - dirEncoder.GetCount()));
-				}
 			}
     	}
     }

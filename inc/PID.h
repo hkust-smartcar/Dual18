@@ -16,7 +16,7 @@ class PID {
 public:
 	PID(float KP, float KD):kP(KP),kD(KD){};
 	PID(float KP, float KI, float KD, DirEncoder* Encoder):kP(KP),kI(KI),kD(KD),encoder(Encoder){};
-	float getPID(int32_t encoderCount);
+	float getPID();
 	float getPID(float setPoint, float measuredValue);
 	float getkP(){return kP;}
 	void setkP(float v){kP = v;}

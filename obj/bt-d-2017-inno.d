@@ -39,4 +39,11 @@ obj/bt-d-2017-inno.o: src/bt.cpp inc/bt.h \
  C:\Users\Jake\workspace\libsccc\inc/libutil/misc.h \
  C:\Users\Jake\workspace\libsccc\inc/libsc/battery_meter.h \
  C:\Users\Jake\workspace\libsccc\inc/libbase/k60/adc.h \
- C:\Users\Jake\workspace\libsccc\inc/libbase/k60/pit.h
+ C:\Users\Jake\workspace\libsccc\inc/libbase/k60/pit.h \
+ C:\Users\Jake\workspace\libsccc\inc/libsc/futaba_s3010.h \
+ C:\Users\Jake\workspace\libsccc\inc/libsc/servo.h \
+ C:\Users\Jake\workspace\libsccc\inc/libbase/k60/soft_pwm.h \
+ C:\Users\Jake\workspace\libsccc\inc/libbase/k60/pwm.h \
+ C:\Users\Jake\workspace\libsccc\inc/libbase/k60/ftm_pwm.h \
+ C:\Users\Jake\workspace\libsccc\inc/libsc/alternate_motor.h \
+ C:\Users\Jake\workspace\libsccc\inc/libsc/motor.h

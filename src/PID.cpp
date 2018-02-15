@@ -7,18 +7,27 @@
 
 #include "../inc/PID.h"
 
-float PID::getPID(int32_t encoderCount){
-	this->desireVelocity = desireVelocity;
-	dTime = System::Time() - lastTime;
+float PID::getPID(){
 	encoder->Update();
-	currentVelocity = encoderCount;
-	currentError = desireVelocity + encoderCount;
-	accumlateError += currentError;
-	float output = ((currentError) * kP) + ((accumlateError) * kI * (dTime + 1)) + (((currentError - lastError) * kD) / (dTime + 1)); //prevent division by 0 error
+	currentVelocity = encoder->GetCount();
+	dTime = System::Time() - lastTime;
+	currentError = desireVelocity + currentVelocity;
+
+	float Pout = kP * currentError;
+
+	accumlateError += currentError * (dTime + 0.0);
+	float Iout = kI * accumlateError;
+
+	float derivative = (currentError - lastError) / (dTime + 0.0);
+	float Dout = kD * derivative;
+
+
+	float output = Pout + Iout + Dout;
+
 	lastTime = System::Time();
 	lastError = currentError;
-	if(output >= 200){
-		output = 200;
+	if(output >= 250){
+		output = 250;
 	}
 	else if(output <= 0){
 		output = 0;

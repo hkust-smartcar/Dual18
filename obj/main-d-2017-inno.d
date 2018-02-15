@@ -40,4 +40,11 @@ obj/main-d-2017-inno.o: src/main.cpp \
  C:\Users\Jake\workspace\libsccc\inc/libbase/k60/soft_quad_decoder.h \
  C:\Users\Jake\workspace\libsccc\inc/libbase/k60/quad_decoder_interface.h \
  C:\Users\Jake\workspace\libsccc\inc/libbase/k60/ftm_quad_decoder.h \
- inc/PID.h inc/bt.h inc/PID.h inc/config.h
+ C:\Users\Jake\workspace\libsccc\inc/libsc/futaba_s3010.h \
+ C:\Users\Jake\workspace\libsccc\inc/libsc/servo.h \
+ C:\Users\Jake\workspace\libsccc\inc/libbase/k60/soft_pwm.h \
+ C:\Users\Jake\workspace\libsccc\inc/libbase/k60/pwm.h \
+ C:\Users\Jake\workspace\libsccc\inc/libbase/k60/ftm_pwm.h \
+ C:\Users\Jake\workspace\libsccc\inc/libsc/alternate_motor.h \
+ C:\Users\Jake\workspace\libsccc\inc/libsc/motor.h inc/PID.h inc/bt.h \
+ inc/PID.h inc/config.h
