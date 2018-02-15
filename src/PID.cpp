@@ -10,10 +10,13 @@
 float PID::getPID(int32_t encoderCount){
 	this->desireVelocity = desireVelocity;
 	dTime = System::Time() - lastTime;
+	if (dTime == 0){
+		dTime += 1;
+	}
 	encoder->Update();
 	currentVelocity = encoderCount;
 	currentError = desireVelocity + encoderCount;
-	float output = ((currentError) * kP) + ((accumlateError) * kI * (dTime + 1)) + (((currentError - lastError) * kD) / (dTime + 1)); //prevent division by 0 error
+	float output = ((currentError) * kP) + ((accumlateError) * kI * (dTime)) + (((currentError - lastError) * kD) / (dTime)); //prevent division by 0 error
 	lastTime = System::Time();
 	accumlateError += currentError;
 	lastError = currentError;
@@ -28,9 +31,12 @@ float PID::getPID(int32_t encoderCount){
 
 float PID::getPID(float setPoint, float measuredValue){
 	dTime = System::Time() - lastTime;
+	if (dTime == 0){
+		dTime += 1;
+	}
 	currentVelocity = measuredValue;
 	currentError = setPoint - measuredValue;
-	float output = ((currentError) * kP) + ((currentError - lastError) * kD) / (dTime + 1);
+	float output = ((currentError) * kP) + ((currentError - lastError) * kD) / (dTime);
 	lastTime = System::Time();
 	lastError = currentError;
 	if(output >= 900){
