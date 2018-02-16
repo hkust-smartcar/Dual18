@@ -7,27 +7,21 @@
 
 #include "../inc/PID.h"
 
-float PID::getPID(){
-	encoder->Update();
-	currentVelocity = encoder->GetCount();
+float PID::getPID(int32_t encoderCount){
+	this->desireVelocity = desireVelocity;
 	dTime = System::Time() - lastTime;
-	currentError = desireVelocity + currentVelocity;
-
-	float Pout = kP * currentError;
-
-	accumlateError += currentError * (dTime + 0.0);
-	float Iout = kI * accumlateError;
-
-	float derivative = (currentError - lastError) / (dTime + 0.0);
-	float Dout = kD * derivative;
-
-
-	float output = Pout + Iout + Dout;
-
+	if (dTime == 0){
+		dTime += 1;
+	}
+	encoder->Update();
+	currentVelocity = encoderCount;
+	currentError = desireVelocity + encoderCount;
+	float output = ((currentError) * kP) + ((accumlateError) * kI * (dTime)) + (((currentError - lastError) * kD) / (dTime)); //prevent division by 0 error
 	lastTime = System::Time();
+	accumlateError += currentError;
 	lastError = currentError;
-	if(output >= 250){
-		output = 250;
+	if(output >= 200){
+		output = 200;
 	}
 	else if(output <= 0){
 		output = 0;
@@ -37,15 +31,18 @@ float PID::getPID(){
 
 float PID::getPID(float setPoint, float measuredValue){
 	dTime = System::Time() - lastTime;
+	if (dTime == 0){
+		dTime += 1;
+	}
 	currentVelocity = measuredValue;
 	currentError = setPoint - measuredValue;
-	float output = ((currentError) * kP) + ((currentError - lastError) * kD) / (dTime + 1);
+	float output = ((currentError) * kP) + ((currentError - lastError) * kD) / (dTime);
 	lastTime = System::Time();
 	lastError = currentError;
-	if(output >= 1800){
-		output = 1800;
-	}else if(output <= 0){
-		output = 0;
+	if(output >= 900){
+		output = 900;
+	}else if(output <= -900){
+		output = -900;
 	}
 	return output;
 }
