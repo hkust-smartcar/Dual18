@@ -491,123 +491,123 @@ Discarded input sections
  .text          0x00000000        0x0 obj/main-d-2017-inno.o
  .data          0x00000000        0x0 obj/main-d-2017-inno.o
  .bss           0x00000000        0x0 obj/main-d-2017-inno.o
- .gnu.lto_.jmpfuncs.b3226110
-                0x00000000      0x35b obj/main-d-2017-inno.o
- .gnu.lto_.inline.b3226110
+ .gnu.lto_.jmpfuncs.b33465ce
+                0x00000000      0x359 obj/main-d-2017-inno.o
+ .gnu.lto_.inline.b33465ce
                 0x00000000      0x32f obj/main-d-2017-inno.o
- .gnu.lto_.pureconst.b3226110
+ .gnu.lto_.pureconst.b33465ce
                 0x00000000       0x7a obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc5TimerD2Ev.b3226110
+ .gnu.lto__ZN5libsc5TimerD2Ev.b33465ce
                 0x00000000       0xe9 obj/main-d-2017-inno.o
- .gnu.lto__ZN7libbase3k6018SpiMasterInterfaceD2Ev.b3226110
+ .gnu.lto__ZN7libbase3k6018SpiMasterInterfaceD2Ev.b33465ce
                 0x00000000       0xff obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc3LcdD2Ev.b3226110
+ .gnu.lto__ZN5libsc3LcdD2Ev.b33465ce
                 0x00000000       0xe7 obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc7St7735r9SetRegionERKNS_3Lcd4RectE.b3226110
+ .gnu.lto__ZN5libsc7St7735r9SetRegionERKNS_3Lcd4RectE.b33465ce
                 0x00000000       0xd5 obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc7St7735r9GetRegionEv.b3226110
+ .gnu.lto__ZN5libsc7St7735r9GetRegionEv.b33465ce
                 0x00000000       0xc6 obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc7St7735r11ClearRegionEv.b3226110
+ .gnu.lto__ZN5libsc7St7735r11ClearRegionEv.b33465ce
                 0x00000000      0x261 obj/main-d-2017-inno.o
- .gnu.lto__ZN7libbase3k6020QuadDecoderInterfaceD2Ev.b3226110
+ .gnu.lto__ZN7libbase3k6020QuadDecoderInterfaceD2Ev.b33465ce
                 0x00000000      0x101 obj/main-d-2017-inno.o
- .gnu.lto__ZN7libbase3k603PwmD2Ev.b3226110
+ .gnu.lto__ZN7libbase3k603PwmD2Ev.b33465ce
                 0x00000000       0xef obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc5TimerD0Ev.b3226110
+ .gnu.lto__ZN5libsc5TimerD0Ev.b33465ce
                 0x00000000      0x148 obj/main-d-2017-inno.o
- .gnu.lto__ZN7libbase3k6018SpiMasterInterfaceD0Ev.b3226110
+ .gnu.lto__ZN7libbase3k6018SpiMasterInterfaceD0Ev.b33465ce
                 0x00000000      0x15f obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc3LcdD0Ev.b3226110
+ .gnu.lto__ZN5libsc3LcdD0Ev.b33465ce
                 0x00000000      0x147 obj/main-d-2017-inno.o
- .gnu.lto__ZN7libbase3k6020QuadDecoderInterfaceD0Ev.b3226110
+ .gnu.lto__ZN7libbase3k6020QuadDecoderInterfaceD0Ev.b33465ce
                 0x00000000      0x160 obj/main-d-2017-inno.o
- .gnu.lto__ZN7libbase3k603PwmD0Ev.b3226110
+ .gnu.lto__ZN7libbase3k603PwmD0Ev.b33465ce
                 0x00000000      0x150 obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc3k6010JyMcuBt106D2Ev.b3226110
+ .gnu.lto__ZN5libsc3k6010JyMcuBt106D2Ev.b33465ce
                 0x00000000      0x12c obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc3k6010JyMcuBt106D0Ev.b3226110
+ .gnu.lto__ZN5libsc3k6010JyMcuBt106D0Ev.b33465ce
                 0x00000000      0x17a obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc10DirEncoderD2Ev.b3226110
+ .gnu.lto__ZN5libsc10DirEncoderD2Ev.b33465ce
                 0x00000000      0x120 obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc10DirEncoderD0Ev.b3226110
+ .gnu.lto__ZN5libsc10DirEncoderD0Ev.b33465ce
                 0x00000000      0x172 obj/main-d-2017-inno.o
- .gnu.lto__ZZ4mainENKUlhN5libsc8Joystick5StateEE_clEhS1_.isra.1.b3226110
+ .gnu.lto__ZZ4mainENKUlhN5libsc8Joystick5StateEE_clEhS1_.isra.1.b33465ce
                 0x00000000      0x258 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt17_Function_handlerIFvhN5libsc8Joystick5StateEEZ4mainEUlhS2_E_E9_M_invokeERKSt9_Any_datahS2_.b3226110
+ .gnu.lto__ZNSt17_Function_handlerIFvhN5libsc8Joystick5StateEEZ4mainEUlhS2_E_E9_M_invokeERKSt9_Any_datahS2_.b33465ce
                 0x00000000      0x217 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E15_M_init_functorERSt9_Any_dataOS4_St17integral_constantIbLb0EE.isra.4.b3226110
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E15_M_init_functorERSt9_Any_dataOS4_St17integral_constantIbLb0EE.isra.4.b33465ce
                 0x00000000      0x192 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E8_M_cloneERSt9_Any_dataRKS6_St17integral_constantIbLb0EE.isra.5.b3226110
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E8_M_cloneERSt9_Any_dataRKS6_St17integral_constantIbLb0EE.isra.5.b33465ce
                 0x00000000      0x1aa obj/main-d-2017-inno.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E10_M_managerERSt9_Any_dataRKS6_St18_Manager_operation.b3226110
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZ4mainEUlhN5libsc8Joystick5StateEE_E10_M_managerERSt9_Any_dataRKS6_St18_Manager_operation.b33465ce
                 0x00000000      0x2f8 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZN2btC1EP3PIDS3_S3_EUlPKhjE_E10_M_managerERSt9_Any_dataRKS8_St18_Manager_operation.part.16.b3226110
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZN2btC1EP3PIDS3_S3_EUlPKhjE_E10_M_managerERSt9_Any_dataRKS8_St18_Manager_operation.part.16.b33465ce
                 0x00000000      0x27c obj/main-d-2017-inno.o
- .gnu.lto__ZNSt14_Function_base13_Base_managerIZN2btC1EP3PIDS3_S3_EUlPKhjE_E10_M_managerERSt9_Any_dataRKS8_St18_Manager_operation.b3226110
+ .gnu.lto__ZNSt14_Function_base13_Base_managerIZN2btC1EP3PIDS3_S3_EUlPKhjE_E10_M_managerERSt9_Any_dataRKS8_St18_Manager_operation.b33465ce
                 0x00000000      0x2f1 obj/main-d-2017-inno.o
- .gnu.lto__ZNK9__gnu_cxx24__concurrence_lock_error4whatEv.b3226110
+ .gnu.lto__ZNK9__gnu_cxx24__concurrence_lock_error4whatEv.b33465ce
                 0x00000000      0x100 obj/main-d-2017-inno.o
- .gnu.lto__ZNK9__gnu_cxx26__concurrence_unlock_error4whatEv.b3226110
+ .gnu.lto__ZNK9__gnu_cxx26__concurrence_unlock_error4whatEv.b33465ce
                 0x00000000      0x102 obj/main-d-2017-inno.o
- .gnu.lto__ZNK9__gnu_cxx29__concurrence_broadcast_error4whatEv.b3226110
+ .gnu.lto__ZNK9__gnu_cxx29__concurrence_broadcast_error4whatEv.b33465ce
                 0x00000000      0x103 obj/main-d-2017-inno.o
- .gnu.lto__ZNK9__gnu_cxx24__concurrence_wait_error4whatEv.b3226110
+ .gnu.lto__ZNK9__gnu_cxx24__concurrence_wait_error4whatEv.b33465ce
                 0x00000000      0x100 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt15_Sp_counted_ptrIDnLN9__gnu_cxx12_Lock_policyE0EE10_M_disposeEv.b3226110
+ .gnu.lto__ZNSt15_Sp_counted_ptrIDnLN9__gnu_cxx12_Lock_policyE0EE10_M_disposeEv.b33465ce
                 0x00000000       0xd7 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt15_Sp_counted_ptrIDnLN9__gnu_cxx12_Lock_policyE1EE10_M_disposeEv.b3226110
+ .gnu.lto__ZNSt15_Sp_counted_ptrIDnLN9__gnu_cxx12_Lock_policyE1EE10_M_disposeEv.b33465ce
                 0x00000000       0xd7 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt15_Sp_counted_ptrIDnLN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv.b3226110
+ .gnu.lto__ZNSt15_Sp_counted_ptrIDnLN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv.b33465ce
                 0x00000000       0xd7 obj/main-d-2017-inno.o
- .gnu.lto__ZNK7libbase3k6013SoftSpiMastercvbEv.b3226110
+ .gnu.lto__ZNK7libbase3k6013SoftSpiMastercvbEv.b33465ce
                 0x00000000       0xdb obj/main-d-2017-inno.o
- .gnu.lto__ZNK7libbase3k609SpiMastercvbEv.b3226110
+ .gnu.lto__ZNK7libbase3k609SpiMastercvbEv.b33465ce
                 0x00000000       0xd7 obj/main-d-2017-inno.o
- .gnu.lto__ZNK7libbase3k6015SoftQuadDecodercvbEv.b3226110
+ .gnu.lto__ZNK7libbase3k6015SoftQuadDecodercvbEv.b33465ce
                 0x00000000       0xdd obj/main-d-2017-inno.o
- .gnu.lto__ZNK7libbase3k6014FtmQuadDecodercvbEv.b3226110
+ .gnu.lto__ZNK7libbase3k6014FtmQuadDecodercvbEv.b33465ce
                 0x00000000       0xdd obj/main-d-2017-inno.o
- .gnu.lto__ZNK7libbase3k607SoftPwmcvbEv.b3226110
+ .gnu.lto__ZNK7libbase3k607SoftPwmcvbEv.b33465ce
                 0x00000000       0xd4 obj/main-d-2017-inno.o
- .gnu.lto__ZNK7libbase3k606FtmPwmcvbEv.b3226110
+ .gnu.lto__ZNK7libbase3k606FtmPwmcvbEv.b33465ce
                 0x00000000       0xd4 obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc8Joystick6ConfigD2Ev.b3226110
+ .gnu.lto__ZN5libsc8Joystick6ConfigD2Ev.b33465ce
                 0x00000000      0x36b obj/main-d-2017-inno.o
- .gnu.lto__ZN7libbase3k603Mcg12GetMcgConfigEv.b3226110
+ .gnu.lto__ZN7libbase3k603Mcg12GetMcgConfigEv.b33465ce
                 0x00000000      0x102 obj/main-d-2017-inno.o
- .gnu.lto__Z8inv_sqrtf.b3226110
+ .gnu.lto__Z8inv_sqrtf.b33465ce
                 0x00000000      0x236 obj/main-d-2017-inno.o
- .gnu.lto__Z5_sqrtf.b3226110
+ .gnu.lto__Z5_sqrtf.b33465ce
                 0x00000000      0x253 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEaSERKS4_.b3226110
+ .gnu.lto__ZNSt8functionIFvhN5libsc8Joystick5StateEEEaSERKS4_.b33465ce
                 0x00000000      0x674 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt8functionIFbPKhjEEaSERKS3_.b3226110
+ .gnu.lto__ZNSt8functionIFbPKhjEEaSERKS3_.b33465ce
                 0x00000000      0x673 obj/main-d-2017-inno.o
- .gnu.lto__ZN2btC2EP3PIDS1_S1_.b3226110
+ .gnu.lto__ZN2btC2EP3PIDS1_S1_.b33465ce
                 0x00000000      0x8bf obj/main-d-2017-inno.o
- .gnu.lto__ZNSt17_Function_handlerIFbPKhjEZN2btC1EP3PIDS5_S5_EUlS1_jE_E9_M_invokeERKSt9_Any_dataS1_j.b3226110
+ .gnu.lto__ZNSt17_Function_handlerIFbPKhjEZN2btC1EP3PIDS5_S5_EUlS1_jE_E9_M_invokeERKSt9_Any_dataS1_j.b33465ce
                 0x00000000      0x21d obj/main-d-2017-inno.o
- .gnu.lto_main.b3226110
+ .gnu.lto_main.b33465ce
                 0x00000000     0x2abd obj/main-d-2017-inno.o
- .gnu.lto__ZNKSt6vectorIhSaIhEE12_M_check_lenEjPKc.b3226110
+ .gnu.lto__ZNKSt6vectorIhSaIhEE12_M_check_lenEjPKc.b33465ce
                 0x00000000      0x4c1 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt6vectorIhSaIhEE19_M_emplace_back_auxIIRKhEEEvDpOT_.b3226110
+ .gnu.lto__ZNSt6vectorIhSaIhEE19_M_emplace_back_auxIIRKhEEEvDpOT_.b33465ce
                 0x00000000      0xcb3 obj/main-d-2017-inno.o
- .gnu.lto__ZNSt6vectorIhSaIhEE9push_backERKh.b3226110
+ .gnu.lto__ZNSt6vectorIhSaIhEE9push_backERKh.b33465ce
                 0x00000000      0x383 obj/main-d-2017-inno.o
- .gnu.lto__ZZN2btC1EP3PIDS1_S1_ENKUlPKhjE_clES3_j.isra.28.b3226110
+ .gnu.lto__ZZN2btC1EP3PIDS1_S1_ENKUlPKhjE_clES3_j.isra.28.b33465ce
                 0x00000000      0x343 obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc7St7735rD2Ev.b3226110
+ .gnu.lto__ZN5libsc7St7735rD2Ev.b33465ce
                 0x00000000      0x1dc obj/main-d-2017-inno.o
- .gnu.lto__ZN5libsc7St7735rD0Ev.b3226110
+ .gnu.lto__ZN5libsc7St7735rD0Ev.b33465ce
                 0x00000000       0xca obj/main-d-2017-inno.o
- .gnu.lto_.symbol_nodes.b3226110
+ .gnu.lto_.symbol_nodes.b33465ce
                 0x00000000      0x514 obj/main-d-2017-inno.o
- .gnu.lto_.refs.b3226110
+ .gnu.lto_.refs.b33465ce
                 0x00000000       0xb9 obj/main-d-2017-inno.o
- .gnu.lto_.decls.b3226110
+ .gnu.lto_.decls.b33465ce
                 0x00000000    0x1005d obj/main-d-2017-inno.o
- .gnu.lto_.symtab.b3226110
+ .gnu.lto_.symtab.b33465ce
                 0x00000000     0x145f obj/main-d-2017-inno.o
  .gnu.lto_.opts
                 0x00000000       0xd7 obj/main-d-2017-inno.o
@@ -9486,52 +9486,52 @@ LOAD c:/program files (x86)/gnu tools arm embedded/4.8 2014q3/bin/../lib/gcc/arm
                 0x000017f1       0x22 c:/program files (x86)/gnu tools arm embedded/4.8 2014q3/bin/../lib/gcc/arm-none-eabi/4.8.4/armv7e-m/fpu/crtn.o
 OUTPUT(bin/inno14-d-2017-inno.elf elf32-littlearm)
 
-.debug_info     0x00000000   0x13c458
+.debug_info     0x00000000   0x13c457
  .debug_info    0x00000000     0xce0c obj/bt-d-2017-inno.o
- .debug_info    0x0000ce0c    0x11dcb obj/main-d-2017-inno.o
- .debug_info    0x0001ebd7     0x2004 obj/PID-d-2017-inno.o
- .debug_info    0x00020bdb      0x353 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(startup-d-2017-inno.o)
- .debug_info    0x00020f2e      0x130 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(system-d-2017-inno.o)
- .debug_info    0x0002105e     0xde99 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(adc-d-2017-inno.o)
- .debug_info    0x0002eef7      0xd37 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(clock_utils-d-2017-inno.o)
- .debug_info    0x0002fc2e      0x992 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(fpu-d-2017-inno.o)
- .debug_info    0x000305c0     0x37cf C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(mcg-d-2017-inno.o)
- .debug_info    0x00033d8f     0xbd89 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(pin-d-2017-inno.o)
- .debug_info    0x0003fb18     0x57e7 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(sim-d-2017-inno.o)
- .debug_info    0x000452ff     0x2ed8 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(watchdog-d-2017-inno.o)
- .debug_info    0x000481d7     0x5149 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(alternate_motor-d-2017-inno.o)
- .debug_info    0x0004d320     0x5150 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(dir_encoder-d-2017-inno.o)
- .debug_info    0x00052470     0x597f C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(encoder-d-2017-inno.o)
- .debug_info    0x00057def     0x1ca2 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(futaba_s3010-d-2017-inno.o)
- .debug_info    0x00059a91     0x83ed C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(joystick-d-2017-inno.o)
- .debug_info    0x00061e7e     0x47d1 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(lcd_console-d-2017-inno.o)
- .debug_info    0x0006664f     0x6dc2 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(lcd_typewriter-d-2017-inno.o)
- .debug_info    0x0006d411     0x5c95 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(led-d-2017-inno.o)
- .debug_info    0x000730a6     0x2c30 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(motor-d-2017-inno.o)
- .debug_info    0x00075cd6     0x5bd2 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(servo-d-2017-inno.o)
- .debug_info    0x0007b8a8     0xb002 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(st7735r-d-2017-inno.o)
- .debug_info    0x000868aa     0x8ac2 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(jy_mcu_bt_106-d-2017-inno.o)
- .debug_info    0x0008f36c     0x2db9 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(system-d-2017-inno.o)
- .debug_info    0x00092125    0x18b69 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(uart_device-d-2017-inno.o)
- .debug_info    0x000aac8e     0xb0ac C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(mk60f15_lqfp144-d-2017-inno.o)
- .debug_info    0x000b5d3a      0x149 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(assert-d-2017-inno.o)
- .debug_info    0x000b5e83      0x757 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(syscall-d-2017-inno.o)
- .debug_info    0x000b65da      0xad7 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(vectors-d-2017-inno.o)
- .debug_info    0x000b70b1      0x73d C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(cache-d-2017-inno.o)
- .debug_info    0x000b77ee     0x7fbc C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(dma-d-2017-inno.o)
- .debug_info    0x000bf7aa     0xb7b6 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(dma_manager-d-2017-inno.o)
- .debug_info    0x000caf60     0xb33d C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(dma_mux-d-2017-inno.o)
- .debug_info    0x000d629d      0x803 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(dwt-d-2017-inno.o)
- .debug_info    0x000d6aa0     0xdb0a C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(ftm_pwm-d-2017-inno.o)
- .debug_info    0x000e45aa     0xe123 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(ftm_quad_decoder-d-2017-inno.o)
- .debug_info    0x000f26cd     0xebef C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(gpio-d-2017-inno.o)
- .debug_info    0x001012bc     0xc748 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(pin_isr_manager-d-2017-inno.o)
- .debug_info    0x0010da04     0xed48 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(spi_master-d-2017-inno.o)
- .debug_info    0x0011c74c     0x4714 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(spi_utils-d-2017-inno.o)
- .debug_info    0x00120e60     0xeb9d C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(uart-d-2017-inno.o)
- .debug_info    0x0012f9fd     0x581e C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(sys_tick_timer-d-2017-inno.o)
- .debug_info    0x0013521b     0x2e90 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(ftm-d-2017-inno.o)
- .debug_info    0x001380ab     0x43ad C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(sys_tick-d-2017-inno.o)
+ .debug_info    0x0000ce0c    0x11dca obj/main-d-2017-inno.o
+ .debug_info    0x0001ebd6     0x2004 obj/PID-d-2017-inno.o
+ .debug_info    0x00020bda      0x353 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(startup-d-2017-inno.o)
+ .debug_info    0x00020f2d      0x130 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(system-d-2017-inno.o)
+ .debug_info    0x0002105d     0xde99 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(adc-d-2017-inno.o)
+ .debug_info    0x0002eef6      0xd37 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(clock_utils-d-2017-inno.o)
+ .debug_info    0x0002fc2d      0x992 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(fpu-d-2017-inno.o)
+ .debug_info    0x000305bf     0x37cf C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(mcg-d-2017-inno.o)
+ .debug_info    0x00033d8e     0xbd89 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(pin-d-2017-inno.o)
+ .debug_info    0x0003fb17     0x57e7 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(sim-d-2017-inno.o)
+ .debug_info    0x000452fe     0x2ed8 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(watchdog-d-2017-inno.o)
+ .debug_info    0x000481d6     0x5149 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(alternate_motor-d-2017-inno.o)
+ .debug_info    0x0004d31f     0x5150 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(dir_encoder-d-2017-inno.o)
+ .debug_info    0x0005246f     0x597f C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(encoder-d-2017-inno.o)
+ .debug_info    0x00057dee     0x1ca2 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(futaba_s3010-d-2017-inno.o)
+ .debug_info    0x00059a90     0x83ed C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(joystick-d-2017-inno.o)
+ .debug_info    0x00061e7d     0x47d1 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(lcd_console-d-2017-inno.o)
+ .debug_info    0x0006664e     0x6dc2 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(lcd_typewriter-d-2017-inno.o)
+ .debug_info    0x0006d410     0x5c95 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(led-d-2017-inno.o)
+ .debug_info    0x000730a5     0x2c30 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(motor-d-2017-inno.o)
+ .debug_info    0x00075cd5     0x5bd2 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(servo-d-2017-inno.o)
+ .debug_info    0x0007b8a7     0xb002 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(st7735r-d-2017-inno.o)
+ .debug_info    0x000868a9     0x8ac2 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(jy_mcu_bt_106-d-2017-inno.o)
+ .debug_info    0x0008f36b     0x2db9 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(system-d-2017-inno.o)
+ .debug_info    0x00092124    0x18b69 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(uart_device-d-2017-inno.o)
+ .debug_info    0x000aac8d     0xb0ac C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(mk60f15_lqfp144-d-2017-inno.o)
+ .debug_info    0x000b5d39      0x149 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(assert-d-2017-inno.o)
+ .debug_info    0x000b5e82      0x757 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(syscall-d-2017-inno.o)
+ .debug_info    0x000b65d9      0xad7 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(vectors-d-2017-inno.o)
+ .debug_info    0x000b70b0      0x73d C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(cache-d-2017-inno.o)
+ .debug_info    0x000b77ed     0x7fbc C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(dma-d-2017-inno.o)
+ .debug_info    0x000bf7a9     0xb7b6 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(dma_manager-d-2017-inno.o)
+ .debug_info    0x000caf5f     0xb33d C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(dma_mux-d-2017-inno.o)
+ .debug_info    0x000d629c      0x803 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(dwt-d-2017-inno.o)
+ .debug_info    0x000d6a9f     0xdb0a C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(ftm_pwm-d-2017-inno.o)
+ .debug_info    0x000e45a9     0xe123 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(ftm_quad_decoder-d-2017-inno.o)
+ .debug_info    0x000f26cc     0xebef C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(gpio-d-2017-inno.o)
+ .debug_info    0x001012bb     0xc748 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(pin_isr_manager-d-2017-inno.o)
+ .debug_info    0x0010da03     0xed48 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(spi_master-d-2017-inno.o)
+ .debug_info    0x0011c74b     0x4714 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(spi_utils-d-2017-inno.o)
+ .debug_info    0x00120e5f     0xeb9d C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(uart-d-2017-inno.o)
+ .debug_info    0x0012f9fc     0x581e C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(sys_tick_timer-d-2017-inno.o)
+ .debug_info    0x0013521a     0x2e90 C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(ftm-d-2017-inno.o)
+ .debug_info    0x001380aa     0x43ad C:\Users\Jake\workspace\libsccc\lib\libsccc-d-2017-inno.a(sys_tick-d-2017-inno.o)
 
 .debug_abbrev   0x00000000    0x196b1
  .debug_abbrev  0x00000000      0xcfb obj/bt-d-2017-inno.o

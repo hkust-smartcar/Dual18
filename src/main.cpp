@@ -182,19 +182,19 @@ int main() {
 					}
 				}
 				else if((state == nearLoop &&  mid_mag >= 120 && (!dir?left_mag <= 70:right_mag<= 70))){
-					servo.SetDegree(!dir?600:1200);
+					servo.SetDegree(!dir?700:1200);
 					state = straight;
 				}else if(state == nearLoop){
-					servo.SetDegree(!dir?600:1200);
+					servo.SetDegree(!dir?700:1200);
 				}else if(state == straight &&  mid_mag >= 120 && (!dir?left_mag >= 80:right_mag >= 80)){
 					servo.SetDegree(angle);
 					state = turning;
 				}
 				else if(state == turning){
 					if(!dir){
-						servo.SetDegree(1700);
+						servo.SetDegree(1800);
 					}else{
-						servo.SetDegree(100);
+						servo.SetDegree(0);
 					}
 					if(mid_mag <= 120 && (dir?(right_mag <= 50 &&left_mag <= 60):(left_mag <= 50 && right_mag <= 60))){
 						state = inloop;
