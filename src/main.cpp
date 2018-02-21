@@ -113,7 +113,7 @@ int main() {
     uint32_t lastTime = 0;
     uint32_t greenTime = 0;
 	bool dir = 0;
-	uint8_t left_mag, right_mag, mid_mag;
+	uint8_t left_mag, right_mag, mid_mag, max_mag = 0;
 	float angle = 0;
 	float left_x, right_x;
 	const float left_k = 767.2497;
@@ -153,6 +153,9 @@ int main() {
 				left_mag = mag0.GetResult();
 				right_mag = mag1.GetResult();
 				mid_mag = mag2.GetResult();
+				if(mid_mag > max_mag){
+					max_mag = mid_mag
+				}
 				if (left_k*h/left_mag < h*h){
 					left_x = 0;
 				}
