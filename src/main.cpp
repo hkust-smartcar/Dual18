@@ -111,9 +111,8 @@ int main() {
 	carState state = normal;
 	bool start = false;
     uint32_t lastTime = 0;
-    uint32_t greenTime = 0;
 	bool dir = 0;
-	uint8_t left_mag, right_mag, mid_mag;
+	uint8_t left_mag, right_mag, mid_left, mid_right;
 	float angle = 0;
 	float left_x, right_x;
 	const float left_k = 767.2497;
@@ -140,9 +139,7 @@ int main() {
     })));
 
 	servo.SetDegree(900);
-	int counter = 0;
-	float lastAngle = 0;
-    while(1){
+    while(start){
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
     		if(lastTime % 100 == 0){
@@ -152,7 +149,8 @@ int main() {
 			if (lastTime % 10 == 0){
 				left_mag = mag0.GetResult();
 				right_mag = mag1.GetResult();
-				mid_mag = mag2.GetResult();
+				mid_left = mag2.GetResult();
+				mid_right = mag3.GetResult();
 				if (left_k*h/left_mag < h*h){
 					left_x = 0;
 				}
@@ -194,11 +192,13 @@ int main() {
 					else{
 						state = normal;
 					}
-					lcd.SetRegion(Lcd::Rect(0,0,100,100));
+					lcd.SetRegion(Lcd::Rect(100,100,10,10));
 					lcd.FillColor(0xFFF0);
 				}
 				if (!waitTrigger && left_mag <= 80 && right_mag <= 80){
 					waitTrigger = 1;
+					lcd.SetRegion(Lcd::Rect(100,100,10,10));
+					lcd.FillColor(0x0FFF);
 				}
 
 				if (state == turning){
@@ -219,7 +219,12 @@ int main() {
 					servo.SetDegree(angle);
 				}
 				if (state == nearLoop){
-					servo.SetDegree(angle);
+					if (left){
+						servo.SetDegree(angle>900?900:angle);
+					}
+					else{
+						servo.SetDegree(angle<900?900:angle);
+					}
 				}
 
 			}
@@ -238,20 +243,11 @@ int main() {
 					lcd.SetRegion(Lcd::Rect(0,15,128,15));
 					sprintf(c,"R: %d",right_mag);
 					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,30,128,15));
-					sprintf(c,"X: %f",left_x);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,45,128,15));
-					sprintf(c,"X: %f",right_x);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,60,128,15));
-					sprintf(c,"D: %d",dir);
-					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,75,128,15));
-					sprintf(c,"L: %d",lastTime);
+					sprintf(c,"L: %d",mid_left);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,90,128,15));
-					sprintf(c,"G: %d",greenTime);
+					sprintf(c,"R: %d",mid_right);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,105,128,15));
 					if (state == normal){
@@ -269,9 +265,6 @@ int main() {
 					}else if (state == inside){
 						lcd.FillColor(0x0000);
 					}
-					lcd.SetRegion(Lcd::Rect(0,120,128,15));
-					sprintf(c,"R: %d",mid_mag);
-					writer.WriteBuffer(c,10);
 //				}
 			}
     	}
