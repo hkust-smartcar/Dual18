@@ -95,7 +95,7 @@ int main() {
     lcd.FillColor(lcd.kWhite);
 
     DirEncoder dirEncoder(myConfig::GetEncoderConfig());
-    PID servoPID(2750,20000);
+    PID servoPID(2500,22500);
     PID motorLPID(0.3,0.0,0.0, &dirEncoder);
     PID motorRPID(0.6,0.0,0.0, &dirEncoder);
     bt mBT(&servoPID, &motorLPID, &motorRPID);
@@ -173,6 +173,7 @@ int main() {
 
 				if(state == normal && ((mid_left >= 90 && left_mag >= 60) || (mid_right >= 90 && right_mag >= 60))){
 					state = nearLoop;
+					servo.SetDegree(angle);
 					if(mid_left >= 90 && left_mag >= 60){
 						dir = 0;
 						greenTime = lastTime;
@@ -181,14 +182,16 @@ int main() {
 						greenTime = lastTime;
 					}
 				}
-				else if((state == nearLoop && (!dir?left_mag <= 50:right_mag<= 50))){
+				else if((state == nearLoop && (!dir?left_mag <= 60:right_mag<= 60))){
 					state = straight;
+					servo.SetDegree(angle);
 				}else if(state == nearLoop){
-					servo.SetDegree(!dir?(angle >= 900?900:angle) :(angle <= 900?900:angle));
-				}else if(state == straight && (!dir?left_mag >= 90:right_mag >= 90)){
+					servo.SetDegree(!dir?(angle >= 900?900:angle) :(angle <= 700?700:angle));
+				}else if(state == straight && (!dir?left_mag >= 80:right_mag >= 80)){
 					state = turning;
+					servo.SetDegree(angle);
 				}else if(state == straight){
-					servo.SetDegree(!dir?(angle >= 900?900:angle) :(angle <= 900?900:angle));
+					servo.SetDegree(!dir?(angle >= 900?900:angle) :(angle <= 700?700:angle));
 				}
 				else if(state == turning){
 					if(!dir){
@@ -196,7 +199,7 @@ int main() {
 					}else{
 						servo.SetDegree(0);
 					}
-					if((dir?(right_mag <= 50):(left_mag <= 50))){
+					if((dir?(right_mag <= 60 && (abs(left_mag - right_mag) <= 30)):(left_mag <= 60 && (abs(left_mag - right_mag) <= 30)))){
 						state = inloop;
 					}
 				}
