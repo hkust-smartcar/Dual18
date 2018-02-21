@@ -95,7 +95,7 @@ int main() {
     lcd.FillColor(lcd.kWhite);
 
     DirEncoder dirEncoder(myConfig::GetEncoderConfig());
-    PID servoPID(2500,40000);
+    PID servoPID(2750,20000);
     PID motorLPID(0.3,0.0,0.0, &dirEncoder);
     PID motorRPID(0.6,0.0,0.0, &dirEncoder);
     bt mBT(&servoPID, &motorLPID, &motorRPID);
@@ -105,24 +105,22 @@ int main() {
 		nearLoop,
 		straight,
 		turning,
-		trigger,
-		inside
+		turning2,
+		inloop
 	}carState;
 	carState state = normal;
 	bool start = false;
     uint32_t lastTime = 0;
     uint32_t greenTime = 0;
-	bool dir = 0;
-	uint8_t left_mag, right_mag, mid_mag, max_mag = 0;
+	bool dir = 1;
+	uint8_t left_mag, right_mag, mid_left, mid_right;
 	float angle = 0;
 	float left_x, right_x;
 	const float left_k = 767.2497;
 	const float right_k = 854.7614;
 	const float h = 6.2;
 	float magRatio, xRatio;
-	bool left = 0;
-	uint8_t count = 0;
-	bool waitTrigger = 1;
+
 
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&motor, &start, &led2](const uint8_t id, const Joystick::State state){
     	if(state == Joystick::State::kLeft){
@@ -145,17 +143,11 @@ int main() {
     while(1){
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
-    		if(lastTime % 100 == 0){
-				mBT.sendVelocity();
-    		}
-
 			if (lastTime % 10 == 0){
 				left_mag = mag0.GetResult();
 				right_mag = mag1.GetResult();
-				mid_mag = mag2.GetResult();
-				if(mid_mag > max_mag){
-					max_mag = mid_mag
-				}
+				mid_left = mag2.GetResult();
+				mid_right = mag3.GetResult();
 				if (left_k*h/left_mag < h*h){
 					left_x = 0;
 				}
@@ -178,105 +170,110 @@ int main() {
 				else if (angle < 0){
 					angle = 0;
 				}
-				//trigger
-				if (waitTrigger && left_x+right_x <= 20 && (left_mag > 100 || right_mag > 100)){
-					count++;
-					waitTrigger = 0;
-					if (count % 3 == 1){
-						if (left_mag > 100){
-							left = 1;
-						}
-						else{
-							left = 0;
-						}
-						state = nearLoop;
-					}
-					else if (count % 3 == 2){
-						state = turning;
-					}
-					else{
-						state = normal;
-					}
-					lcd.SetRegion(Lcd::Rect(0,0,100,100));
-					lcd.FillColor(0xFFF0);
-				}
-				if (!waitTrigger && left_mag <= 80 && right_mag <= 80){
-					waitTrigger = 1;
-				}
 
-				if (state == turning){
-					if (left && right_mag <= 40){
-						state = inside;
+				if(state == normal && ((mid_left >= 90 && left_mag >= 60) || (mid_right >= 90 && right_mag >= 60))){
+					state = nearLoop;
+					if(mid_left >= 90 && left_mag >= 60){
+						dir = 0;
+						greenTime = lastTime;
+					}else if(mid_right >= 90 && right_mag >= 60){
+						dir = 1;
+						greenTime = lastTime;
 					}
-					else if (!left && left_mag <= 40){
-						state = inside;
-					}
-					if (left){
+				}
+				else if((state == nearLoop && (!dir?left_mag <= 50:right_mag<= 50))){
+					state = straight;
+				}else if(state == nearLoop){
+					servo.SetDegree(!dir?(angle >= 900?900:angle) :(angle <= 900?900:angle));
+				}else if(state == straight && (!dir?left_mag >= 90:right_mag >= 90)){
+					state = turning;
+				}else if(state == straight){
+					servo.SetDegree(!dir?(angle >= 900?900:angle) :(angle <= 900?900:angle));
+				}
+				else if(state == turning){
+					if(!dir){
 						servo.SetDegree(1800);
-					}
-					else{
+					}else{
 						servo.SetDegree(0);
 					}
+					if((dir?(right_mag <= 50):(left_mag <= 50))){
+						state = inloop;
+					}
 				}
-				if (state == normal || state == inside){
+				else if(state != turning && state != straight && state != nearLoop) {
 					servo.SetDegree(angle);
 				}
-				if (state == nearLoop){
-					servo.SetDegree(angle);
-				}
-
 			}
 
 			if (lastTime % 100 == 0){
-//				if(start){
-////					dirEncoder.Update();
-////					motor.SetPower(motorLPID.getPID(0 - dirEncoder.GetCount()));
-//				}
-//				else{
-					led3.Switch();
-					char c[10];
-					lcd.SetRegion(Lcd::Rect(0,0,128,15));
-					sprintf(c,"R: %d",left_mag);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,15,128,15));
-					sprintf(c,"R: %d",right_mag);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,30,128,15));
-					sprintf(c,"X: %f",left_x);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,45,128,15));
-					sprintf(c,"X: %f",right_x);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,60,128,15));
-					sprintf(c,"D: %d",dir);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,75,128,15));
-					sprintf(c,"L: %d",lastTime);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,90,128,15));
-					sprintf(c,"G: %d",greenTime);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,105,128,15));
-					if (state == normal){
-						lcd.FillColor(0xFF00);
-					}else if (state == nearLoop){
-						if (dir){
-							lcd.SetRegion(Lcd::Rect(64,105,64,15));
-						}
-						else{
-							lcd.SetRegion(Lcd::Rect(0,105,64,15));
-						}
-						lcd.FillColor(0x0FF0);
-					}else if (state == turning){
-						lcd.FillColor(0x00FF);
-					}else if (state == inside){
-						lcd.FillColor(0x0000);
+				char c[10];
+				lcd.SetRegion(Lcd::Rect(0,0,128,15));
+				sprintf(c,"L: %d",left_mag);
+				writer.WriteBuffer(c,10);
+				lcd.SetRegion(Lcd::Rect(0,15,128,15));
+				sprintf(c,"R: %d",right_mag);
+				writer.WriteBuffer(c,10);
+				lcd.SetRegion(Lcd::Rect(0,30,128,15));
+				sprintf(c,"ML: %d",mid_left);
+				writer.WriteBuffer(c,10);
+				lcd.SetRegion(Lcd::Rect(0,45,128,15));
+				sprintf(c,"MR: %d",mid_right);
+				writer.WriteBuffer(c,10);
+				lcd.SetRegion(Lcd::Rect(0,60,128,15));
+				sprintf(c,"sum: %d",mid_left + mid_right);
+				writer.WriteBuffer(c,10);
+				lcd.SetRegion(Lcd::Rect(0,105,128,15));
+				if (state == normal){
+					lcd.FillColor(0xFF00);
+				}else if (state == nearLoop){
+					if (dir){
+						lcd.SetRegion(Lcd::Rect(64,105,64,15));
 					}
-					lcd.SetRegion(Lcd::Rect(0,120,128,15));
-					sprintf(c,"R: %d",mid_mag);
-					writer.WriteBuffer(c,10);
-//				}
+					else{
+						lcd.SetRegion(Lcd::Rect(0,105,64,15));
+					}
+					lcd.FillColor(0x0FF0);
+				}else if (state == turning){
+					lcd.FillColor(0x00FF);
+				}else if (state == inloop){
+					lcd.FillColor(0x0000);
+				}
 			}
+
+//    		if(lastTime % 600 == 0){
+//    			char c[10];
+//    			lcd.SetRegion(Lcd::Rect(0,0,128,15));
+//    			sprintf(c,"servoP: %f", servoPID.getkP());
+//    			writer.WriteBuffer(c,15);
+//    			lcd.SetRegion(Lcd::Rect(0,15,128,15));
+//    			sprintf(c,"servoD: %f", servoPID.getkD());
+//    			writer.WriteBuffer(c,15);
+//    			lcd.SetRegion(Lcd::Rect(0,30,128,15));
+//    			dirEncoder.Update();
+//    			sprintf(c,"%dLMotorT: %f", dirEncoder.GetCount(),motorLPID.getDesiredVelocty());
+//    			writer.WriteBuffer(c,15);
+//    			lcd.SetRegion(Lcd::Rect(0,45,128,15));
+//    			sprintf(c,"LMotorP: %f", motorLPID.getkP());
+//    			writer.WriteBuffer(c,15);
+//    			lcd.SetRegion(Lcd::Rect(0,60,128,15));
+//    			sprintf(c,"LMotorI: %f", motorLPID.getkI());
+//    			writer.WriteBuffer(c,15);
+//    			lcd.SetRegion(Lcd::Rect(0,75,128,15));
+//    			sprintf(c,"LMotorD: %f", motorLPID.getkD());
+//    			writer.WriteBuffer(c,15);
+//    			lcd.SetRegion(Lcd::Rect(0,90,128,15));
+//    			sprintf(c,"RMotorT: %f", motorRPID.getDesiredVelocty());
+//    			writer.WriteBuffer(c,15);
+//    			lcd.SetRegion(Lcd::Rect(0,105,128,15));
+//    			sprintf(c,"RMotorP: %f", motorRPID.getkP());
+//    			writer.WriteBuffer(c,15);
+//    			lcd.SetRegion(Lcd::Rect(0,120,128,15));
+//    			sprintf(c,"RMotorI: %f", motorRPID.getkI());
+//    			writer.WriteBuffer(c,15);
+//    			lcd.SetRegion(Lcd::Rect(0,135,128,15));
+//    			sprintf(c,"%dRMotorD: %f",mBT.buffer.size(), motorRPID.getkD());
+//    			writer.WriteBuffer(c,15);
+//    		}
     	}
     }
     return 0;
