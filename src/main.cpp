@@ -95,13 +95,14 @@ int main() {
     lcd.FillColor(lcd.kWhite);
 
     DirEncoder dirEncoder(myConfig::GetEncoderConfig());
-    PID servoPID(2500,22500);
+    PID servoPID(2500,40000);
     PID motorLPID(0.3,0.0,0.0, &dirEncoder);
     PID motorRPID(0.6,0.0,0.0, &dirEncoder);
     bt mBT(&servoPID, &motorLPID, &motorRPID);
 
 	typedef enum {
 		normal = 0,
+		verynearLoop,
 		nearLoop,
 		straight,
 		turning,
@@ -121,14 +122,10 @@ int main() {
 	const float h = 6.2;
 	float magRatio, xRatio;
 
-
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&motor, &start, &led2](const uint8_t id, const Joystick::State state){
-    	if(state == Joystick::State::kLeft){
-    		int a = 0;
-    	}
-    	else if (state == Joystick::State::kUp){
+    	if (state == Joystick::State::kUp){
     		start = true;
-			motor.SetPower(110);
+    		motor.SetPower(150);
 		}
 		else{
 			start = false;
@@ -171,27 +168,49 @@ int main() {
 					angle = 0;
 				}
 
-				if(state == normal && ((mid_left >= 90 && left_mag >= 60) || (mid_right >= 90 && right_mag >= 60))){
-					state = nearLoop;
+				if(state == normal && ((mid_left >= 110 && left_mag >= 70) || (mid_right >= 110 && right_mag >= 70))){
+					state = verynearLoop;
 					servo.SetDegree(angle);
-					if(mid_left >= 90 && left_mag >= 60){
+					if(mid_left >= 110 && left_mag >= 70){
 						dir = 0;
 						greenTime = lastTime;
-					}else if(mid_right >= 90 && right_mag >= 60){
+					}else if(mid_right >= 110 && right_mag >= 70){
 						dir = 1;
 						greenTime = lastTime;
 					}
 				}
-				else if((state == nearLoop && (!dir?left_mag <= 60:right_mag<= 60))){
+				else if(state == verynearLoop && (!dir? left_mag >= 100: right_mag >= 100)){
+					state = nearLoop;
+					servo.SetDegree(angle);
+				}
+				else if(state == verynearLoop){
+					if(angle <= 800){
+						angle = 800;
+					}else if(angle >= 1100){
+						angle = 1100;
+					}
+					servo.SetDegree(angle);
+				}
+				else if((state == nearLoop && (!dir?left_mag <= 80:right_mag <= 80))){
 					state = straight;
 					servo.SetDegree(angle);
 				}else if(state == nearLoop){
-					servo.SetDegree(!dir?(angle >= 900?900:angle) :(angle <= 700?700:angle));
+					if(angle <= 800){
+						angle = 800;
+					}else if(angle >= 1100){
+						angle = 1100;
+					}
+					servo.SetDegree(angle);
 				}else if(state == straight && (!dir?left_mag >= 80:right_mag >= 80)){
 					state = turning;
 					servo.SetDegree(angle);
 				}else if(state == straight){
-					servo.SetDegree(!dir?(angle >= 900?900:angle) :(angle <= 700?700:angle));
+					if(angle <= 800){
+						angle = 800;
+					}else if(angle >= 1100){
+						angle = 1100;
+					}
+					servo.SetDegree(angle);
 				}
 				else if(state == turning){
 					if(!dir){
@@ -199,12 +218,15 @@ int main() {
 					}else{
 						servo.SetDegree(0);
 					}
-					if((dir?(right_mag <= 60 && (abs(left_mag - right_mag) <= 30)):(left_mag <= 60 && (abs(left_mag - right_mag) <= 30)))){
+					motor.SetPower(0);
+					if(dir?((left_x+right_x)>=20 && (left_mag + right_mag) <= 100):(left_x+right_x)>=20 && (left_mag + right_mag) <=100){
 						state = inloop;
 					}
 				}
 				else if(state != turning && state != straight && state != nearLoop) {
 					servo.SetDegree(angle);
+					if(start)
+						motor.SetPower(150);
 				}
 			}
 
