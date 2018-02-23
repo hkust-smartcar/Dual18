@@ -1,11 +1,10 @@
-obj/main-d-2017-inno.o: src/main.cpp \
+obj/bt-d-2017-inno.o: src/bt.cpp inc/bt.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/mcg.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/mcg_c.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/system.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/timer.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/led.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/helper.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/gpio.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/jy_mcu_bt_106.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/uart.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/dma.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/dma_mux.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/misc_utils.h \
@@ -17,30 +16,32 @@ obj/main-d-2017-inno.o: src/main.cpp \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/pinout_macros.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/pinout/mk60f15_lqfp144_macros.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/pin.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/jy_mcu_bt_106.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/uart.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/uart_device.h \
+ inc/PID.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/dir_encoder.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/config.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/config/2017_inno.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/encoder.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/helper.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/pinout_macros.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/gpio.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_quad_decoder.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/quad_decoder_interface.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/ftm_quad_decoder.h \
+ inc/config.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/led.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/joystick.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/st7735r.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_spi_master.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/spi_master_interface.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/spi_master.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/config.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/config/2017_inno.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/lcd.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/lcd_typewriter.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/lcd_console.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libutil/misc.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/battery_meter.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/adc.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/pit.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/lcd_typewriter.h \
- inc/config.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/lcd_console.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libutil/misc.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/dir_encoder.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/encoder.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/pinout_macros.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_quad_decoder.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/quad_decoder_interface.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/ftm_quad_decoder.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/futaba_s3010.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/servo.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_pwm.h \
@@ -53,5 +54,4 @@ obj/main-d-2017-inno.o: src/main.cpp \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/ov7725_configurator.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_sccb_master.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_i2c_master.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/i2c_master_interface.h \
- inc/PID.h inc/bt.h inc/PID.h inc/config.h inc/corner.h inc/edge.h
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/i2c_master_interface.h

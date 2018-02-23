@@ -237,15 +237,11 @@
     	
     <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
     	
+    <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+    	
     <storageModule moduleId="scannerConfiguration">
         		
         <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.release.1599763642;cdt.managedbuild.config.gnu.cross.exe.release.1599763642.;cdt.managedbuild.tool.gnu.cross.c.compiler.1274874084;cdt.managedbuild.tool.gnu.c.compiler.input.1760144740">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-            		
-        </scannerConfigBuildInfo>
         		
         <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.debug.47694761;cdt.managedbuild.config.gnu.cross.exe.debug.47694761.;cdt.managedbuild.tool.gnu.cross.c.compiler.186274580;cdt.managedbuild.tool.gnu.c.compiler.input.926002175">
             			
@@ -255,18 +251,10 @@
         		
         <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.debug.47694761;cdt.managedbuild.config.gnu.cross.exe.debug.47694761.;cdt.managedbuild.tool.gnu.cross.cpp.compiler.1949377704;cdt.managedbuild.tool.gnu.cpp.compiler.input.1685825963">
             			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
-            		
-        </scannerConfigBuildInfo>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.release.1599763642;cdt.managedbuild.config.gnu.cross.exe.release.1599763642.;cdt.managedbuild.tool.gnu.cross.cpp.compiler.779955561;cdt.managedbuild.tool.gnu.cpp.compiler.input.958143036">
-            			
             <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
             		
         </scannerConfigBuildInfo>
         	
     </storageModule>
-    	
-    <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
     
 </cproject>
