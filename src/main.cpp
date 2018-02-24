@@ -179,8 +179,10 @@ int main() {
 		}
 
     })));
+	vector<pair<int,int>> min_xy;
+	vector<pair<int,int>> max_xy;
 
-	servo.SetDegree(750);
+	servo.SetDegree(978);
 	int counter = 0;
 	float lastAngle = 0;
     while(1){
@@ -194,7 +196,13 @@ int main() {
 				const Byte* camBuffer = camera.LockBuffer();
                 camera.UnlockBuffer();
                 vector<pair<int,int>> m_vector;
-
+                double slope = 0;
+                for (int i=0; i<min_xy.size(); i++){
+                		min_xy.erase(min_xy.begin());
+                }
+                for (int i=0; i<max_xy.size(); i++){
+                		max_xy.erase(max_xy.begin());
+                }
 
 				left_mag = mag0.GetResult();
 				right_mag = mag1.GetResult();
@@ -272,6 +280,40 @@ int main() {
 				if (state == nearLoop){
 //					servo.SetDegree(angle);
 				}
+				bool min_find = false;
+				bool max_find = false;
+				for(int i=0; i<m_vector.size(); i++){
+
+					if((m_vector[i].first<60)&&(min_find == false)){
+						min_xy.push_back(make_pair(m_vector[i].first, m_vector[i].second));
+						min_find = true;
+					}
+					if((m_vector[i].first<60)){
+						if(i==0){
+							max_xy.push_back(make_pair(m_vector[0].first, m_vector[0].second));
+						}
+						else if(m_vector[i].second>=m_vector[i-1].second){
+							max_xy.erase(max_xy.begin());
+							max_xy.push_back(make_pair(m_vector[i].first, m_vector[i].second));
+						}
+						max_find = true;
+					}
+				}
+				if(min_find==false){
+					min_xy.push_back(make_pair(0,0));
+				}
+				if(max_find==false){
+					max_xy.push_back(make_pair(0,0));
+				}
+				if((min_find==true)&&(max_find==true)){
+					if(min_xy[0].second == max_xy[0].second){
+						slope = 0.0;
+					}
+					else{
+						slope = ((1.0*min_xy[0].first - max_xy[0].first)/(max_xy[0].second - min_xy[0].second));
+					}
+				}
+
 
 				if(mode == 1){
 					if(changed == 1){
@@ -279,6 +321,9 @@ int main() {
 						changed = 0;
 					}
 					char c[10];
+					for(int i=0; i<10; i++){
+						c[i] = ' ';
+					}
 	                lcd.SetRegion(Lcd::Rect(0, 0, Width, Height));
 	                lcd.FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
 //	                for(int i=0; i<m_vector.size(); i++){
@@ -289,6 +334,15 @@ int main() {
 	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 3, 3));
 	                		lcd.FillColor(Lcd::kGreen);
 	                }
+					lcd.SetRegion(Lcd::Rect(0,60,88,15));
+					sprintf(c,"U:%d %d", min_xy[0].first, min_xy[0].second);//min_find
+					writer.WriteBuffer(c,10);
+					lcd.SetRegion(Lcd::Rect(0,75,88,15));
+					sprintf(c,"D:%d %d", max_xy[0].first, max_xy[0].second);//max_find
+					writer.WriteBuffer(c,10);
+					lcd.SetRegion(Lcd::Rect(0,90,88,15));
+					sprintf(c,"M:%.3f", slope);//slope
+					writer.WriteBuffer(c,10);
 //	                lcd.SetRegion(Lcd::Rect(0, 100, Width, 15));
 //					sprintf(c,"x: %d ",m_vector);
 //					writer.WriteBuffer(c,10);
@@ -323,7 +377,7 @@ int main() {
 					sprintf(c,"MR: %d ",mid_r_mag);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,60,88,15));
-					sprintf(c,"S: %d ", motor_speed);
+					sprintf(c,"MS: %d ", motor_speed);
 					writer.WriteBuffer(c,10);
 				}
 
