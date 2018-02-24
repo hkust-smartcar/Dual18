@@ -111,7 +111,6 @@ int main() {
 	carState state = normal;
 	bool start = false;
     uint32_t lastTime = 0;
-	bool dir = 0;
 	uint8_t left_mag, right_mag, mid_left, mid_right;
 //	uint32_t left_sum = 0, right_sum = 0, cycleCount = 0;
 	float angle = 0;
@@ -139,7 +138,8 @@ int main() {
     	led2.Switch();
     })));
 
-	servo.SetDegree(1100);
+	servo.SetDegree(890);
+	uint8_t servo_mid = 890;
     while(1){
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
@@ -170,9 +170,9 @@ int main() {
 				xRatio = (float)left_x/(right_x+left_x);
 
 				//trigger
-				if (count == 0 && ((mid_left>100 && mid_right>50) || (mid_right>100 && mid_left>50)) && 0.4<xRatio && xRatio<0.6){
+				if (count == 0 && ((mid_left>100 && mid_right>40) || (mid_right>100 && mid_left>40))){
 					detectLoop = 1;
-					if (mid_left>100 && mid_right>50){
+					if (mid_left>100 && mid_right>40){
 						left = 1;
 					}
 					else{
@@ -209,7 +209,7 @@ int main() {
 				}
 
 				angle = servoPID.getPID(0.5,xRatio);
-				angle += 850;
+				angle += servo_mid;
 				angle>1800?1800:angle;
 				angle<0?0:angle;
 				if (state == turning){
@@ -217,10 +217,10 @@ int main() {
 						state = inside;
 					}
 					if (left){
-						servo.SetDegree(angle<1100?1100:angle);
+						servo.SetDegree(angle<servo_mid+350?servo_mid+750:angle);
 					}
 					else{
-						servo.SetDegree(angle>500?500:angle);
+						servo.SetDegree(angle>servo_mid-350?servo_mid-750:angle);
 					}
 				}
 				if (state == normal || state == inside){
@@ -228,26 +228,26 @@ int main() {
 				}
 				else if (state == nearLoop){
 					if (left){
-						servo.SetDegree(angle>1100?1100:angle);
+						servo.SetDegree(angle>servo_mid+350?servo_mid+350:angle);
 					}
 					else{
-						servo.SetDegree(angle<500?500:angle);
+						servo.SetDegree(angle<servo_mid-350?servo_mid-350:angle);
 					}
 				}
 				else if (state == exit1){
 					if (!left){
-						servo.SetDegree(angle>800?800:angle);
+						servo.SetDegree(angle>servo_mid+50?servo_mid+50:angle);
 					}
 					else{
-						servo.SetDegree(angle<800?800:angle);
+						servo.SetDegree(angle<servo_mid-50?servo_mid-50:angle);
 					}
 				}
 				else if (state == exit2){
 					if (left){
-						servo.SetDegree(angle>900?900:angle);
+						servo.SetDegree(angle>servo_mid+50?servo_mid+50:angle);
 					}
 					else{
-						servo.SetDegree(angle<700?700:angle);
+						servo.SetDegree(angle<servo_mid-50?servo_mid-50:angle);
 					}
 				}
 			}
@@ -305,7 +305,10 @@ int main() {
 					sprintf(c,"R: %f",xRatio);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,135,128,15));
-					sprintf(c,"A: %d",servo.GetDegree());
+					sprintf(c,"S: %d",servo.GetDegree());
+					writer.WriteBuffer(c,10);
+					lcd.SetRegion(Lcd::Rect(0,150,128,10));
+					sprintf(c,"S: %d      ",(int)angle);
 					writer.WriteBuffer(c,10);
 				}
 			}

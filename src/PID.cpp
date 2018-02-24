@@ -39,11 +39,11 @@ float PID::getPID(float setPoint, float measuredValue){
 	float output = ((currentError) * kP) + ((currentError - lastError) * kD) / (dTime);
 	lastTime = System::Time();
 	lastError = currentError;
-	if(output >= 900){
-		output = 900;
-	}else if(output <= -900){
-		output = -900;
-	}
+//	if(output >= 900){
+//		output = 900;
+//	}else if(output <= -900){
+//		output = -900;
+//	}
 	return output;
 }
 
