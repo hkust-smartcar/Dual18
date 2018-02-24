@@ -78,6 +78,10 @@ bool camptr[Height][Width];
 int stop = 0;
 int mode = 0;
 
+inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
+    return ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1);//return 1 if black
+}
+
 //main
 int main() {
     System::Init();
@@ -143,7 +147,7 @@ int main() {
 	bool left = 0;
 	uint8_t count = 0;
 	bool waitTrigger = 1;
-	int motor_speed = 250;
+	int motor_speed = 180;
 	int changed = 0;
 
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&changed, & motor_speed, &lcd,&right_motor, &left_motor, &start, &led2](const uint8_t id, const Joystick::State state){
@@ -185,6 +189,9 @@ int main() {
 	servo.SetDegree(978);
 	int counter = 0;
 	float lastAngle = 0;
+	bool first_time = true;
+	int degree = 0;
+	bool facing = true;
     while(1){
 		if(System::Time() != lastTime){
 			lastTime = System::Time();
@@ -280,39 +287,70 @@ int main() {
 				if (state == nearLoop){
 //					servo.SetDegree(angle);
 				}
-				bool min_find = false;
-				bool max_find = false;
-				for(int i=0; i<m_vector.size(); i++){
 
-					if((m_vector[i].first<60)&&(min_find == false)){
-						min_xy.push_back(make_pair(m_vector[i].first, m_vector[i].second));
-						min_find = true;
-					}
-					if((m_vector[i].first<60)){
-						if(i==0){
-							max_xy.push_back(make_pair(m_vector[0].first, m_vector[0].second));
+				if(facing == true){
+					bool min_find = false;
+					bool max_find = false;
+					bool park = false;
+					for(int i=0; i<m_vector.size(); i++){
+
+						if((m_vector[i].first<60)&&(min_find == false)){
+							min_xy.push_back(make_pair(m_vector[i].first, m_vector[i].second));
+							min_find = true;
 						}
-						else if(m_vector[i].second>=m_vector[i-1].second){
-							max_xy.erase(max_xy.begin());
-							max_xy.push_back(make_pair(m_vector[i].first, m_vector[i].second));
+						if((m_vector[i].first<60)){
+							if(i==0){
+								max_xy.push_back(make_pair(m_vector[0].first, m_vector[0].second));
+							}
+							else if(m_vector[i].second>=m_vector[i-1].second){
+								max_xy.erase(max_xy.begin());
+								max_xy.push_back(make_pair(m_vector[i].first, m_vector[i].second));
+							}
+							max_find = true;
 						}
-						max_find = true;
+					}
+					if(min_find==false){
+						min_xy.push_back(make_pair(0,0));
+					}
+					if(max_find==false){
+						max_xy.push_back(make_pair(0,0));
+					}
+					if((min_find==true)&&(max_find==true)){
+						if(min_xy[0].second == max_xy[0].second){
+							slope = 0.0;
+							park = false;
+						}
+						else{
+							slope = ((1.0*min_xy[0].first - max_xy[0].first)/(max_xy[0].second - min_xy[0].second));
+							if(slope==0.0){
+								park = false;
+							}
+							park = true;
+						}
+					}
+					if(park == true){
+						if(ret_cam_bit(60, 55,camBuffer)==0){
+							servo.SetDegree(978+slope*20);
+							if(first_time){
+								degree = slope*20;
+								first_time = false;
+							}
+						}
+						else{
+							led0.Switch();
+							servo.SetDegree(978-degree);
+							right_motor.SetPower(0);
+							left_motor.SetPower(0);
+							first_time = true;
+							degree = 0;
+							facing = false;
+
+						}
+						park = false;
+
 					}
 				}
-				if(min_find==false){
-					min_xy.push_back(make_pair(0,0));
-				}
-				if(max_find==false){
-					max_xy.push_back(make_pair(0,0));
-				}
-				if((min_find==true)&&(max_find==true)){
-					if(min_xy[0].second == max_xy[0].second){
-						slope = 0.0;
-					}
-					else{
-						slope = ((1.0*min_xy[0].first - max_xy[0].first)/(max_xy[0].second - min_xy[0].second));
-					}
-				}
+
 
 
 				if(mode == 1){
