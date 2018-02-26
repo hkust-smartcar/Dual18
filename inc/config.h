@@ -25,6 +25,7 @@
 #include "libbase/k60/adc.h"
 #include <libsc/futaba_s3010.h>
 #include <libsc/alternate_motor.h>
+#include "libsc/battery_meter.h"
 
 using libsc::Led;
 using libsc::Lcd;
@@ -134,6 +135,12 @@ public:
     		config.id = 1;
     		config.multiplier = 100;
     		return config;
+    }
+
+    static BatteryMeter::Config GetBatteryMeterConfig(){
+    	BatteryMeter::Config config;
+    	config.voltage_ratio = 0.4;
+    	return config;
     }
 };
 

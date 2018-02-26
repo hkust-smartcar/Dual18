@@ -24,6 +24,7 @@
 #include "libbase/k60/pit.h"
 #include "libsc/lcd_typewriter.h"
 #include "libbase/k60/adc.h"
+#include "libsc/battery_meter.h"
 #include "config.h"
 #include "PID.h"
 #include "bt.h"
@@ -93,9 +94,10 @@ int main() {
     LcdConsole console(myConfig::GetConsoleConfig(&lcd));
     lcd.SetRegion(Lcd::Rect(0,0,128,160));
     lcd.FillColor(lcd.kWhite);
+    BatteryMeter battery_meter(myConfig::GetBatteryMeterConfig());
 
     DirEncoder dirEncoder(myConfig::GetEncoderConfig());
-    PID servoPID(2500,200000);
+    PID servoPID(2500,40000);
     PID motorLPID(0.3,0.0,0.0, &dirEncoder);
     PID motorRPID(0.6,0.0,0.0, &dirEncoder);
     bt mBT(&servoPID, &motorLPID, &motorRPID);
@@ -138,8 +140,8 @@ int main() {
     	led2.Switch();
     })));
 
-	servo.SetDegree(890);
-	uint8_t servo_mid = 890;
+	servo.SetDegree(900);
+	uint16_t servo_mid = 900;
     while(1){
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
@@ -170,9 +172,9 @@ int main() {
 				xRatio = (float)left_x/(right_x+left_x);
 
 				//trigger
-				if (count == 0 && ((mid_left>100 && mid_right>40) || (mid_right>100 && mid_left>40))){
+				if (count == 0 && ((mid_left>100 && mid_right>60) || (mid_right>100 && mid_left>60))){
 					detectLoop = 1;
-					if (mid_left>100 && mid_right>40){
+					if (mid_left>100 && mid_right>60){
 						left = 1;
 					}
 					else{
@@ -217,10 +219,10 @@ int main() {
 						state = inside;
 					}
 					if (left){
-						servo.SetDegree(angle<servo_mid+350?servo_mid+750:angle);
+						servo.SetDegree(angle<servo_mid+350?servo_mid+600:angle);
 					}
 					else{
-						servo.SetDegree(angle>servo_mid-350?servo_mid-750:angle);
+						servo.SetDegree(angle>servo_mid-350?servo_mid-600:angle);
 					}
 				}
 				if (state == normal || state == inside){
@@ -305,10 +307,7 @@ int main() {
 					sprintf(c,"R: %f",xRatio);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,135,128,15));
-					sprintf(c,"S: %d",servo.GetDegree());
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,150,128,10));
-					sprintf(c,"S: %d      ",(int)angle);
+					sprintf(c,"B: %f",battery_meter.GetVoltage());
 					writer.WriteBuffer(c,10);
 				}
 			}
