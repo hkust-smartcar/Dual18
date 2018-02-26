@@ -147,7 +147,7 @@ int main() {
 	bool left = 0;
 	uint8_t count = 0;
 	bool waitTrigger = 1;
-	int motor_speed = 180;
+	int motor_speed = 200;
 	int changed = 0;
 
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&changed, & motor_speed, &lcd,&right_motor, &left_motor, &start, &led2](const uint8_t id, const Joystick::State state){
@@ -175,23 +175,26 @@ int main() {
 			}
 		}
 		else if (state == Joystick::State::kUp){
-			motor_speed -= 5;
+			motor_speed += 5;
 		}
 		else if (state == Joystick::State::kDown){
 			led2.Switch();
-			motor_speed += 5;
+			motor_speed -= 5;
 		}
 
     })));
 	vector<pair<int,int>> min_xy;
 	vector<pair<int,int>> max_xy;
+	vector<pair<int,int>> mid_xy;
 
-	servo.SetDegree(978);
+	servo.SetDegree(1000);
 	int counter = 0;
 	float lastAngle = 0;
 	bool first_time = true;
 	int degree = 0;
 	bool facing = true;
+	bool exit = false;
+
     while(1){
 		if(System::Time() != lastTime){
 			lastTime = System::Time();
@@ -292,14 +295,14 @@ int main() {
 					bool min_find = false;
 					bool max_find = false;
 					bool park = false;
-					for(int i=0; i<m_vector.size(); i++){
+					for(int i=(m_vector.size()/2); i<m_vector.size(); i++){
 
-						if((m_vector[i].first<60)&&(min_find == false)){
+						if((m_vector[i].first<=78)&&(min_find == false)){
 							min_xy.push_back(make_pair(m_vector[i].first, m_vector[i].second));
 							min_find = true;
 						}
-						if((m_vector[i].first<60)){
-							if(i==0){
+						if((m_vector[i].first<=78)){
+							if(i==(m_vector.size()/2)){
 								max_xy.push_back(make_pair(m_vector[0].first, m_vector[0].second));
 							}
 							else if(m_vector[i].second>=m_vector[i-1].second){
@@ -321,7 +324,7 @@ int main() {
 							park = false;
 						}
 						else{
-							slope = ((1.0*min_xy[0].first - max_xy[0].first)/(max_xy[0].second - min_xy[0].second));
+							slope = ((max_xy[0].second - min_xy[0].second)/(1.0*min_xy[0].first - max_xy[0].first));
 							if(slope==0.0){
 								park = false;
 							}
@@ -329,28 +332,39 @@ int main() {
 						}
 					}
 					if(park == true){
-						if(ret_cam_bit(60, 55,camBuffer)==0){
-							servo.SetDegree(978+slope*20);
+						if(ret_cam_bit(35, 55,camBuffer)==0){
+							servo.SetDegree(1000+slope*250);
 							if(first_time){
-								degree = slope*20;
+								degree = slope*250;
 								first_time = false;
 							}
 						}
 						else{
 							led0.Switch();
-							servo.SetDegree(978-degree);
-							right_motor.SetPower(0);
-							left_motor.SetPower(0);
+							servo.SetDegree(1000-degree);
+//							right_motor.SetPower(0);
+//							left_motor.SetPower(0);
 							first_time = true;
 							degree = 0;
 							facing = false;
-
+							exit = true;
 						}
 						park = false;
 
 					}
 				}
-
+				bool is_black = false;
+				for(int i=0; i<70; i++){
+					if(ret_cam_bit(5+i, 55,camBuffer) == 1){
+						is_black = true;
+					}
+				}
+				if((is_black==false)&&(exit==true)){
+					exit = false;
+					servo.SetDegree(1000);
+					right_motor.SetPower(0);
+					left_motor.SetPower(0);
+				}
 
 
 				if(mode == 1){
@@ -369,7 +383,7 @@ int main() {
 //	                		lcd.FillColor(Lcd::kRed);
 //	                }
 	                for(int i=0; i<m_vector.size(); i++){
-	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 3, 3));
+	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 2, 2));
 	                		lcd.FillColor(Lcd::kGreen);
 	                }
 					lcd.SetRegion(Lcd::Rect(0,60,88,15));
