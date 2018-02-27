@@ -6,27 +6,29 @@
  */
 
 #include "../inc/PID.h"
-
+#include <cmath>
 float PID::getPID(int32_t encoderCount){
-	this->desireVelocity = desireVelocity;
-	dTime = System::Time() - lastTime;
-	if (dTime == 0){
-		dTime += 1;
-	}
-	encoder->Update();
-	currentVelocity = encoderCount;
-	currentError = desireVelocity + encoderCount;
-	float output = ((currentError) * kP) + ((accumlateError) * kI * (dTime)) + (((currentError - lastError) * kD) / (dTime)); //prevent division by 0 error
-	lastTime = System::Time();
-	accumlateError += currentError;
-	lastError = currentError;
-	if(output >= 200){
-		output = 200;
-	}
-	else if(output <= 0){
-		output = 0;
-	}
-	return output;
+	 uint32_t currentTime = System::Time();
+	 dTime = currentTime - lastTime;
+	 if(dTime ==0){
+	  dTime +=1;
+	 }
+	 if(kI ==0){
+		 kI=1;
+	 }
+	 encoder->Update();
+	 currentVelocity = std::abs(encoder->GetCount());
+	 currentError = desireVelocity - currentVelocity ;
+	 output +=(kP*(currentError - lastError) + kP*dTime * currentError/kI +(kP*kD/dTime)*((currentError - lastError)-(lastError - lastlastError)));
+	 lastTime = currentTime;
+	 lastlastError = lastError;
+	 lastError = currentError;
+	 if(output < 0){
+	  output = 0;
+	 }else if(output >= 200){
+		 output = 200;
+	 }
+	 return output;
 }
 
 float PID::getPID(float setPoint, float measuredValue){

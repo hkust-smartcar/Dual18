@@ -95,7 +95,7 @@ int main() {
     lcd.FillColor(lcd.kWhite);
 
     DirEncoder dirEncoder(myConfig::GetEncoderConfig());
-    PID servoPID(2500,200000);
+    PID servoPID(2450,23000);
     PID motorLPID(0.3,0.0,0.0, &dirEncoder);
     PID motorRPID(0.6,0.0,0.0, &dirEncoder);
     bt mBT(&servoPID, &motorLPID, &motorRPID);
@@ -121,7 +121,7 @@ int main() {
 	const float right_k = 852.0975;
 	const float h = 6.2;
 	float magRatio, xRatio;
-	int power = 140;
+	int power = 150;
 
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&power,&motor, &start, &led2](const uint8_t id, const Joystick::State state){
     	if (state == Joystick::State::kUp){
@@ -141,7 +141,7 @@ int main() {
     while(1){
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
-			if (lastTime % 10 == 0){
+			if (lastTime % 5 == 0){
 				counter ++;
 				left_mag = mag0.GetResult();
 				right_mag = mag1.GetResult();
@@ -174,9 +174,9 @@ int main() {
 					state = verynearLoop;
 					power = 90;
 					servo.SetDegree(angle);
-					if(mid_left >= 110 && left_mag > right_mag){
+					if(mid_left >= 105 && left_mag > right_mag){
 						dir = 0;
-					}else if(mid_right >= 110 && right_mag < left_mag){
+					}else if(mid_right >= 105 && right_mag < left_mag){
 						dir = 1;
 					}
 				}
@@ -185,32 +185,56 @@ int main() {
 					servo.SetDegree(angle);
 				}
 				else if(state == verynearLoop){
-					if(angle <= 800){
-						angle = 800;
-					}else if(angle >= 1100){
-						angle = 1100;
+					if(!dir){
+						if(angle <= 800){
+							angle = 800;
+						}else if(angle >= 1100){
+							angle = 1100;
+						}
+					}else{
+						if(angle <= 800){
+							angle = 800;
+						}else if(angle >= 1200){
+							angle = 1200;
+						}
 					}
 					servo.SetDegree(angle);
 				}
-				else if((state == nearLoop && (!dir?left_mag <= 90:right_mag <= 90))){
+				else if((state == nearLoop && (!dir?left_mag <= 80:right_mag <= 80))){
 					state = straight;
 					servo.SetDegree(angle);
 				}else if(state == nearLoop){
-					if(angle <= 800){
-						angle = 800;
-					}else if(angle >= 1100){
-						angle = 1100;
+					if(!dir){
+						if(angle <= 800){
+							angle = 800;
+						}else if(angle >= 1100){
+							angle = 1100;
+						}
+					}else{
+						if(angle <= 800){
+							angle = 800;
+						}else if(angle >= 1200){
+							angle = 1200;
+						}
 					}
 					servo.SetDegree(angle);
-				}else if(state == straight && (!dir?left_mag >= 90:right_mag >= 90)){
+				}else if(state == straight && (!dir?left_mag >= 80:right_mag >= 80)){
 					state = turning;
 					servo.SetDegree(angle);
-					power = 60;
+					power = 90;
 				}else if(state == straight){
-					if(angle <= 750){
-						angle = 750;
-					}else if(angle >= 1150){
-						angle = 1150;
+					if(!dir){
+						if(angle <= 800){
+							angle = 800;
+						}else if(angle >= 1100){
+							angle = 1100;
+						}
+					}else{
+						if(angle <= 800){
+							angle = 800;
+						}else if(angle >= 1200){
+							angle = 1200;
+						}
 					}
 					servo.SetDegree(angle);
 				}
@@ -220,23 +244,25 @@ int main() {
 					}else{
 						servo.SetDegree(0);
 					}
-					if(dir?((left_x+right_x)>=21 && (left_mag + right_mag) <= 120) && right_mag > left_mag:(left_x+right_x)>=21 && (left_mag + right_mag) <=120 && left_mag < right_mag){
+					if(dir?((left_x+right_x)>=21 && (left_mag + right_mag) <= 120) && right_mag > left_mag:(left_x+right_x)>=21 && (left_mag + right_mag) <= 140 && left_mag < right_mag){
 						state = inloop;
-						power = 120;
+						power = 130;
 					}
 				}
 				else if(state != turning && state != straight && state != nearLoop) {
 					servo.SetDegree(angle);
 				}
-				if(start)
-					motor.SetPower(power);
+//				if(start)
+//					motor.SetPower(power);
+				motor.SetPower(motorLPID.getPID(0));
+				mBT.sendVelocity();
 			}
 
 			if (lastTime % 100 == 0){
 				if(!start){
 					char c[10];
 					lcd.SetRegion(Lcd::Rect(0,0,128,15));
-					sprintf(c,"L: %d",left_mag);
+					sprintf(c,"L: %f",motorLPID.getcurrentVelocity());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,15,128,15));
 					sprintf(c,"R: %d",right_mag);

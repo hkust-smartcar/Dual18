@@ -38,7 +38,9 @@ private:
 	float desireVelocity = 0;
 	float accumlateError = 0;
 	float lastError = 0;
+	float lastlastError = 0;
 	float currentError = 0;
+	float output = 0;
 	DirEncoder * encoder = nullptr;
 };
 
