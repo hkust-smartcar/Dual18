@@ -192,11 +192,15 @@ int main() {
 	float lastAngle = 0;
 	bool first_time = true;
 	int degree = 0;
+	int turn_degree = 0;
 	bool facing = true;
 	bool exit = false;
-
+	bool turn_exit = false;
+	bool turn =  false;
+	int count_time = 0;
     while(1){
 		if(System::Time() != lastTime){
+
 			lastTime = System::Time();
 			if(lastTime % 100 == 0){
 				mBT.sendVelocity();
@@ -290,7 +294,7 @@ int main() {
 				if (state == nearLoop){
 //					servo.SetDegree(angle);
 				}
-
+//				bool turn =  false;
 				if(facing == true){
 					bool min_find = false;
 					bool max_find = false;
@@ -328,42 +332,80 @@ int main() {
 							if(slope==0.0){
 								park = false;
 							}
+							else if(slope < 0.14){
+								turn = true;
+							}
 							park = true;
 						}
 					}
 					if(park == true){
-						if(ret_cam_bit(35, 55,camBuffer)==0){
-							servo.SetDegree(1000+slope*250);
+						if((ret_cam_bit(35, 55,camBuffer)==0)&&(turn == false)){
+							servo.SetDegree(1000+slope*350);
 							if(first_time){
-								degree = slope*250;
+								degree = slope*350;
+								first_time = false;
+							}
+						}
+						else if((ret_cam_bit(35, 55,camBuffer)==0)&&(turn == true)){
+							led1.Switch();
+							servo.SetDegree(1000+slope*400);
+							if(first_time){
+								turn_degree = slope*500;
 								first_time = false;
 							}
 						}
 						else{
-							led0.Switch();
-							servo.SetDegree(1000-degree);
+
+							if(turn == true){
+								led0.Switch();
+								servo.SetDegree(700);//need to be change
+							}
+							else{
+								servo.SetDegree(1000-degree);
+							}
 //							right_motor.SetPower(0);
 //							left_motor.SetPower(0);
 							first_time = true;
 							degree = 0;
 							facing = false;
 							exit = true;
+							turn_exit = true;
 						}
 						park = false;
 
 					}
 				}
 				bool is_black = false;
-				for(int i=0; i<70; i++){
-					if(ret_cam_bit(5+i, 55,camBuffer) == 1){
-						is_black = true;
+				if(turn==false){
+					for(int i=0; i<70; i++){
+						if(ret_cam_bit(5+i, 55,camBuffer) == 1){
+							is_black = true;
+						}
+					}
+					if((is_black==false)&&(exit==true)){
+						exit = false;
+						servo.SetDegree(1000);
+						right_motor.SetPower(0);
+						left_motor.SetPower(0);
 					}
 				}
-				if((is_black==false)&&(exit==true)){
-					exit = false;
-					servo.SetDegree(1000);
-					right_motor.SetPower(0);
-					left_motor.SetPower(0);
+				bool is_turn_black = false;
+				if(turn==true){
+					for(int j=0;j<10; j++){
+						for(int i=0; i<70; i++){
+							if(ret_cam_bit(5+i, 50+j,camBuffer) == 1){
+								is_turn_black = true;
+							}
+						}
+					}
+					if((is_turn_black==false)&&(turn_exit==true)){
+						led2.Switch();
+						turn_exit = false;
+						servo.SetDegree(1000);
+						right_motor.SetPower(0);
+						left_motor.SetPower(0);
+						turn = false;
+					}
 				}
 
 
@@ -376,25 +418,27 @@ int main() {
 					for(int i=0; i<10; i++){
 						c[i] = ' ';
 					}
-	                lcd.SetRegion(Lcd::Rect(0, 0, Width, Height));
-	                lcd.FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
+//	                lcd.SetRegion(Lcd::Rect(0, 0, Width, Height));
+//	                lcd.FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
+////	                for(int i=0; i<m_vector.size(); i++){
+////	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 3, 3));
+////	                		lcd.FillColor(Lcd::kRed);
+////	                }
 //	                for(int i=0; i<m_vector.size(); i++){
-//	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 3, 3));
-//	                		lcd.FillColor(Lcd::kRed);
+//	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 2, 2));
+//	                		lcd.FillColor(Lcd::kGreen);
 //	                }
-	                for(int i=0; i<m_vector.size(); i++){
-	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 2, 2));
-	                		lcd.FillColor(Lcd::kGreen);
-	                }
-					lcd.SetRegion(Lcd::Rect(0,60,88,15));
-					sprintf(c,"U:%d %d", min_xy[0].first, min_xy[0].second);//min_find
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,75,88,15));
-					sprintf(c,"D:%d %d", max_xy[0].first, max_xy[0].second);//max_find
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,90,88,15));
-					sprintf(c,"M:%.3f", slope);//slope
-					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,60,88,15));
+//					sprintf(c,"U:%d %d", min_xy[0].first, min_xy[0].second);//min_find
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,75,88,15));
+//					sprintf(c,"D:%d %d", max_xy[0].first, max_xy[0].second);//max_find
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,90,88,15));
+//					sprintf(c,"M:%.3f", slope);//slope
+//					writer.WriteBuffer(c,10);
+
+
 //	                lcd.SetRegion(Lcd::Rect(0, 100, Width, 15));
 //					sprintf(c,"x: %d ",m_vector);
 //					writer.WriteBuffer(c,10);
@@ -416,21 +460,21 @@ int main() {
 					for(int i=0; i<10; i++){
 						c[i] = ' ';
 					}
-					lcd.SetRegion(Lcd::Rect(0,0,88,15));
-					sprintf(c,"L: %d ",left_mag);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,15,88,15));
-					sprintf(c,"R: %d ",right_mag);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,30,88,15));
-					sprintf(c,"ML: %d ",mid_l_mag);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,45,88,15));
-					sprintf(c,"MR: %d ",mid_r_mag);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,60,88,15));
-					sprintf(c,"MS: %d ", motor_speed);
-					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,0,88,15));
+//					sprintf(c,"L: %d ",left_mag);
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,15,88,15));
+//					sprintf(c,"R: %d ",right_mag);
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,30,88,15));
+//					sprintf(c,"ML: %d ",mid_l_mag);
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,45,88,15));
+//					sprintf(c,"MR: %d ",mid_r_mag);
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,60,88,15));
+//					sprintf(c,"MS: %d ", motor_speed);
+//					writer.WriteBuffer(c,10);
 				}
 
 //				lcd.SetRegion(Lcd::Rect(0,30,128,15));
