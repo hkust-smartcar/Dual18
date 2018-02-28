@@ -37,7 +37,7 @@ float PID::getPID(float setPoint, float measuredValue){
 	}
 	currentVelocity = measuredValue;
 	currentError = (setPoint - measuredValue);
-	float output = ((currentError * currentError)/ 2 * kP) + ((currentError - lastError) * kD) / (dTime);
+	float output = ((currentError) * kP) + ((currentError - lastError) * kD) / (dTime);
 	lastTime = System::Time();
 	lastError = currentError;
 	if(output >= 900){

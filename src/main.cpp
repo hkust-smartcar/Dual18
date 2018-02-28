@@ -130,7 +130,7 @@ int main() {
 	int8_t encoderSign = -1;
 
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&motor, &start, &led2, &speed](const uint8_t id, const Joystick::State state){
-    	if (state == Joystick::State::kUp){
+    	if (state == Joystick::State::kSelect){
     		start = true;
     		speed += 10;
 			motor.SetPower(speed);
@@ -190,9 +190,9 @@ int main() {
 				}
 				xRatio = (float)left_x/(right_x+left_x);
 
-				if (count == 0 && ((mid_left>100 && mid_right>60 && left_mag>right_mag) || (mid_right>100 && mid_left>60 && right_mag>left_mag))){
+				if (count == 0 && ((mid_left>100 && mid_right>40 && left_mag>right_mag) || (mid_right>100 && mid_left>40 && right_mag>left_mag)) && mid_left+mid_right>150){
 					detectLoop = 1;
-					if (mid_left>100 && mid_right>60 && left_mag>right_mag){
+					if (mid_left>100 && mid_right>40 && left_mag>right_mag){
 						left = 1;
 					}
 					else{
@@ -208,24 +208,24 @@ int main() {
 					}
 					else if (count > 2 && state == inside){
 						state = exit1;
-//						lcd.SetRegion(Lcd::Rect(0,0,128,10));
-//						lcd.FillColor(0x0EE0);
+						lcd.SetRegion(Lcd::Rect(0,0,128,10));
+						lcd.FillColor(0x0EE0);
 					}
 				}
 				if (!waitTrigger && left_mag <= 75 && right_mag <= 75 && left_mag+right_mag <= 135){
 					waitTrigger = 1;
 				}
-				if (!waitTrigger && state == exit1 && left_mag <= 90 && right_mag <= 90){
+				if (!waitTrigger && state == exit1 && left_mag <= 90 && right_mag <= 90 && 0.3 < xRatio && xRatio < 0.7 && left_x+right_x > 10){
 					state = exit2;
-//					lcd.SetRegion(Lcd::Rect(0,0,128,10));
-//					lcd.FillColor(0x001F);
+					lcd.SetRegion(Lcd::Rect(0,0,128,10));
+					lcd.FillColor(0x001F);
 				}
 				if(state == exit2 && left_x+right_x > 20){
 					detectLoop = 0;
 					state = normal;
 					count = 0;
-//					lcd.SetRegion(Lcd::Rect(0,0,128,10));
-//					lcd.FillColor(0xFFFF);
+					lcd.SetRegion(Lcd::Rect(0,0,128,10));
+					lcd.FillColor(0xFFFF);
 				}
 
 				angle = servoPID.getPID(0.5,xRatio);
@@ -279,21 +279,21 @@ int main() {
 				if(start){
 					dirEncoder.Update();
 					int32_t temp = -dirEncoder.GetCount();
-					if (temp>670){
+					if (temp>530){
 						speed -= 3;
 					}
-					else if (temp<630){
+					else if (temp<510){
 						speed += 3;
 					}
 					speed = min(170,max(speed,90));
 					motor.SetPower(speed);
-					char c[10];
-					lcd.SetRegion(Lcd::Rect(0,0,128,15));
-					sprintf(c,"M: %d",motor.GetPower());
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,15,128,15));
-					sprintf(c,"E: %d",temp);
-					writer.WriteBuffer(c,10);
+//					char c[10];
+//					lcd.SetRegion(Lcd::Rect(0,0,128,15));
+//					sprintf(c,"M: %d",motor.GetPower());
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,15,128,15));
+//					sprintf(c,"E: %d",temp);
+//					writer.WriteBuffer(c,10);
 				}
 				else{
 					led3.Switch();
@@ -339,8 +339,11 @@ int main() {
 					}else if (state == inside){
 						lcd.FillColor(0x0000);
 					}
-					lcd.SetRegion(Lcd::Rect(0,90,128,15));
-					sprintf(c,"A: %d",servo.GetDegree());
+					lcd.SetRegion(Lcd::Rect(0,120,128,15));
+					sprintf(c,"R: %f",xRatio);
+					writer.WriteBuffer(c,10);
+					lcd.SetRegion(Lcd::Rect(0,135,128,15));
+					sprintf(c,"S: %f",left_x+right_x);
 					writer.WriteBuffer(c,10);
 				}
 			}
