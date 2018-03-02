@@ -32,6 +32,7 @@
 #include "edge.h"
 #include "facing.h"
 
+#define pi 3.1415926
 
 namespace libbase
 {
@@ -149,9 +150,11 @@ int main() {
 	uint8_t count = 0;
 	bool waitTrigger = 1;
 	int motor_speed = 200;
+	int right_motor_speed = 200;
+	int left_motor_speed = 200;
 	int changed = 0;
 
-    Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&changed, & motor_speed, &lcd,&right_motor, &left_motor, &start, &led2](const uint8_t id, const Joystick::State state){
+    Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&changed, & right_motor_speed, &left_motor_speed, &lcd,&right_motor, &left_motor, &start, &led2](const uint8_t id, const Joystick::State state){
 		if(state == Joystick::State::kLeft){//magnetic mode
 //			lcd.Clear();
 			changed = 1;
@@ -166,8 +169,8 @@ int main() {
 			stop++;
 			if(stop%2==1){
 				start = true;
-				right_motor.SetPower(motor_speed);
-				left_motor.SetPower(motor_speed);
+				right_motor.SetPower(right_motor_speed);
+				left_motor.SetPower(left_motor_speed);
 			}
 			else{
 				start = false;
@@ -176,11 +179,12 @@ int main() {
 			}
 		}
 		else if (state == Joystick::State::kUp){
-			motor_speed += 5;
+			right_motor_speed += 5;
+			left_motor_speed += 5;
 		}
 		else if (state == Joystick::State::kDown){
-			led2.Switch();
-			motor_speed -= 5;
+			right_motor_speed -= 5;
+			left_motor_speed -= 5;
 		}
 
     })));
@@ -189,24 +193,19 @@ int main() {
 	vector<pair<int,int>> mid_xy;
 
 	servo.SetDegree(1000);
-	int counter = 0;
-	float lastAngle = 0;
+
+	//The variables for facing
 	bool first_time = true;
 	int degree = 0;
 	int turn_degree = 0;
-
 	bool turn_exit = false;
 	bool turn =  false;
-	int count_time = 0;
-
-
-
-	bool prevent_enter_again = false;
-	bool enter_turn = false;
-	bool enter_straight = false;
 	bool facing = true;
 	bool exit = false;
-	bool exit_turn = false;
+	bool park = false;
+	double slope = 0;
+	bool has_enter_turn_loop = false;
+
     while(1){
 		if(System::Time() != lastTime){
 
@@ -218,8 +217,10 @@ int main() {
 			if (lastTime % 10 == 0){
 				const Byte* camBuffer = camera.LockBuffer();
                 camera.UnlockBuffer();
+
                 vector<pair<int,int>> m_vector;
-                double slope = 0;
+
+
 //                Facing m_facing(&servo, &led0, &led1, &led2, &led3, camBuffer, &right_motor, &left_motor);
 
                 for (int i=0; i<min_xy.size(); i++){
@@ -353,11 +354,11 @@ int main() {
 //				}
 
 
-
+//facing program start here
 				if(facing == true){
 					bool min_find = false;
 					bool max_find = false;
-					bool park = false;
+
 					for(int i=(m_vector.size()/2); i<m_vector.size(); i++){
 
 						if((m_vector[i].first<=78)&&(min_find == false)){
@@ -381,7 +382,7 @@ int main() {
 					if(max_find==false){
 						max_xy.push_back(make_pair(0,0));
 					}
-					if((min_find==true)&&(max_find==true)){
+					if((min_find==true)&&(max_find==true)&&(park==false)){
 						if(min_xy[0].second == max_xy[0].second){
 							slope = 0.0;
 							park = false;
@@ -391,36 +392,62 @@ int main() {
 							if(slope==0.0){
 								park = false;
 							}
-							else if(slope < 0.14){
+//							else if(slope < 0.14){
+//								slope = 0.14;
+//								turn = true;
+//								park = true;
+//							}
+							else if(slope < 0.18){
 								turn = true;
+								park = true;
+								right_motor_speed = 150;
+								left_motor_speed = 150;
+								led0.Switch();
 							}
-							park = true;
+							else{
+								park = true;
+							}
 						}
 					}
 
 					if(park == true){
-						if((ret_cam_bit(35, 55,camBuffer)==0)&&(turn == false)){
+
+						if((ret_cam_bit(30, 55,camBuffer)==0)&&(turn == false)){
 							servo.SetDegree(1000+slope*350);
 							if(first_time){
 								degree = slope*350;
 								first_time = false;
 							}
 						}
-						else if((ret_cam_bit(35, 55,camBuffer)==0)&&(turn == true)){
-							led1.Switch();
-							servo.SetDegree(1000+slope*400);
+						else if((ret_cam_bit(40, 55,camBuffer)==0)&&(turn == true)){
+
+							servo.SetDegree(1000+slope*1000);
 							if(first_time){
-								turn_degree = slope*500;
+								turn_degree = slope*1500;
 								first_time = false;
 							}
+
 						}
 						else{
-
-							if(turn == true){
-								led0.Switch();
-								servo.SetDegree(710);//need to be change
+							if((turn == true)){
+//								led0.Switch();
+//								servo.SetDegree(710);//need to be change
+//								right_motor.SetPower(motor_speed);
+//								left_motor.SetPower(motor_speed);
+								double alpha = 0;
+								double difference = 0;
+								alpha = ((290/10.0)*pi)/180;
+								difference = 0.13*alpha;//0.13 == the width of the car
+//								right_motor.SetPower(right_motor_speed);
+								left_motor_speed = right_motor_speed+50+(200*difference);
+								servo.SetDegree(1000 - turn_degree);//need to be change
 							}
 							else{
+								double alpha = 0;
+								double difference = 0;
+								alpha = ((degree/10.0)*pi)/180;
+								difference = 0.13*alpha;//0.13 == the width of the car
+								left_motor_speed = right_motor_speed+(200*difference);
 								servo.SetDegree(1000-degree);
 							}
 //							right_motor.SetPower(0);
@@ -430,43 +457,85 @@ int main() {
 							facing = false;
 							exit = true;
 							turn_exit = true;
+							park = false;
 						}
-						park = false;
-
+//						park = false;
 					}
 				}
+
 				bool is_black = false;
-				if(turn==false){
+
+
+				if((turn==false)&&(exit==true)){
 					for(int i=0; i<70; i++){
 						if(ret_cam_bit(5+i, 55,camBuffer) == 1){
 							is_black = true;
 						}
 					}
-					if((is_black==false)&&(exit==true)){
+					if((is_black==false)){
 						exit = false;
 						servo.SetDegree(1000);
 						right_motor.SetPower(0);
 						left_motor.SetPower(0);
 					}
 				}
+
+
 				bool is_turn_black = false;
-				if(turn==true){
-					for(int j=0;j<10; j++){
-						for(int i=0; i<70; i++){
-							if(ret_cam_bit(5+i, 50+j,camBuffer) == 1){
-								is_turn_black = true;
+				if((turn==true)&&(turn_exit==true)){
+					has_enter_turn_loop = false;
+					if(has_enter_turn_loop == false){
+						for(int j=0;j<10; j++){
+							for(int i=0; i<70; i++){
+								if(ret_cam_bit(5+i, 50+j,camBuffer) == 1){
+//									is_turn_black = true;
+									has_enter_turn_loop = true;
+								}
 							}
 						}
 					}
-					if((is_turn_black==false)&&(turn_exit==true)){
-						led2.Switch();
+
+					if(has_enter_turn_loop){
+//						led1.Switch();
+						bool no_black = true;
+						for(int j=0;j<20; j++){
+							for(int i=0; i<70; i++){
+								if(ret_cam_bit(5+i, 40+j,camBuffer) == 1){
+									no_black = false;
+									led2.Switch();
+								}
+							}
+						}
+						if(no_black == false){//having a bug here do something to adjust it tmr
+							led1.Switch();
+							for(int j=0;j<20; j++){
+								for(int i=0; i<5; i++){
+									if(ret_cam_bit(74+i, 40+j,camBuffer) == 1){
+										is_turn_black = true;
+										has_enter_turn_loop = true;
+									}
+								}
+							}
+						}
+						else{
+							is_turn_black = true;
+						}
+					}
+					else{
+						is_turn_black = true;
+					}
+					if((is_turn_black==false)){
+						led3.Switch();
 						turn_exit = false;
 						servo.SetDegree(1000);
 						right_motor.SetPower(0);
 						left_motor.SetPower(0);
 						turn = false;
+						has_enter_turn_loop = false;
 					}
 				}
+//facing program ends here
+
 
 
 				if(mode == 1){
@@ -484,6 +553,7 @@ int main() {
 //	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 3, 3));
 //	                		lcd.FillColor(Lcd::kRed);
 //	                }
+
 	                for(int i=0; i<m_vector.size(); i++){
 	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 2, 2));
 	                		lcd.FillColor(Lcd::kRed);
