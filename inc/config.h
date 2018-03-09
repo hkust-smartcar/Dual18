@@ -24,6 +24,7 @@
 #include "libsc/dir_encoder.h"
 #include "libbase/k60/adc.h"
 #include <libsc/futaba_s3010.h>
+#include <libsc/servo.h>
 #include <libsc/alternate_motor.h>
 #include "libsc/battery_meter.h"
 
@@ -41,6 +42,7 @@ using libsc::DirEncoder;
 using libbase::k60::Adc;
 using libsc::FutabaS3010;
 using libsc::AlternateMotor;
+using libsc::Servo;
 
 class myConfig{
 public:
@@ -97,9 +99,9 @@ public:
     	return pitConfig;
     }
 
-    static DirEncoder::Config GetEncoderConfig(){
+    static DirEncoder::Config GetEncoderConfig(int id){
     	DirEncoder::Config config;
-    	config.id = 0;
+    	config.id = id;
     	return config;
     }
 
@@ -112,10 +114,10 @@ public:
     		config.adc = Adc::Name::kAdc0Ad9;
     	}
     	else if (id == 2){
-    		config.adc = Adc::Name::kAdc1Ad7B;
+    		config.adc = Adc::Name::kAdc1Ad6B;
     	}
     	else {
-    		config.adc = Adc::Name::kAdc1Ad6B;
+    		config.adc = Adc::Name::kAdc1Ad7B;
     	}
     	config.resolution = Adc::Config::Resolution::k8Bit;
     	config.speed = Adc::Config::SpeedMode::kExSlow;
@@ -124,15 +126,15 @@ public:
     	return config;
     }
 
-    static FutabaS3010::Config GetServoConfig(){
+    static FutabaS3010::Config GetFutabaS3010Config(){
     		FutabaS3010::Config config;
     		config.id = 0;
     		return config;
     }
 
-    static AlternateMotor::Config GetMotorConfig(){
+    static AlternateMotor::Config GetMotorConfig(int id){
     		AlternateMotor::Config config;
-    		config.id = 1;
+    		config.id = id;
     		config.multiplier = 100;
     		return config;
     }
@@ -140,6 +142,15 @@ public:
     static BatteryMeter::Config GetBatteryMeterConfig(){
     	BatteryMeter::Config config;
     	config.voltage_ratio = 0.4;
+    	return config;
+    }
+
+    static Servo::Config GetServoConfig(uint8_t id) {
+    	Servo::Config config;
+    	config.id = id;
+    	config.period = 3333;
+    	config.max_pos_width = 2000;
+    	config.min_pos_width = 1000;
     	return config;
     }
 };

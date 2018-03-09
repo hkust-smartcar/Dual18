@@ -6,28 +6,29 @@
  */
 
 #include "../inc/PID.h"
-
+#include <cmath>
 float PID::getPID(int32_t encoderCount){
-	this->desireVelocity = desireVelocity;
-	uint32_t nowTime = System::Time();
-	dTime = nowTime - lastTime;
-	if (dTime == 0){
-		dTime += 1;
-	}
-	encoder->Update();
-	currentVelocity = (0 - encoder->GetCount() / dTime);
-	currentError = (desireVelocity - currentVelocity);
-	accumlateError += encoderCount;
-	float output = ((currentError) * kP) + ((accumlateError) * kI * (dTime)) + (((currentError - lastError) * kD) / (dTime));
-	lastError = currentError;
-	lastTime = nowTime;
-	if(output >= 200){
-		output = 200;
-	}
-	else if(output <= 0){
-		output = 0;
-	}
-	return output;
+	 uint32_t currentTime = System::Time();
+	 dTime = currentTime - lastTime;
+	 if(dTime ==0){
+	  dTime +=1;
+	 }
+	 if(kI ==0){
+		 kI=1;
+	 }
+	 encoder->Update();
+	 currentVelocity = std::abs(encoder->GetCount());
+	 currentError = desireVelocity - currentVelocity ;
+	 output +=(kP*(currentError - lastError) + kP*dTime * currentError/kI +(kP*kD/dTime)*((currentError - lastError)-(lastError - lastlastError)));
+	 lastTime = currentTime;
+	 lastlastError = lastError;
+	 lastError = currentError;
+//	 if(output < 0){
+//	  output = 0;
+//	 }else if(output >= 200){
+//		 output = 200;
+//	 }
+	 return output;
 }
 
 float PID::getPID(float setPoint, float measuredValue){
@@ -36,7 +37,7 @@ float PID::getPID(float setPoint, float measuredValue){
 		dTime += 1;
 	}
 	currentVelocity = measuredValue;
-	currentError = (setPoint - measuredValue);
+	currentError = setPoint - measuredValue;
 	float output = ((currentError) * kP) + ((currentError - lastError) * kD) / (dTime);
 	lastTime = System::Time();
 	lastError = currentError;
@@ -51,4 +52,3 @@ float PID::getPID(float setPoint, float measuredValue){
 PID::~PID() {
 	// TODO Auto-generated destructor stub
 }
-
