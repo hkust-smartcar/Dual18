@@ -1,8 +1,5 @@
-obj/main-d-2017-inno.o: src/main.cpp \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/mcg.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/mcg_c.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/system.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/timer.h \
+obj/bluetooth-d-2017-inno.o: src/bluetooth.cpp inc/bluetooth.h \
+ inc/config.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/led.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/helper.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/gpio.h \
@@ -17,9 +14,6 @@ obj/main-d-2017-inno.o: src/main.cpp \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/pinout_macros.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/pinout/mk60f15_lqfp144_macros.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/pin.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/jy_mcu_bt_106.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/uart.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/uart_device.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/joystick.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/st7735r.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_spi_master.h \
@@ -28,13 +22,15 @@ obj/main-d-2017-inno.o: src/main.cpp \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/config.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/config/2017_inno.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/lcd.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/battery_meter.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/adc.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/pit.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/lcd_typewriter.h \
- inc/config.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/lcd_console.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libutil/misc.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/battery_meter.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/adc.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/jy_mcu_bt_106.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/uart.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/uart_device.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/pit.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/dir_encoder.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/encoder.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/pinout_macros.h \
@@ -54,5 +50,7 @@ obj/main-d-2017-inno.o: src/main.cpp \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_sccb_master.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_i2c_master.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/i2c_master_interface.h \
- inc/PID.h inc/bt.h inc/PID.h inc/config.h inc/corner.h inc/edge.h \
- inc/facing.h inc/edge.h inc/bluetooth.h
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/mcg.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/mcg_c.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/system.h \
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/timer.h

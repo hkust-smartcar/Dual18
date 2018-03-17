@@ -98,6 +98,14 @@ public:
     	return config;
     }
 
+    static JyMcuBt106::Config GetSlaveBluetoothConfig() {
+        //TODO: finish it
+    	JyMcuBt106::Config config;
+    	config.id = 0;
+    	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k9600;
+    	return config;
+    }
+
     static Pit::Config GetBluetoothPitConfig(std::function<void(Pit*)> isr){
     	//TODO: finish it
     	Pit::Config pitConfig;

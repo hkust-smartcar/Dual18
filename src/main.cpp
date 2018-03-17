@@ -31,6 +31,7 @@
 #include "corner.h"
 #include "edge.h"
 #include "facing.h"
+#include "bluetooth.h"
 
 #define pi 3.1415926
 
@@ -164,7 +165,7 @@ int main() {
     PID servoPID(2500,40000);
     PID motorLPID(0.3,0.0,0.0, &dirEncoder);
     PID motorRPID(0.6,0.0,0.0, &dirEncoder);
-    bt mBT(&servoPID, &motorLPID, &motorRPID);
+//    bt mBT(&servoPID, &motorLPID, &motorRPID);
     typedef enum {
 		normal = 0,
 		nearLoop,
@@ -199,7 +200,7 @@ int main() {
 			changed = 1;
 			mode = 0;//magnetic mode
 		}
-		else if(state == Joystick::State::kRight){//camera mode
+		else if(state == Joystick::State::kUp){//camera mode
 //			lcd.Clear();
 			changed = 1;
 			mode = 1;
@@ -234,6 +235,7 @@ int main() {
 	servo.SetDegree(1000);
 
 	//The variables for facing
+	bool facing = false;
 	bool first_time = true;
 	int degree = 0;
 	int turn_degree = 0;
@@ -241,7 +243,6 @@ int main() {
 	bool inner_turn_exit = false;
 	bool turn =  false;
 	bool inner_turn = false;
-	bool facing = true;
 	bool exit = false;
 	bool park = false;
 	double slope = 0;
@@ -249,22 +250,29 @@ int main() {
 	bool has_enter_turn_loop = false;
 	bool do_not_enter = false;
 
-
+	//bluetooth communicate
+	const bool is_slave = true;//different MCU, different value
+	vector<pair<int,int>> temp;
+	bool work = false;
+	bool do_not_change_m = false;
+	bool do_not_change_s = false;
+//	M_Bluetooth m_master_bluetooth;
+	S_Bluetooth m_slave_bluetooth;
+    vector<pair<int,int>> m_slave_vector;
+    vector<pair<int,int>> m_master_vector;
+    vector<pair<int,int>> m_vector;
 
     while(1){
 		if(System::Time() != lastTime){
 
 			lastTime = System::Time();
 			if(lastTime % 100 == 0){
-				mBT.sendVelocity();
+//				mBT.sendVelocity();
 			}
 
 			if (lastTime % 10 == 0){
 				const Byte* camBuffer = camera.LockBuffer();
                 camera.UnlockBuffer();
-
-                vector<pair<int,int>> m_vector;
-
 
 //                Facing m_facing(&servo, &led0, &led1, &led2, &led3, camBuffer, &right_motor, &left_motor);
 
@@ -275,82 +283,106 @@ int main() {
                 		max_xy.erase(max_xy.begin());
                 }
 
-				left_mag = mag0.GetResult();
-				right_mag = mag1.GetResult();
-				mid_l_mag = mag2.GetResult();
-				mid_r_mag = mag3.GetResult();
+				left_mag = 0;
+				right_mag = 0;
+				mid_l_mag = 0;
+				mid_r_mag = 0;
 
 //				m_vector = check_corner(camBuffer);
-				m_vector = check_edge(camBuffer);
+//				m_vector = check_edge(camBuffer);
 
-				if (left_k*h/left_mag < h*h){
-					left_x = 0;
-				}
-				else{
-					left_x = _sqrt(left_k*h/left_mag-h*h);
-				}
-				if (right_k*h/right_mag < h*h){
-					right_x = 0;
-				}
-				else{
-					right_x = _sqrt(right_k*h/right_mag-h*h);
+//				if (left_k*h/left_mag < h*h){
+//					left_x = 0;
+//				}
+//				else{
+//					left_x = _sqrt(left_k*h/left_mag-h*h);
+//				}
+//				if (right_k*h/right_mag < h*h){
+//					right_x = 0;
+//				}
+//				else{
+//					right_x = _sqrt(right_k*h/right_mag-h*h);
+//				}
+//
+//				xRatio = (float)left_x/(right_x+left_x);
+//				angle = servoPID.getPID(0.5,xRatio);
+//				angle += 900;
+//				if (angle > 1800) {
+//					angle = 1800;
+//				}
+//				else if (angle < 0){
+//					angle = 0;
+//				}
+//				//trigger
+//				if (waitTrigger && left_x+right_x <= 20 && (left_mag > 100 || right_mag > 100)){
+//					count++;
+//					waitTrigger = 0;
+//					if (count % 3 == 1){
+//						if (left_mag > 100){
+//							left = 1;
+//						}
+//						else{
+//							left = 0;
+//						}
+//						state = nearLoop;
+//					}
+//					else if (count % 3 == 2){
+//						state = turning;
+//					}
+//					else{
+//						state = normal;
+//					}
+////					lcd.SetRegion(Lcd::Rect(0,0,100,100));
+////					lcd.FillColor(0xFFF0);
+//				}
+//				if (!waitTrigger && left_mag <= 80 && right_mag <= 80){
+//					waitTrigger = 1;
+//				}
+//
+//				if (state == turning){
+//					if (left && right_mag <= 40){
+//						state = inside;
+//					}
+//					else if (!left && left_mag <= 40){
+//						state = inside;
+//					}
+//					if (left){
+////						servo.SetDegree(1800);
+//					}
+//					else{
+////						servo.SetDegree(0);
+//					}
+//				}
+//				if (state == normal || state == inside){
+////					servo.SetDegree(angle);
+//				}
+//				if (state == nearLoop){
+////					servo.SetDegree(angle);
+//				}
+
+
+
+// bluetooth send image
+
+				if(is_slave){
+					check_right_edge(camBuffer, m_slave_vector);
+					m_slave_bluetooth.send_edge(m_slave_vector);
 				}
 
-				xRatio = (float)left_x/(right_x+left_x);
-				angle = servoPID.getPID(0.5,xRatio);
-				angle += 900;
-				if (angle > 1800) {
-					angle = 1800;
-				}
-				else if (angle < 0){
-					angle = 0;
-				}
-				//trigger
-				if (waitTrigger && left_x+right_x <= 20 && (left_mag > 100 || right_mag > 100)){
-					count++;
-					waitTrigger = 0;
-					if (count % 3 == 1){
-						if (left_mag > 100){
-							left = 1;
-						}
-						else{
-							left = 0;
-						}
-						state = nearLoop;
-					}
-					else if (count % 3 == 2){
-						state = turning;
-					}
-					else{
-						state = normal;
-					}
-//					lcd.SetRegion(Lcd::Rect(0,0,100,100));
-//					lcd.FillColor(0xFFF0);
-				}
-				if (!waitTrigger && left_mag <= 80 && right_mag <= 80){
-					waitTrigger = 1;
-				}
+//				if(!is_slave){//master
+//
+//					std::vector<std::pair<int,int>> temp = m_master_bluetooth.get_m_edge();
+//					check_left_edge(camBuffer, m_master_vector);
+//
+//					for(int i=0; i<temp.size(); i++){
+//						m_master_vector.emplace_back(temp[i]);
+//					}
+//					m_master_bluetooth.reset_m_edge();
+//					temp.clear();
+//				}
 
-				if (state == turning){
-					if (left && right_mag <= 40){
-						state = inside;
-					}
-					else if (!left && left_mag <= 40){
-						state = inside;
-					}
-					if (left){
-//						servo.SetDegree(1800);
-					}
-					else{
-//						servo.SetDegree(0);
-					}
-				}
-				if (state == normal || state == inside){
-//					servo.SetDegree(angle);
-				}
-				if (state == nearLoop){
-//					servo.SetDegree(angle);
-				}
+
+
 
 
 //facing program start here
@@ -546,7 +578,6 @@ int main() {
 							has_enter_turn_loop = false;
 						}
 					}
-
 				}
 
 
@@ -569,26 +600,42 @@ int main() {
 //	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 3, 3));
 //	                		lcd.FillColor(Lcd::kRed);
 //	                }
-
-	                for(int i=0; i<m_vector.size(); i++){
-	                		lcd.SetRegion(Lcd::Rect(m_vector[i].first, m_vector[i].second, 2, 2));
-	                		lcd.FillColor(Lcd::kRed);
+	                if(is_slave){
+//	                	led0.Switch();
+						for(int i=0; i<m_slave_vector.size(); i++){
+								lcd.SetRegion(Lcd::Rect(m_slave_vector[i].first, m_slave_vector[i].second, 2, 2));
+								lcd.FillColor(Lcd::kBlue);
+						}
 	                }
-					lcd.SetRegion(Lcd::Rect(0,60,88,15));
-					sprintf(c,"U:%d %d", min_xy[0].first, min_xy[0].second);//min_find
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,75,88,15));
-					sprintf(c,"D:%d %d", max_xy[0].first, max_xy[0].second);//max_find
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,90,88,15));
-					sprintf(c,"M:%.3f", m_slope);//slope
-					writer.WriteBuffer(c,10);
-
-
-//	                lcd.SetRegion(Lcd::Rect(0, 100, Width, 15));
-//					sprintf(c,"x: %d ",m_vector);
+	                else{
+						for(int i=0; i<m_master_vector.size(); i++){
+								lcd.SetRegion(Lcd::Rect(m_master_vector[i].first, m_master_vector[i].second, 2, 2));
+								lcd.FillColor(Lcd::kRed);
+						}
+	                }
+//					lcd.SetRegion(Lcd::Rect(0,60,88,15));
+//					sprintf(c,"U:%d %d", min_xy[0].first, min_xy[0].second);//min_find
 //					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,75,88,15));
+//					sprintf(c,"D:%d %d", max_xy[0].first, max_xy[0].second);//max_find
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,90,88,15));
+//					sprintf(c,"M:%.3f", m_slope);//slope
+//					writer.WriteBuffer(c,10);
+					if(is_slave){
+						lcd.SetRegion(Lcd::Rect(0,60,88,15));
+						sprintf(c,"Slave");
+						writer.WriteBuffer(c,10);
+					}
+					else{
+						lcd.SetRegion(Lcd::Rect(0,60,88,15));
+						sprintf(c,"Master");
+						writer.WriteBuffer(c,10);
+					}
 				}
+				m_vector.clear();
+				m_slave_vector.clear();
+				m_master_vector.clear();
 			}
 
 			if (lastTime % 100 == 0){
@@ -622,41 +669,6 @@ int main() {
 					sprintf(c,"MS: %d ", motor_speed);
 					writer.WriteBuffer(c,10);
 				}
-
-//				lcd.SetRegion(Lcd::Rect(0,30,128,15));
-//				sprintf(c,"X: %f",left_x);
-//				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,45,128,15));
-//				sprintf(c,"X: %f",right_x);
-//				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,60,128,15));
-//				sprintf(c,"D: %d",dir);
-//				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,75,128,15));
-//				sprintf(c,"L: %d",lastTime);
-//				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,90,128,15));
-//				sprintf(c,"G: %d",greenTime);
-//				writer.WriteBuffer(c,10);
-//				lcd.SetRegion(Lcd::Rect(0,105,128,15));
-//				if (state == normal){
-//						lcd.FillColor(0xFF00);
-//				}
-//				else if (state == nearLoop){
-//					if (dir){
-//						lcd.SetRegion(Lcd::Rect(64,105,64,15));
-//					}
-//					else{
-//						lcd.SetRegion(Lcd::Rect(0,105,64,15));
-//					}
-//					lcd.FillColor(0x0FF0);
-//				}
-//				else if (state == turning){
-//					lcd.FillColor(0x00FF);
-//				}
-//				else if (state == inside){
-//					lcd.FillColor(0x0000);
-//				}
 
 			}
 		}

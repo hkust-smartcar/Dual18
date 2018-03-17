@@ -1,7 +1,7 @@
 /*
  * Bluetooth.h
  *
- *  Created on: 2018¦~2¤ë5¤é
+ *  Created on: 2018ï¿½~2ï¿½ï¿½5ï¿½ï¿½
  *      Author: Jake
  */
 
