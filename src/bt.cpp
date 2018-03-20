@@ -58,20 +58,26 @@ void bt::setValue(){
 }
 void bt::sendVelocity(){
 	float temp;
-	Byte buff[9];
-	temp = motorLPID->getcurrentVelocity();
-//	temp = 0.5;
+	Byte buff[13];
+	temp = servoPID->getcurrentVelocity();
+	//temp = 0.4;
 	buff[0] = ((Byte*)&temp)[0];
 	buff[1] = ((Byte*)&temp)[1];
 	buff[2] = ((Byte*)&temp)[2];
 	buff[3] = ((Byte*)&temp)[3];
-	temp = motorRPID->getcurrentVelocity();
-//	temp = 0.6;
+	temp = motorLPID->getcurrentVelocity();
+	//temp = 0.5;
 	buff[4] = ((Byte*)&temp)[0];
 	buff[5] = ((Byte*)&temp)[1];
 	buff[6] = ((Byte*)&temp)[2];
 	buff[7] = ((Byte*)&temp)[3];
-	buff[8] = (Byte)'\n';
-	m_bt.SendBuffer(buff, 9);
+	temp = motorRPID->getcurrentVelocity();
+	//temp = 0.6;
+	buff[8] = ((Byte*)&temp)[0];
+	buff[9] = ((Byte*)&temp)[1];
+	buff[10] = ((Byte*)&temp)[2];
+	buff[11] = ((Byte*)&temp)[3];
+	buff[12] = (Byte)'\n';
+	m_bt.SendBuffer(buff, 13);
 }
 

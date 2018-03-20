@@ -7,39 +7,52 @@
 
 #include "../inc/PID.h"
 #include <cmath>
-float PID::getPID(int32_t encoderCount){
+int PID::counter = 0;
+float PID::getPID(){
 	 uint32_t currentTime = System::Time();
 	 dTime = currentTime - lastTime;
 	 if(dTime ==0){
 	  dTime +=1;
 	 }
-	 if(kI ==0){
+	 if(kI == 0){
 		 kI=1;
 	 }
 	 encoder->Update();
-	 currentVelocity = std::abs(encoder->GetCount());
+	 currentVelocity = std::abs(encoder->GetCount()) + 0.0;
 	 currentError = desireVelocity - currentVelocity ;
 	 output +=(kP*(currentError - lastError) + kP*dTime * currentError/kI +(kP*kD/dTime)*((currentError - lastError)-(lastError - lastlastError)));
 	 lastTime = currentTime;
 	 lastlastError = lastError;
 	 lastError = currentError;
-	 if(output < 0){
-	  output = 0;
-	 }else if(output >= 200){
-		 output = 200;
+	 if(output < -1000){
+	  output = -1000;
+	 }else if(output >= 1000){
+		 output = 1000;
+	 }
+	 if(output >= 500 && currentVelocity < desireVelocity){
+		 counter++;
+	 }
+	 if(counter >= 40){
+		 output = 0;
 	 }
 	 return output;
 }
 
 float PID::getPID(float setPoint, float measuredValue){
 	dTime = System::Time() - lastTime;
+	lastTime = System::Time();
 	if (dTime == 0){
 		dTime += 1;
 	}
 	currentVelocity = measuredValue;
 	currentError = setPoint - measuredValue;
-	float output = ((currentError) * kP) + ((currentError - lastError) * kD) / (dTime);
-	lastTime = System::Time();
+	float output = 0;
+	dTerm = ((currentError - lastError) * kD) / (dTime);
+	if(measuredValue >= -0.10 && measuredValue <= 0.10){
+		output = ((currentError) * kP / 2) + dTerm;
+	}else{
+		output = ((currentError) * kP) + dTerm;
+	}
 	lastError = currentError;
 	if(output >= 900){
 		output = 900;
