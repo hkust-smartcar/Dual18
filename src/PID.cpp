@@ -48,7 +48,7 @@ float PID::getPID(float setPoint, float measuredValue){
 	currentError = setPoint - measuredValue;
 	float output = 0;
 	dTerm = ((currentError - lastError) * kD) / (dTime);
-	if(measuredValue >= -0.10 && measuredValue <= 0.10){
+	if(measuredValue >= -0.50 && measuredValue <= 0.50){
 		output = ((currentError) * kP / 2) + dTerm;
 	}else{
 		output = ((currentError) * kP) + dTerm;

@@ -90,8 +90,9 @@ int main() {
 	mag3.StartConvert();
 
 	FutabaS3010 servo(myConfig::GetServoConfig());
-	AlternateMotor motorL(myConfig::GetMotorConfig(1));
-	AlternateMotor motorR(myConfig::GetMotorConfig(0));
+	AlternateMotor motorL(myConfig::GetMotorConfig(0));
+	motorL.SetClockwise(false);
+	AlternateMotor motorR(myConfig::GetMotorConfig(1));
     St7735r lcd(myConfig::GetLcdConfig());
     LcdTypewriter writer(myConfig::GetWriterConfig(&lcd));
     LcdConsole console(myConfig::GetConsoleConfig(&lcd));
@@ -99,9 +100,9 @@ int main() {
 
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
-    PID servoPID(600, 80);
-    PID motorLPID(0.004,0.4,2.0, &LEncoder);
-    PID motorRPID(0.006,0.5,0.5, &REncoder);
+    PID servoPID(480, 9000);
+    PID motorLPID(0.02,10,0.0, &LEncoder);
+    PID motorRPID(0.01,10,0.5, &REncoder);
     bt mBT(&servoPID, &motorLPID, &motorRPID);
 
 	typedef enum {
@@ -123,9 +124,9 @@ int main() {
 	const float right_k = 852.0975;
 	const float h = 6.2;
 	float magRatio, xRatio;
-	int speed = 23;
+	int speed = 64;
 	int magSum = 0;
-	uint16_t middleServo = 830;
+	uint16_t middleServo = 900;
 	uint16_t leftServo = 1130;
 	uint16_t rightServo = 570;
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&speed, &motorLPID, &motorRPID, &start, &led2](const uint8_t id, const Joystick::State state){
@@ -153,7 +154,7 @@ int main() {
 				mid_right = mag3.GetResult();
 				magSum = left_mag + right_mag;
 
-				xRatio = (float)(right_mag - left_mag)/(right_mag+left_mag);
+				xRatio = (float)(right_mag - left_mag)/(magSum);
 				angle = servoPID.getPID(0.0,xRatio);
 				angle += middleServo;
 				angle = max(rightServo,min(leftServo,angle));
@@ -217,10 +218,10 @@ int main() {
 					sprintf(c,"d: %f",servoPID.getdTerm());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,90,128,15));
-					sprintf(c,"L: %f",motorLPID.getDesiredVelocty());
+					sprintf(c,"L: %f",motorLPID.getcurrentVelocity());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,105,128,15));
-					sprintf(c,"R: %f",motorRPID.getDesiredVelocty());
+					sprintf(c,"R: %f",motorRPID.getcurrentVelocity());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,120,128,15));
 					if (state == normal){
@@ -244,42 +245,6 @@ int main() {
 				}
 
 			}
-
-//    		if(lastTime % 600 == 0){
-//    			if(!start){
-//					char c[10];
-//					lcd.SetRegion(Lcd::Rect(0,0,128,15));
-//					sprintf(c,"servoP: %f", servoPID.getkP());
-//					writer.WriteBuffer(c,15);
-//					lcd.SetRegion(Lcd::Rect(0,15,128,15));
-//					sprintf(c,"servoD: %f", servoPID.getkD());
-//					writer.WriteBuffer(c,15);
-//					lcd.SetRegion(Lcd::Rect(0,30,128,15));
-//					sprintf(c,"LMotorT: %f",motorLPID.getDesiredVelocty());
-//					writer.WriteBuffer(c,15);
-//					lcd.SetRegion(Lcd::Rect(0,45,128,15));
-//					sprintf(c,"LMotorP: %f", motorLPID.getkP());
-//					writer.WriteBuffer(c,15);
-//					lcd.SetRegion(Lcd::Rect(0,60,128,15));
-//					sprintf(c,"LMotorI: %f", motorLPID.getkI());
-//					writer.WriteBuffer(c,15);
-//					lcd.SetRegion(Lcd::Rect(0,75,128,15));
-//					sprintf(c,"LMotorD: %f", motorLPID.getkD());
-//					writer.WriteBuffer(c,15);
-//					lcd.SetRegion(Lcd::Rect(0,90,128,15));
-//					sprintf(c,"RMotorT: %f", motorRPID.getDesiredVelocty());
-//					writer.WriteBuffer(c,15);
-//					lcd.SetRegion(Lcd::Rect(0,105,128,15));
-//					sprintf(c,"RMotorP: %f", motorRPID.getkP());
-//					writer.WriteBuffer(c,15);
-//					lcd.SetRegion(Lcd::Rect(0,120,128,15));
-//					sprintf(c,"RMotorI: %f", motorRPID.getkI());
-//					writer.WriteBuffer(c,15);
-//					lcd.SetRegion(Lcd::Rect(0,135,128,15));
-//					sprintf(c,"%dRMotorD: %f",mBT.buffer.size(), motorRPID.getkD());
-//					writer.WriteBuffer(c,15);
-//    			}
-//    		}
     	}
     }
     return 0;
