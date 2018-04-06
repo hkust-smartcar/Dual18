@@ -27,10 +27,10 @@ float PID::getPID(){
 	 }else if(output >= 1000){
 		 output = 1000;
 	 }
-	 if(output >= 500 && currentVelocity < desireVelocity){
+	 if(output >= 500 && currentVelocity < (desireVelocity / 2)){
 		 counter++;
 	 }
-	 if(counter >= 40){
+	 if(counter >= 80){
 		 output = 0;
 	 }
 	 return output;

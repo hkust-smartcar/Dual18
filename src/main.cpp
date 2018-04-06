@@ -66,7 +66,10 @@ float _sqrt(float x){
 int max(int a, int b){return a>b?a:b;}
 int min(int a, int b){return a<b?a:b;}
 
+
 int main() {
+
+
     System::Init();
 
     Led led0(myConfig::GetLedConfig(0));
@@ -100,10 +103,13 @@ int main() {
 
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
-    PID servoPID(505, 13000);
-    PID motorLPID(0.3,0.0,2.5, &LEncoder);
-    PID motorRPID(0.3,0.0,2.5, &REncoder);
-    bt mBT(&servoPID, &motorLPID, &motorRPID);
+    PID servoPIDCurve(500, 14000);
+    PID servoPIDStraight(250,12000);
+    PID motorLPID(0.32,0.0,8, &LEncoder);
+    PID motorRPID(0.32,0.0,8, &REncoder);
+    float speed = 30;
+	float magRatio, xRatio, xRatio2;
+    bt mBT(&servoPIDCurve, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &xRatio);
 
 	typedef enum {
 		normal = 0,
@@ -121,14 +127,14 @@ int main() {
 	uint32_t lastTime = 0;
     uint32_t greenTime = 0;
 	bool isLeft = 1;
+	bool isCurve = 0;
 	uint8_t left_mag, right_mag, mid_left, mid_right;
 	float angle = 0;
-	float magRatio, xRatio;
-	int speed = 55;
+
 	int magSum = 0;
-	uint16_t middleServo = 900;
-	uint16_t leftServo = 1130;
-	uint16_t rightServo = 570;
+	uint16_t middleServo = 830;
+	uint16_t leftServo = 1200;
+	uint16_t rightServo = 500;
 	bool diff = true;
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&](const uint8_t id, const Joystick::State state){
     	if (state == Joystick::State::kSelect){
@@ -153,7 +159,7 @@ int main() {
     while(1){
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
-			if (lastTime % 10 == 0){
+		if (lastTime % 6== 0){
 				//
 				left_mag = filterSum0/filterCounter;
 				right_mag = filterSum1/filterCounter;
@@ -168,7 +174,17 @@ int main() {
 				magSum = left_mag + right_mag;
 
 				xRatio = (float)(right_mag - left_mag)/(magSum);
-				angle = servoPID.getPID(0.0,xRatio);
+				xRatio2 = (float)(mid_right - mid_left)/(mid_right + mid_left);
+				if(xRatio2 >= 0.2 || xRatio2 <= -0.2 || xRatio >= 0.2 || xRatio <= -0.2){
+					isCurve = true;
+				}else{
+					isCurve = false;
+				}
+				if(isCurve){
+					angle = servoPIDCurve.getPID(0.0,xRatio);
+				}else{
+					angle = servoPIDStraight.getPID(0.0,xRatio);
+				}
 				angle += middleServo;
 				angle = max(rightServo,min(leftServo,angle));
 //				if(state == normal && magSum > 230){
@@ -274,10 +290,9 @@ int main() {
 						lcd.FillColor(0x0000);
 					}
 					lcd.SetRegion(Lcd::Rect(0,135,128,15));
-					sprintf(c,"xR: %f", xRatio);
+					sprintf(c,"xR: %f", xRatio - xRatio2);
 					writer.WriteBuffer(c, 10);
 				}
-
 			}
     	}
     }

@@ -24,33 +24,32 @@ void bt::setValue(){
 	Byte type = buffer[4];
 	switch(type){
 	case 0x00:
-		servoPID->setkP(value);
+		servoPIDCurve->setkP(value);
 		break;
 	case 0x01:
-		servoPID->setkD(value);
+		servoPIDCurve->setkD(value);
 		break;
 	case 0x02:
-		motorLPID->setDesiredVelocity(value);
+		servoPIDStraight->setkP(value);
 		break;
 	case 0x03:
-		motorLPID->setkP(value);
+		servoPIDStraight->setkD(value);
 		break;
 	case 0x04:
-		motorLPID->setkI(value);
+		*speed = value;
+		motorLPID->setDesiredVelocity(value);
+		motorRPID->setDesiredVelocity(value);
 		break;
 	case 0x05:
-		motorLPID->setkD(value);
+		motorLPID->setkP(value);
 		break;
 	case 0x06:
-		motorRPID->setDesiredVelocity(value);
+		motorLPID->setkD(value);
 		break;
 	case 0x07:
 		motorRPID->setkP(value);
 		break;
 	case 0x08:
-		motorRPID->setkI(value);
-		break;
-	case 0x09:
 		motorRPID->setkD(value);
 		break;
 	}
@@ -59,7 +58,7 @@ void bt::setValue(){
 void bt::sendVelocity(){
 	float temp;
 	Byte buff[13];
-	temp = servoPID->getcurrentVelocity();
+	temp = *xRatio;
 //	temp = 0.4;
 	buff[0] = ((Byte*)&temp)[0];
 	buff[1] = ((Byte*)&temp)[1];

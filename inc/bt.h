@@ -24,13 +24,13 @@ using std::vector;
 using std::function;
 class bt {
 public:
-	bt(PID* a, PID* b, PID* c):m_bt(myConfig::GetBluetoothConfig(std::function<bool(const Byte *data, const size_t size)>([this](const Byte* buff, const size_t size) -> bool{
+	bt(PID* a, PID* b, PID* c, PID* d, float* e, float *f):m_bt(myConfig::GetBluetoothConfig(std::function<bool(const Byte *data, const size_t size)>([this](const Byte* buff, const size_t size) -> bool{
     	this->buffer.push_back(*buff);
     	if(*buff == '\n' && (int) this->buffer.size() == 6){
     		this->setValue();
     	}
     	return true;
-    }))),servoPID(a),motorLPID(b),motorRPID(c){};
+    }))),servoPIDCurve(a),servoPIDStraight(b),motorLPID(c),motorRPID(d),speed(e),xRatio(f){};
 	std::vector<Byte> buffer;
 	void sendVelocity();
 	void setValue();
@@ -38,9 +38,12 @@ public:
 
 private:
     JyMcuBt106 m_bt;
-    PID* servoPID = nullptr;
+    PID* servoPIDCurve = nullptr;
+    PID* servoPIDStraight = nullptr;
     PID* motorLPID = nullptr;
     PID* motorRPID = nullptr;
+    float* speed = nullptr;
+    float* xRatio = nullptr;
 
 };
 
