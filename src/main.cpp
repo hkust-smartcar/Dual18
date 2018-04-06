@@ -100,9 +100,9 @@ int main() {
 
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
-    PID servoPID(480, 9000);
-    PID motorLPID(0.02,10,0.0, &LEncoder);
-    PID motorRPID(0.01,10,0.5, &REncoder);
+    PID servoPID(505, 13000);
+    PID motorLPID(0.3,0.0,2.5, &LEncoder);
+    PID motorRPID(0.3,0.0,2.5, &REncoder);
     bt mBT(&servoPID, &motorLPID, &motorRPID);
 
 	typedef enum {
@@ -124,7 +124,7 @@ int main() {
 	uint8_t left_mag, right_mag, mid_left, mid_right;
 	float angle = 0;
 	float magRatio, xRatio;
-	int speed = 64;
+	int speed = 55;
 	int magSum = 0;
 	uint16_t middleServo = 900;
 	uint16_t leftServo = 1130;
@@ -206,12 +206,12 @@ int main() {
 //				}
 				if (diff){
 					if (angle>middleServo){
-						motorLPID.setDesiredVelocity(64*((angle-middleServo)/-7.5+90)/90);
-						motorRPID.setDesiredVelocity(64*((angle-middleServo)/8.5+90)/90);
+						motorLPID.setDesiredVelocity(speed*((angle-middleServo)/-7.5+90)/90);
+						motorRPID.setDesiredVelocity(speed*((angle-middleServo)/8.5+90)/90);
 					}
 					else{
-						motorRPID.setDesiredVelocity(64*((angle-middleServo)/-7.5+90)/90);
-						motorLPID.setDesiredVelocity(64*((angle-middleServo)/8.5+90)/90);
+						motorRPID.setDesiredVelocity(speed*((angle-middleServo)/-7.5+90)/90);
+						motorLPID.setDesiredVelocity(speed*((angle-middleServo)/8.5+90)/90);
 					}
 				}
 				if (start){

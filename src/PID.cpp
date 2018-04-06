@@ -14,13 +14,11 @@ float PID::getPID(){
 	 if(dTime ==0){
 	  dTime +=1;
 	 }
-	 if(kI == 0){
-		 kI=1;
-	 }
 	 encoder->Update();
 	 currentVelocity = std::abs(encoder->GetCount()) + 0.0;
 	 currentError = desireVelocity - currentVelocity ;
-	 output +=(kP*(currentError - lastError) + kP*dTime * currentError/kI +(kP*kD/dTime)*((currentError - lastError)-(lastError - lastlastError)));
+//	 output +=(kP*(currentError - lastError) + kP*dTime * currentError/kI +(kP*kD/dTime)*((currentError - lastError)-(lastError - lastlastError)));
+	 output += kP*(currentError) + kD*(currentError - lastError);
 	 lastTime = currentTime;
 	 lastlastError = lastError;
 	 lastError = currentError;
@@ -48,7 +46,7 @@ float PID::getPID(float setPoint, float measuredValue){
 	currentError = setPoint - measuredValue;
 	float output = 0;
 	dTerm = ((currentError - lastError) * kD) / (dTime);
-	if(measuredValue >= -0.50 && measuredValue <= 0.50){
+	if(measuredValue >= -0.35 && measuredValue <= 0.35){
 		output = ((currentError) * kP / 2) + dTerm;
 	}else{
 		output = ((currentError) * kP) + dTerm;
@@ -65,4 +63,3 @@ float PID::getPID(float setPoint, float measuredValue){
 PID::~PID() {
 	// TODO Auto-generated destructor stub
 }
-
