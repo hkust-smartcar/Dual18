@@ -104,7 +104,9 @@ int main() {
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
     PID servoPIDCurve(500, 14000);
-    PID servoPIDStraight(250,12000);
+    PID servoPIDStraight(350,12000);
+//    PID servoPIDCurve(500, 14000);
+//    PID servoPIDStraight(250,12000);
     PID motorLPID(0.32,0.0,8, &LEncoder);
     PID motorRPID(0.32,0.0,8, &REncoder);
     float speed = 30;
@@ -120,10 +122,8 @@ int main() {
 	}carState;
 	carState state = normal;
 	bool start = false;
-	//
 	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0;
 	uint8_t filterCounter = 0;
-    //
 	uint32_t lastTime = 0;
     uint32_t greenTime = 0;
 	bool isLeft = 1;
@@ -149,7 +149,7 @@ int main() {
 				motorRPID.setDesiredVelocity(speed);
     		}
 		}
-		else if (state == Joystick::State::kSelect){
+		else if (state == Joystick::State::kUp){
 			diff = !diff;
 		}
     	led2.Switch();
@@ -160,7 +160,6 @@ int main() {
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
 		if (lastTime % 6== 0){
-				//
 				left_mag = filterSum0/filterCounter;
 				right_mag = filterSum1/filterCounter;
 				mid_left = filterSum2/filterCounter;
@@ -170,18 +169,28 @@ int main() {
 				filterSum2 = 0;
 				filterSum3 = 0;
 				filterCounter = 0;
-				//
-				magSum = left_mag + right_mag;
 
+				if (mid_left < 35 && mid_left < mid_right){
+					mid_right *= (35-mid_left)/(float)20+1; // 35 to 15, *1 to *2
+				}
+				if (mid_right < 35 && mid_right < mid_left){
+					mid_left *= (35-mid_right)/(float)20+1;
+				}
+
+
+				magSum = left_mag + right_mag;
 				xRatio = (float)(right_mag - left_mag)/(magSum);
 				xRatio2 = (float)(mid_right - mid_left)/(mid_right + mid_left);
-				if(xRatio2 >= 0.2 || xRatio2 <= -0.2 || xRatio >= 0.2 || xRatio <= -0.2){
+				if(xRatio2-xRatio > 0.2 || xRatio2-xRatio < -0.2){
 					isCurve = true;
+					led3.SetEnable(0);
 				}else{
 					isCurve = false;
+					led3.SetEnable(1);
 				}
 				if(isCurve){
-					angle = servoPIDCurve.getPID(0.0,xRatio);
+//					angle = servoPIDCurve.getPID(0.0,xRatio);
+					angle = servoPIDCurve.getPID(0.0,(xRatio+xRatio2)/2);
 				}else{
 					angle = servoPIDStraight.getPID(0.0,xRatio);
 				}
@@ -220,6 +229,7 @@ int main() {
 //						servo.SetDegree(rightServo + offset);
 //					}
 //				}
+
 				if (diff){
 					if (angle>middleServo){
 						motorLPID.setDesiredVelocity(speed*((angle-middleServo)/-7.5+90)/90);
@@ -237,13 +247,11 @@ int main() {
 				mBT.sendVelocity();
 			}
 
-			//
 			filterCounter++;
 			filterSum0 += mag0.GetResult();
 			filterSum1 += mag1.GetResult();
 			filterSum2 += mag2.GetResult();
 			filterSum3 += mag3.GetResult();
-			//
 
 			if (lastTime % 100 == 0){
 				if(!start){
@@ -268,10 +276,12 @@ int main() {
 //					sprintf(c,"d: %f",servoPID.getdTerm());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,90,128,15));
-					sprintf(c,"L: %f",motorLPID.getcurrentVelocity());
+					sprintf(c,"B: %f",xRatio);
+//					sprintf(c,"L: %f",motorLPID.getcurrentVelocity());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,105,128,15));
-					sprintf(c,"R: %f",motorRPID.getcurrentVelocity());
+//					sprintf(c,"R: %f",motorRPID.getcurrentVelocity());
+					sprintf(c,"F: %f",xRatio2);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,120,128,15));
 					if (state == normal){
