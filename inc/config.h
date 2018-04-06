@@ -104,11 +104,21 @@ public:
     	return config;
     }
 
-    static FutabaS3010::Config GetServoConfig(){
+    static FutabaS3010::Config GetFutabaConfig(){
     	FutabaS3010::Config config;
     	config.id = 0;
 		return config;
     }
+
+    static Servo::Config GetServoConfig(){
+       	Servo::Config config;
+       	config.id = 0;
+//       	config.period = 20000;
+       	config.period = 16667; //60hz
+       	config.min_pos_width = 1000;
+       	config.max_pos_width = 2000;
+   		return config;
+       }
 
     static Adc::Config GetAdcConfig(int id){
     	Adc::Config config;

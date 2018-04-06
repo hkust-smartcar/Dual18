@@ -89,7 +89,7 @@ int main() {
 	mag2.StartConvert();
 	mag3.StartConvert();
 
-	FutabaS3010 servo(myConfig::GetServoConfig());
+	Servo servo(myConfig::GetServoConfig());
 	AlternateMotor motorL(myConfig::GetMotorConfig(0));
 	motorL.SetClockwise(false);
 	AlternateMotor motorR(myConfig::GetMotorConfig(1));
@@ -114,31 +114,37 @@ int main() {
 	}carState;
 	carState state = normal;
 	bool start = false;
-    uint32_t lastTime = 0;
+	//
+	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0;
+	uint8_t filterCounter = 0;
+    //
+	uint32_t lastTime = 0;
     uint32_t greenTime = 0;
 	bool isLeft = 1;
 	uint8_t left_mag, right_mag, mid_left, mid_right;
 	float angle = 0;
-	float left_x, right_x;
-	const float left_k = 760.4566;
-	const float right_k = 852.0975;
-	const float h = 6.2;
 	float magRatio, xRatio;
 	int speed = 64;
 	int magSum = 0;
 	uint16_t middleServo = 900;
 	uint16_t leftServo = 1130;
 	uint16_t rightServo = 570;
-    Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&speed, &motorLPID, &motorRPID, &start, &led2](const uint8_t id, const Joystick::State state){
+	bool diff = true;
+    Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&](const uint8_t id, const Joystick::State state){
     	if (state == Joystick::State::kSelect){
-    		start = true;
-    		motorLPID.setDesiredVelocity(speed);
-    		motorRPID.setDesiredVelocity(speed);
+    		if (start){
+    			start = false;
+    			motorLPID.setDesiredVelocity(0);
+    			motorRPID.setDesiredVelocity(0);
+    		}
+    		else{
+				start = true;
+				motorLPID.setDesiredVelocity(speed);
+				motorRPID.setDesiredVelocity(speed);
+    		}
 		}
-		else{
-			start = false;
-			motorLPID.setDesiredVelocity(0);
-			motorRPID.setDesiredVelocity(0);
+		else if (state == Joystick::State::kSelect){
+			diff = !diff;
 		}
     	led2.Switch();
     })));
@@ -148,53 +154,80 @@ int main() {
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
 			if (lastTime % 10 == 0){
-				left_mag = mag0.GetResult();
-				right_mag = mag1.GetResult();
-				mid_left = mag2.GetResult();
-				mid_right = mag3.GetResult();
+				//
+				left_mag = filterSum0/filterCounter;
+				right_mag = filterSum1/filterCounter;
+				mid_left = filterSum2/filterCounter;
+				mid_right = filterSum3/filterCounter;
+				filterSum0 = 0;
+				filterSum1 = 0;
+				filterSum2 = 0;
+				filterSum3 = 0;
+				filterCounter = 0;
+				//
 				magSum = left_mag + right_mag;
 
 				xRatio = (float)(right_mag - left_mag)/(magSum);
 				angle = servoPID.getPID(0.0,xRatio);
 				angle += middleServo;
 				angle = max(rightServo,min(leftServo,angle));
-				if(state == normal && magSum > 230){
-					state = nearLoop;
-					if(right_mag > left_mag){
-						isLeft = false;
-					}else{
-						isLeft = true;
-					}
-				}else if(state == nearLoop && magSum < 215){
-					state = turning;
-				}else if(state == turning && magSum < 150){
-					if(isLeft){
-						if(angle < middleServo + 100){
-							state = inLoop;
-						}
-					}else{
-						if(angle > middleServo - 100){
-							state = inLoop;
-						}
-					}
-
-				}
+//				if(state == normal && magSum > 230){
+//					state = nearLoop;
+//					if(right_mag > left_mag){
+//						isLeft = false;
+//					}else{
+//						isLeft = true;
+//					}
+//				}else if(state == nearLoop && magSum < 215){
+//					state = turning;
+//				}else if(state == turning && magSum < 150){
+//					if(isLeft){
+//						if(angle < middleServo + 100){
+//							state = inLoop;
+//						}
+//					}else{
+//						if(angle > middleServo - 100){
+//							state = inLoop;
+//						}
+//					}
+//
+//				}
 
 				if(state == normal || state == nearLoop || state == inLoop){
 					servo.SetDegree(angle);
 				}
-				if(state == turning){
-					int offset = 30;
-					if(isLeft){
-						servo.SetDegree(leftServo - offset);
-					}else{
-						servo.SetDegree(rightServo + offset);
+//				if(state == turning){
+//					int offset = 30;
+//					if(isLeft){
+//						servo.SetDegree(leftServo - offset);
+//					}else{
+//						servo.SetDegree(rightServo + offset);
+//					}
+//				}
+				if (diff){
+					if (angle>middleServo){
+						motorLPID.setDesiredVelocity(64*((angle-middleServo)/-7.5+90)/90);
+						motorRPID.setDesiredVelocity(64*((angle-middleServo)/8.5+90)/90);
+					}
+					else{
+						motorRPID.setDesiredVelocity(64*((angle-middleServo)/-7.5+90)/90);
+						motorLPID.setDesiredVelocity(64*((angle-middleServo)/8.5+90)/90);
 					}
 				}
-				motorL.SetPower(motorLPID.getPID());
-				motorR.SetPower(motorRPID.getPID());
+				if (start){
+					motorL.SetPower(motorLPID.getPID());
+					motorR.SetPower(motorRPID.getPID());
+				}
 				mBT.sendVelocity();
 			}
+
+			//
+			filterCounter++;
+			filterSum0 += mag0.GetResult();
+			filterSum1 += mag1.GetResult();
+			filterSum2 += mag2.GetResult();
+			filterSum3 += mag3.GetResult();
+			//
 
 			if (lastTime % 100 == 0){
 				if(!start){
@@ -215,7 +248,8 @@ int main() {
 					sprintf(c,"SUM: %d",left_mag + right_mag);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,75,128,15));
-					sprintf(c,"d: %f",servoPID.getdTerm());
+					sprintf(c,"d: %d",servo.GetDegree());
+//					sprintf(c,"d: %f",servoPID.getdTerm());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,90,128,15));
 					sprintf(c,"L: %f",motorLPID.getcurrentVelocity());
