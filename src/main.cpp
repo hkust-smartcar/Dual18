@@ -104,12 +104,13 @@ int main() {
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
     PID servoPIDCurve(500, 14000);
-    PID servoPIDStraight(350,12000);
+    PID servoPIDStraight(300,12000);
+    PID servoPIDFuzzy((servoPIDCurve.getkP()+servoPIDStraight.getkP())/2,(servoPIDCurve.getkD()+servoPIDStraight.getkD())/2);
 //    PID servoPIDCurve(500, 14000);
 //    PID servoPIDStraight(250,12000);
     PID motorLPID(0.32,0.0,8, &LEncoder);
     PID motorRPID(0.32,0.0,8, &REncoder);
-    float speed = 30;
+    float speed = 35;
 	float magRatio, xRatio, xRatio2;
     bt mBT(&servoPIDCurve, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &xRatio);
 
@@ -129,12 +130,12 @@ int main() {
 	bool isLeft = 1;
 	bool isCurve = 0;
 	uint8_t left_mag, right_mag, mid_left, mid_right;
-	float angle = 0;
 
 	int magSum = 0;
-	uint16_t middleServo = 830;
-	uint16_t leftServo = 1200;
-	uint16_t rightServo = 500;
+	uint16_t middleServo = 865;
+	uint16_t leftServo = 1180;
+	uint16_t rightServo = 550;
+	float angle = middleServo;
 	bool diff = true;
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&](const uint8_t id, const Joystick::State state){
     	if (state == Joystick::State::kSelect){
@@ -151,6 +152,12 @@ int main() {
 		}
 		else if (state == Joystick::State::kUp){
 			diff = !diff;
+		}
+		else if (state == Joystick::State::kLeft){
+			angle += 10;
+		}
+		else if (state == Joystick::State::kRight){
+			angle -= 10;
 		}
     	led2.Switch();
     })));
@@ -170,33 +177,32 @@ int main() {
 				filterSum3 = 0;
 				filterCounter = 0;
 
-				if (mid_left < 35 && mid_left < mid_right){
-					mid_right *= (35-mid_left)/(float)20+1; // 35 to 15, *1 to *2
+				if (mid_left < 30 && mid_left < mid_right){
+					mid_right *= (30-mid_left)/(float)15+1; // 35 to 15, *1 to *2
 				}
-				if (mid_right < 35 && mid_right < mid_left){
-					mid_left *= (35-mid_right)/(float)20+1;
+				if (mid_right < 30 && mid_right < mid_left){
+					mid_left *= (30-mid_right)/(float)15+1;
 				}
 
 
 				magSum = left_mag + right_mag;
 				xRatio = (float)(right_mag - left_mag)/(magSum);
 				xRatio2 = (float)(mid_right - mid_left)/(mid_right + mid_left);
-				if(xRatio2-xRatio > 0.2 || xRatio2-xRatio < -0.2){
-					isCurve = true;
-					led3.SetEnable(0);
-				}else{
-					isCurve = false;
-					led3.SetEnable(1);
-				}
-				if(isCurve){
-//					angle = servoPIDCurve.getPID(0.0,xRatio);
+
+				if(xRatio2-xRatio > 0.25 || xRatio2-xRatio < -0.25 || left_mag < 30 || right_mag < 30){
 					angle = servoPIDCurve.getPID(0.0,(xRatio+xRatio2)/2);
+					led3.SetEnable(0);
+				}else if(xRatio2-xRatio > 0.15 || xRatio2-xRatio < -0.15) {
+					angle = servoPIDFuzzy.getPID(0.0,(2*xRatio+xRatio2)/3);
 				}else{
 					angle = servoPIDStraight.getPID(0.0,xRatio);
+					led3.SetEnable(1);
 				}
+
 				angle += middleServo;
 				angle = max(rightServo,min(leftServo,angle));
-//				if(state == normal && magSum > 230){
+
+////				if(state == normal && magSum > 230){
 //					state = nearLoop;
 //					if(right_mag > left_mag){
 //						isLeft = false;
