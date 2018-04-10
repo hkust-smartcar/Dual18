@@ -115,9 +115,9 @@ public:
     	return pitConfig;
     }
 
-    static DirEncoder::Config GetEncoderConfig(){
+    static DirEncoder::Config GetEncoderConfig(int m_id){
     	DirEncoder::Config config;
-    	config.id = 0;
+    	config.id = m_id;
     	return config;
     }
 

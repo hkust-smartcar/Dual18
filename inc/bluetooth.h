@@ -31,6 +31,7 @@ public:
 		this->buffer.push_back(*buff);
 		how_many_lines = buffer[0];
 		if(buffer.size() == 2*how_many_lines+1){
+			reset_m_edge();
 			this->set_y_coord();
 //			buffer.clear();
 		}
