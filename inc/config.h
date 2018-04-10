@@ -131,8 +131,14 @@ public:
     	else if (id == 2){
     		config.adc = Adc::Name::kAdc1Ad9;
     	}
-    	else {
+    	else if (id == 3) {
     		config.adc = Adc::Name::kAdc1Ad8;
+    	}
+    	else if (id == 4) {
+    		config.adc = Adc::Name::kAdc0Ad17;
+    	}
+    	else if (id == 5) {
+    		config.adc = Adc::Name::kAdc0Ad18;
     	}
     	config.resolution = Adc::Config::Resolution::k8Bit;
     	config.speed = Adc::Config::SpeedMode::kExSlow;
