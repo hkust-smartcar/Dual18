@@ -166,6 +166,11 @@ int servo_control(vector<pair<int,int>> midline, vector<pair<int,int>> m_master_
 		servo_degree = servo_degree - percent*400;
 
 	}
+	if(servo_degree < 700){
+		servo_degree = 700;
+	}else if(servo_degree > 1300){
+		servo_degree = 1300;
+	}
 	return servo_degree;
 }
 
@@ -214,8 +219,8 @@ int main() {
     DirEncoder dirEncoder0(myConfig::GetEncoderConfig(0));
     DirEncoder dirEncoder1(myConfig::GetEncoderConfig(1));
 //    PID servoPID(2500,40000);
-//    PID motorLPID(0.3,0.0,0.0, &dirEncoder0);
-//    PID motorRPID(0.6,0.0,0.0, &dirEncoder0);
+    PID motorLPID(0.32,0.0,8, &dirEncoder1);
+    PID motorRPID(0.32,0.0,8, &dirEncoder0);
 //    bt mBT(&servoPID, &motorLPID, &motorRPID);
     typedef enum {
 		normal = 0,
@@ -442,9 +447,9 @@ int main() {
 #endif
 
 #ifdef Master
-				dirEncoder0.Update();
+//				dirEncoder0.Update();
 				int left_encoder_velocity = dirEncoder0.GetCount();
-				dirEncoder1.Update();
+//				dirEncoder1.Update();
 				int right_encoder_velocity = dirEncoder1.GetCount();
 				left_encoder_velocity = -left_encoder_velocity;
 
@@ -478,24 +483,25 @@ int main() {
 				else{
 //					servo_degree = 1000;
 				}
+
 				servo.SetDegree(servo_degree);
 
 				m_master_bluetooth.reset_m_edge();
 
-				if((turn_on_motor)&&(roadtype==straight)){
-					left_motor_speed = my_motor_pid.calculate_pid(left_encoder_velocity, 1700);
-					right_motor_speed = my_motor_pid.calculate_pid(right_encoder_velocity, 1700);
-				}
-
-				else if((turn_on_motor)&&(roadtype==right_turn)){
-					left_motor_speed = my_motor_pid.calculate_pid(left_encoder_velocity, 1600);
-					right_motor_speed = my_motor_pid.calculate_pid(right_encoder_velocity, 1500);
-				}
-
-				else if((turn_on_motor)&&(roadtype==left_turn)){
-					left_motor_speed = my_motor_pid.calculate_pid(left_encoder_velocity, 1500);
-					right_motor_speed = my_motor_pid.calculate_pid(right_encoder_velocity, 1600);
-				}
+//				if((turn_on_motor)&&(roadtype==straight)){
+//					left_motor_speed = my_motor_pid.calculate_pid(left_encoder_velocity, 1700);
+//					right_motor_speed = my_motor_pid.calculate_pid(right_encoder_velocity, 1700);
+//				}
+//
+//				else if((turn_on_motor)&&(roadtype==right_turn)){
+//					left_motor_speed = my_motor_pid.calculate_pid(left_encoder_velocity, 1600);
+//					right_motor_speed = my_motor_pid.calculate_pid(right_encoder_velocity, 1500);
+//				}
+//
+//				else if((turn_on_motor)&&(roadtype==left_turn)){
+//					left_motor_speed = my_motor_pid.calculate_pid(left_encoder_velocity, 1500);
+//					right_motor_speed = my_motor_pid.calculate_pid(right_encoder_velocity, 1600);
+//				}
 
 				if(roadtype==left_turn){
 					led2.Switch();
@@ -505,8 +511,10 @@ int main() {
 				}
 
 				if(turn_on_motor){
-					right_motor.SetPower(right_motor_speed);
-					left_motor.SetPower(left_motor_speed);
+					right_motor.SetPower(motorRPID.getPID());
+					left_motor.SetPower(motorLPID.getPID());
+					motorLPID.setDesiredVelocity(60);
+					motorRPID.setDesiredVelocity(60);
 				}
 				else{
 					right_motor.SetPower(0);
