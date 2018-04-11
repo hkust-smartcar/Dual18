@@ -113,6 +113,7 @@ int main() {
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
     PID servoPIDCurve(13000, 0);
     PID servoPIDStraight(300,12000);
+    PID servoPIDOneLine(300,12000);
     PID motorLPID(0.32,0.0,8, &LEncoder);
     PID motorRPID(0.32,0.0,8, &REncoder);
     float speed = 70;
@@ -128,6 +129,7 @@ int main() {
 	}carState;
 	carState state = normal;
 	bool start = false;
+	bool leftLoop = true;
 	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0, filterSum4 = 0, filterSum5 = 0;
 	uint8_t filterCounter = 0;
 	uint32_t lastTime = 0;
@@ -231,19 +233,25 @@ int main() {
 					//normal, nearLoop, turning, inLoop, normal
 					if (!IsTwoLine(oneLineMax, front_left, front_right)){
 						if (state == turning){
-							state == inLoop;
+							state = inLoop;
 						}
 					}
 					else{
-						if (!IsTwoLine(oneLineMax, mid_left, mid_right)){
+						if (!IsTwoLine(oneLineMax, mid_left, mid_right) && state != nearLoop){
 							state = nearLoop;//pid with target equalMin+equalMax /2, input value: side with no loop
+							if (front_left > front_right){
+								leftLoop = true;
+							}
+							else{
+								leftLoop = false;
+							}
 						}
 						else{
 							if (state == nearLoop){
 								state = turning;//same pid but input value side with loop
 							}
 							else if (state == inLoop){
-								state == normal;
+								state = normal;
 							}
 						}
 					}
@@ -266,10 +274,20 @@ int main() {
 						servo.SetDegree(angle);
 					}
 					else if (state == nearLoop){
-
+						if (leftLoop){
+							servoPIDOneLine.getPID((equalMax+equalMin)/2, front_right);
+						}
+						else{
+							servoPIDOneLine.getPID((equalMax+equalMin)/2, front_left);
+						}
 					}
 					else if (state == turning){
-
+						if (leftLoop){
+							servoPIDOneLine.getPID((equalMax+equalMin)/2, front_left);
+						}
+						else{
+							servoPIDOneLine.getPID((equalMax+equalMin)/2, front_right);
+						}
 					}
 				}
 
