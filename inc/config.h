@@ -23,7 +23,6 @@
 #include "libbase/k60/uart.h"
 #include "libsc/dir_encoder.h"
 #include "libbase/k60/adc.h"
-#include "libsc/futaba_s3010.h"
 #include "libsc/servo.h"
 #include <libsc/alternate_motor.h>
 
@@ -39,7 +38,6 @@ using libbase::k60::Pit;
 using libbase::k60::Uart;
 using libsc::DirEncoder;
 using libbase::k60::Adc;
-using libsc::FutabaS3010;
 using libsc::AlternateMotor;
 using libsc::Servo;
 
@@ -63,25 +61,20 @@ public:
 		return config;
 	}
     static Joystick::Config GetJoystickConfig(Joystick::Listener isr) {
-        //TODO: finish it
     	Joystick::Config config;
     	config.id = 0;
     	config.is_active_low = true;
     	config.dispatcher = isr;
-
-    	// ADD!
     	return config;
     }
 
     static St7735r::Config GetLcdConfig() {
-        //TODO: finish it
     	St7735r::Config config;
     	config.fps = 20;
     	return config;
     }
 
     static JyMcuBt106::Config GetBluetoothConfig(std::function<bool(const Byte *data, const size_t size)> isr) {
-        //TODO: finish it
     	JyMcuBt106::Config config;
     	config.id = 0;
     	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k9600;
@@ -90,7 +83,6 @@ public:
     }
 
     static Pit::Config GetBluetoothPitConfig(std::function<void(Pit*)> isr){
-    	//TODO: finish it
     	Pit::Config pitConfig;
     	pitConfig.channel = 0;
     	pitConfig.count = 75000*10; //job executed once per 10ms
@@ -104,16 +96,9 @@ public:
     	return config;
     }
 
-    static FutabaS3010::Config GetFutabaConfig(){
-    	FutabaS3010::Config config;
-    	config.id = 0;
-		return config;
-    }
-
     static Servo::Config GetServoConfig(){
        	Servo::Config config;
        	config.id = 0;
-//       	config.period = 20000;
        	config.period = 16667; //60hz
        	config.min_pos_width = 1000;
        	config.max_pos_width = 2000;

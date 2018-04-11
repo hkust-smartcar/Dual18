@@ -30,7 +30,7 @@ public:
     		this->setValue();
     	}
     	return true;
-    }))),servoPIDCurve(a),servoPIDStraight(b),motorLPID(c),motorRPID(d),speed(e),xRatio(f){};
+    }))),servoPIDCurve(a),servoPIDStraight(b),motorLPID(c),motorRPID(d),speed(e),frontLinear(f){};
 	std::vector<Byte> buffer;
 	void sendVelocity();
 	void setValue();
@@ -43,7 +43,7 @@ private:
     PID* motorLPID = nullptr;
     PID* motorRPID = nullptr;
     float* speed = nullptr;
-    float* xRatio = nullptr;
+    float* frontLinear = nullptr;
 
 };
 

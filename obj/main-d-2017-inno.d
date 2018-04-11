@@ -40,7 +40,6 @@ obj/main-d-2017-inno.o: src/main.cpp \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/soft_quad_decoder.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/quad_decoder_interface.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/ftm_quad_decoder.h \
- C:\Users\pwc02\git\libsccc\inc/libsc/futaba_s3010.h \
  C:\Users\pwc02\git\libsccc\inc/libsc/servo.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/soft_pwm.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/pwm.h \

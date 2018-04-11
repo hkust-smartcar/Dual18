@@ -40,7 +40,6 @@ obj/bt-d-2017-inno.o: src/bt.cpp inc/bt.h \
  C:\Users\pwc02\git\libsccc\inc/libsc/battery_meter.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/adc.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/pit.h \
- C:\Users\pwc02\git\libsccc\inc/libsc/futaba_s3010.h \
  C:\Users\pwc02\git\libsccc\inc/libsc/servo.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/soft_pwm.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/pwm.h \

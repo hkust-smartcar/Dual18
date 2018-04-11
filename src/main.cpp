@@ -66,6 +66,12 @@ float _sqrt(float x){
 int max(int a, int b){return a>b?a:b;}
 int min(int a, int b){return a<b?a:b;}
 
+bool IsTwoLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal){
+	if (max(leftVal,rightVal) > maxVal && (leftVal+rightVal) > maxVal*1.3){
+		return true;
+	}
+	return false;
+}
 
 int main() {
 
@@ -106,17 +112,12 @@ int main() {
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
     PID servoPIDCurve(13000, 0);
-    PID servoPIDLeaveCurve(400, 14000);
     PID servoPIDStraight(300,12000);
-    PID servoPIDFuzzy((servoPIDCurve.getkP()+servoPIDStraight.getkP())/2,(servoPIDCurve.getkD()+servoPIDStraight.getkD())/2);
-//    PID servoPIDCurve(500, 14000);
-//    PID servoPIDStraight(250,12000);
     PID motorLPID(0.32,0.0,8, &LEncoder);
     PID motorRPID(0.32,0.0,8, &REncoder);
-    float speed = 25;
-	float magRatio, xRatio, xRatio2, xRatio3, maxDiff = 0;
-    bt mBT(&servoPIDCurve, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &xRatio);
-    bool leaveLoop = false;
+    float speed = 70;
+	float lastServo, frontLinear, midLinear;
+    bt mBT(&servoPIDCurve, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &frontLinear);
 
 	typedef enum {
 		normal = 0,
@@ -127,22 +128,20 @@ int main() {
 	}carState;
 	carState state = normal;
 	bool start = false;
-	float lastServo, frontLinear, midLinear;
 	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0, filterSum4 = 0, filterSum5 = 0;
 	uint8_t filterCounter = 0;
 	uint32_t lastTime = 0;
-    uint32_t greenTime = 0;
-	bool isLeft = 1;
-	bool isCurve = 0;
 	uint8_t front_left, front_right, mid_left, mid_right, back_left, back_right;
 
-	int magSum = 0;
 	uint16_t middleServo = 865;
 	uint16_t leftServo = 1180;
 	uint16_t rightServo = 550;
 	float angle = middleServo;
-	bool tuneP = false;
+
+	bool tuneP = false, goLoop = false;
 	int kP = servoPIDCurve.getkP(), kD = servoPIDCurve.getkD();
+	uint8_t oneLineMax = 100, equalMin = 51, equalMax = 55;
+	uint8_t maxLeft = 0,minLeft = 100,maxRight = 0,minRight = 100;
 
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&](const uint8_t id, const Joystick::State state){
     	if (state == Joystick::State::kSelect){
@@ -150,6 +149,8 @@ int main() {
     			start = false;
     			motorLPID.setDesiredVelocity(0);
     			motorRPID.setDesiredVelocity(0);
+				motorL.SetPower(0);
+				motorR.SetPower(0);
     		}
     		else{
 				start = true;
@@ -186,12 +187,11 @@ int main() {
     	led2.Switch();
     })));
 
-    float mkTemp;
 	servo.SetDegree(middleServo);
     while(1){
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
-		if (lastTime % 6 == 0){
+		if (lastTime % 16 == 0){
 				mid_left = filterSum0/filterCounter;
 				mid_right = filterSum1/filterCounter;
 				front_left = filterSum2/filterCounter;
@@ -205,119 +205,83 @@ int main() {
 				filterSum4 = 0;
 				filterSum5 = 0;
 				filterCounter = 0;
+				minLeft = min(minLeft, front_left);
+				maxLeft = max(maxLeft, front_left);
+				minRight = min(minRight, front_right);
+				maxRight = max(maxRight, front_right);
 
-				if (front_left < 15 || front_right < 15){
-					angle = lastServo;
-				}
-				else{
-					frontLinear = 1/(float)front_left-1/(float)front_right;
-	//				midLinear = 1/(float)mid_left-1/(float)mid_right;
-	//				mkTemp = 1/(float)mid_left-1/(float)mid_right;
-					angle = servoPIDCurve.getPID(0.0,frontLinear);
-					lastServo = angle;
-				}
-
-//				if (mid_left < 30 && mid_left < mid_right){
-//					mid_right = max(((30-mid_left)/(float)15+1)*mid_right, right_mag*2);
-//				}
-//				if (mid_right < 30 && mid_right < mid_left){
-//					mid_left = max(((30-mid_right)/(float)15+1)*mid_left, left_mag*2);
-//				}
-//
-//
-//				magSum = left_mag + right_mag;
-//				xRatio = (float)(right_mag - left_mag)/(magSum);
-//				xRatio2 = (float)(mid_right - mid_left)/(mid_right + mid_left);
-//				xRatio3 = (float)(back_right - back_left)/(back_right + back_left);
-//
-//				if(xRatio2-xRatio > 0.25 || xRatio2-xRatio < -0.25 || left_mag < 30 || right_mag < 30){
-//					angle = servoPIDCurve.getPID(0.0,(xRatio+xRatio2)/2);
-////					if (!leaveLoop){
-////						angle = servoPIDCurve.getPID(0.0,(xRatio+xRatio2)/2);
-////						if (fabs(xRatio2-xRatio) < maxDiff-0.1){
-////							leaveLoop = true;
-////							maxDiff = 0;
-////						}
-////						if (xRatio2-xRatio > 0.25 && maxDiff < xRatio2-xRatio){
-////							maxDiff = xRatio2-xRatio;
-////						}
-////						else if (xRatio-xRatio2 > 0.25 && maxDiff < xRatio-xRatio2){
-////							maxDiff = xRatio-xRatio2;
-////						}
-////						led2.SetEnable(1);
-////						led3.SetEnable(0);//on
-////					}
-////					else{
-////						angle = servoPIDCurve.getPID(0.0,(2*xRatio+xRatio2)/3);
-////						led2.SetEnable(0);
-////						led3.SetEnable(1);
-////					}
-//				}else if(xRatio2-xRatio > 0.15 || xRatio2-xRatio < -0.15){
-////					if(xRatio2-xRatio > 0.2){
-////						servoPIDFuzzy.setkP((0.25-(xRatio2-xRatio))/0.05*servoPIDStraight.getkP()+((xRatio2-xRatio)-0.2)/0.05*servoPIDCurve.getkP());
-////						servoPIDFuzzy.setkD((0.25-(xRatio2-xRatio))/0.05*servoPIDStraight.getkD()+((xRatio2-xRatio)-0.2)/0.05*servoPIDCurve.getkD());
-////					}
-////					else{
-////						servoPIDFuzzy.setkP((0.25-(xRatio-xRatio2))/0.05*servoPIDStraight.getkP()+((xRatio-xRatio2)-0.2)/0.05*servoPIDCurve.getkP());
-////						servoPIDFuzzy.setkD((0.25-(xRatio-xRatio2))/0.05*servoPIDStraight.getkD()+((xRatio-xRatio2)-0.2)/0.05*servoPIDCurve.getkD());
-////					}
-//					angle = servoPIDFuzzy.getPID(0.0,(2*xRatio+xRatio2)/3);
-////					led2.SetEnable(0);
-////					led3.SetEnable(0);
-//				}else{
-//					angle = servoPIDStraight.getPID(0.0,xRatio);
-////					if (leaveLoop){leaveLoop = false;}
-////					led2.SetEnable(1);
-////					led3.SetEnable(1);
-//				}
-
-				angle += middleServo;
-				angle = max(rightServo,min(leftServo,angle));
-
-////				if(state == normal && magSum > 230){
-//					state = nearLoop;
-//					if(right_mag > left_mag){
-//						isLeft = false;
-//					}else{
-//						isLeft = true;
-//					}
-//				}else if(state == nearLoop && magSum < 215){
-//					state = turning;
-//				}else if(state == turning && magSum < 150){
-//					if(isLeft){
-//						if(angle < middleServo + 100){
-//							state = inLoop;
-//						}
-//					}else{
-//						if(angle > middleServo - 100){
-//							state = inLoop;
-//						}
-//					}
-//
-//				}
-
-				if(state == normal || state == nearLoop || state == inLoop){
-					servo.SetDegree(angle);
-				}
-//				if(state == turning){
-//					int offset = 30;
-//					if(isLeft){
-//						servo.SetDegree(leftServo - offset);
-//					}else{
-//						servo.SetDegree(rightServo + offset);
-//					}
-//				}
-
-				if (1){
-					if (angle>middleServo){
-						motorLPID.setDesiredVelocity(speed*((angle-middleServo)/-7.5+90)/90);
-						motorRPID.setDesiredVelocity(speed*((angle-middleServo)/8.5+90)/90);
+				if (!goLoop){
+					if (front_left < 15 || front_right < 15){
+						angle = lastServo;
 					}
 					else{
-						motorRPID.setDesiredVelocity(speed*((angle-middleServo)/-7.5+90)/90);
-						motorLPID.setDesiredVelocity(speed*((angle-middleServo)/8.5+90)/90);
+						frontLinear = 1/(float)front_left-1/(float)front_right;
+						angle = servoPIDCurve.getPID(0.0,frontLinear);
+						lastServo = angle;
+						if (front_left == front_right){
+							equalMin = min(equalMin,front_left);
+							equalMax = max(equalMax,front_left);
+						}
+					}
+					angle += middleServo;
+					angle = max(rightServo,min(leftServo,angle));
+					servo.SetDegree(angle);
+				}
+				else{
+					//normal, nearLoop, turning, inLoop, normal
+					if (!IsTwoLine(oneLineMax, front_left, front_right)){
+						if (state == turning){
+							state == inLoop;
+						}
+					}
+					else{
+						if (!IsTwoLine(oneLineMax, mid_left, mid_right)){
+							state = nearLoop;//pid with target equalMin+equalMax /2, input value: side with no loop
+						}
+						else{
+							if (state == nearLoop){
+								state = turning;//same pid but input value side with loop
+							}
+							else if (state == inLoop){
+								state == normal;
+							}
+						}
+					}
+
+					if (state == normal || state == inLoop){
+						if (front_left < 15 || front_right < 15){
+							angle = lastServo;
+						}
+						else{
+							frontLinear = 1/(float)front_left-1/(float)front_right;
+							angle = servoPIDCurve.getPID(0.0,frontLinear);
+							lastServo = angle;
+							if (front_left == front_right){
+								equalMin = min(equalMin,front_left);
+								equalMax = max(equalMax,front_left);
+							}
+						}
+						angle += middleServo;
+						angle = max(rightServo,min(leftServo,angle));
+						servo.SetDegree(angle);
+					}
+					else if (state == nearLoop){
+
+					}
+					else if (state == turning){
+
 					}
 				}
+
+				if (angle>middleServo){
+					motorLPID.setDesiredVelocity(speed*((angle-middleServo)/-7.5+90)/90);
+					motorRPID.setDesiredVelocity(speed*((angle-middleServo)/8.5+90)/90);
+				}
+				else{
+					motorRPID.setDesiredVelocity(speed*((angle-middleServo)/-7.5+90)/90);
+					motorLPID.setDesiredVelocity(speed*((angle-middleServo)/8.5+90)/90);
+				}
+
 				if (start){
 					motorL.SetPower(motorLPID.getPID());
 					motorR.SetPower(motorRPID.getPID());
@@ -342,25 +306,22 @@ int main() {
 					lcd.SetRegion(Lcd::Rect(0,15,128,15));
 					sprintf(c,"FR: %d", front_right);
 					writer.WriteBuffer(c,10);
-//					lcd.SetRegion(Lcd::Rect(0,30,128,15));
-//					sprintf(c,"ML: %d",mid_left);
-//					writer.WriteBuffer(c,10);
-//					lcd.SetRegion(Lcd::Rect(0,45,128,15));
-//					sprintf(c,"MR: %d",mid_right);
-//					writer.WriteBuffer(c,10);
+					lcd.SetRegion(Lcd::Rect(0,30,128,15));
+					sprintf(c,"ML: %d",mid_left);
+					writer.WriteBuffer(c,10);
+					lcd.SetRegion(Lcd::Rect(0,45,128,15));
+					sprintf(c,"MR: %d",mid_right);
+					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,60,128,15));
 					sprintf(c,"P: %d",(int)servoPIDCurve.getkP());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,75,128,15));
 					sprintf(c,"D: %d",(int)servoPIDCurve.getkD());
-//					sprintf(c,"d: %f",servoPID.getdTerm());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,90,128,15));
 					sprintf(c,"A: %d",servo.GetDegree());
-//					sprintf(c,"L: %f",motorLPID.getcurrentVelocity());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,105,128,15));
-//					sprintf(c,"R: %f",motorRPID.getcurrentVelocity());
 					sprintf(c,"S: %d",(int)speed);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,120,128,15));
@@ -381,9 +342,10 @@ int main() {
 //					}else if (state == inLoop){
 //						lcd.FillColor(0x0000);
 //					}
-//					lcd.SetRegion(Lcd::Rect(0,135,128,15));
-//					sprintf(c,"xR: %f", xRatio - xRatio2);
-//					writer.WriteBuffer(c, 10);
+					lcd.SetRegion(Lcd::Rect(0,135,128,15));
+					sprintf(c,"%d %d", equalMin, equalMax);
+//					sprintf(c,"%d%d%d%d", minLeft, maxLeft, minRight, maxRight);
+					writer.WriteBuffer(c, 10);
 				}
 			}
     	}

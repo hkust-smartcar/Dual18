@@ -7,8 +7,6 @@
 
 #include "bt.h"
 
-
-
 bt::~bt() {
 	// TODO Auto-generated destructor stub
 }
@@ -58,7 +56,7 @@ void bt::setValue(){
 void bt::sendVelocity(){
 	float temp;
 	Byte buff[13];
-	temp = *xRatio;
+	temp = *frontLinear;
 //	temp = 0.4;
 	buff[0] = ((Byte*)&temp)[0];
 	buff[1] = ((Byte*)&temp)[1];
