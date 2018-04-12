@@ -76,7 +76,7 @@ public:
 
     static JyMcuBt106::Config GetBluetoothConfig(std::function<bool(const Byte *data, const size_t size)> isr) {
     	JyMcuBt106::Config config;
-    	config.id = 0;
+    	config.id = 1;
     	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k9600;
     	config.rx_isr = isr;
     	return config;

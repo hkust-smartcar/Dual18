@@ -111,19 +111,21 @@ int main() {
 
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
-    PID servoPIDCurve(13000, 0);
-    PID servoPIDStraight(300,12000);
-    PID servoPIDOneLine(300,12000);
-    PID motorLPID(0.32,0.0,8, &LEncoder);
-    PID motorRPID(0.32,0.0,8, &REncoder);
-    float speed = 70;
+    PID servoPIDCurv(5800, 110000);
+    PID servoPIDStraight(2500,80000);
+    PID servoPIDOneStraight(10,100);
+    PID servoPIDCurve(-26,220);
+    PID motorLPID(0.38,0.0,1, &LEncoder);
+    PID motorRPID(0.38,0.0,1, &REncoder);
+    float speed = 50;
 	float lastServo, frontLinear, midLinear;
     bt mBT(&servoPIDCurve, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &frontLinear);
 
 	typedef enum {
 		normal = 0,
 		nearLoop,
-		straight,
+		straight1,
+		straight2,
 		turning,
 		inLoop
 	}carState;
@@ -140,13 +142,12 @@ int main() {
 	uint16_t rightServo = 550;
 	float angle = middleServo;
 
-	bool tuneP = false, goLoop = false;
-	int kP = servoPIDCurve.getkP(), kD = servoPIDCurve.getkD();
-	uint8_t oneLineMax = 100, equalMin = 51, equalMax = 55;
+	bool tuneP = false, goLoop = true;
+	uint8_t oneLineMax = 90, equalMin = 55, equalMax = 51;//swapped min and max
 	uint8_t maxLeft = 0,minLeft = 100,maxRight = 0,minRight = 100;
 
-    Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&](const uint8_t id, const Joystick::State state){
-    	if (state == Joystick::State::kSelect){
+    Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&](const uint8_t id, const Joystick::State State){
+    	if (State == Joystick::State::kSelect){
     		if (start){
     			start = false;
     			motorLPID.setDesiredVelocity(0);
@@ -160,32 +161,12 @@ int main() {
 				motorRPID.setDesiredVelocity(speed);
     		}
 		}
-		else if (state == Joystick::State::kUp){
-			if (tuneP){
-				kP += 1000;
-				servoPIDCurve.setkP(kP);
-			}
-			else{
-				kD += 1000;
-				servoPIDCurve.setkD(kD);
-			}
+		else if (State == Joystick::State::kUp){
+			goLoop = !goLoop;
 		}
-		else if (state == Joystick::State::kDown){
-			if (tuneP){
-				kP -= 1000;
-				servoPIDCurve.setkP(kP);
-			}
-			else{
-				kD -= 1000;
-				servoPIDCurve.setkD(kD);
-			}
-		}
-		else if (state == Joystick::State::kLeft){
-			speed += 1;
-		}
-		else if (state == Joystick::State::kRight){
-			tuneP = !tuneP;
-		}
+    	else{
+    		state = (carState)(((int)state+1) % 5);
+    	}
     	led2.Switch();
     })));
 
@@ -213,83 +194,108 @@ int main() {
 				maxRight = max(maxRight, front_right);
 
 				if (!goLoop){
-					if (front_left < 15 || front_right < 15){
-						angle = lastServo;
-					}
-					else{
-						frontLinear = 1/(float)front_left-1/(float)front_right;
-						angle = servoPIDCurve.getPID(0.0,frontLinear);
-						lastServo = angle;
-						if (front_left == front_right){
-							equalMin = min(equalMin,front_left);
-							equalMax = max(equalMax,front_left);
-						}
-					}
-					angle += middleServo;
-					angle = max(rightServo,min(leftServo,angle));
-					servo.SetDegree(angle);
 				}
 				else{
-					//normal, nearLoop, turning, inLoop, normal
+					//normal, nearLoop, straight, turning, inLoop, normal
 					if (!IsTwoLine(oneLineMax, front_left, front_right)){
 						if (state == turning){
 							state = inLoop;
 						}
 					}
 					else{
-						if (!IsTwoLine(oneLineMax, mid_left, mid_right) && state != nearLoop){
-							state = nearLoop;//pid with target equalMin+equalMax /2, input value: side with no loop
-							if (front_left > front_right){
-								leftLoop = true;
-							}
-							else{
-								leftLoop = false;
+						if (!IsTwoLine(oneLineMax, mid_left, mid_right)){
+							if (state != nearLoop){
+								state = nearLoop;//pid with target equalMin+equalMax /2, input value: side with no loop
+								if (front_left > front_right){
+									leftLoop = true;
+								}
+								else{
+									leftLoop = false;
+								}
 							}
 						}
 						else{
 							if (state == nearLoop){
-								state = turning;//same pid but input value side with loop
+								state = straight1;//same pid but input value side with loop
 							}
 							else if (state == inLoop){
 								state = normal;
 							}
+							else if (state == straight1 && abs(mid_left-mid_right) < 5){
+								state = straight2;
+							}
+							else if (state == straight2 && abs(front_left-front_right) > 10 && abs(mid_left-mid_right) > 10){
+								state = turning;
+							}
 						}
 					}
 
-					if (state == normal || state == inLoop){
-						if (front_left < 15 || front_right < 15){
-							angle = lastServo;
-						}
-						else{
-							frontLinear = 1/(float)front_left-1/(float)front_right;
-							angle = servoPIDCurve.getPID(0.0,frontLinear);
-							lastServo = angle;
-							if (front_left == front_right){
-								equalMin = min(equalMin,front_left);
-								equalMax = max(equalMax,front_left);
-							}
-						}
-						angle += middleServo;
-						angle = max(rightServo,min(leftServo,angle));
-						servo.SetDegree(angle);
-					}
-					else if (state == nearLoop){
-						if (leftLoop){
-							servoPIDOneLine.getPID((equalMax+equalMin)/2, front_right);
-						}
-						else{
-							servoPIDOneLine.getPID((equalMax+equalMin)/2, front_left);
-						}
-					}
-					else if (state == turning){
-						if (leftLoop){
-							servoPIDOneLine.getPID((equalMax+equalMin)/2, front_left);
-						}
-						else{
-							servoPIDOneLine.getPID((equalMax+equalMin)/2, front_right);
-						}
-					}
 				}
+				if (state == normal || state == inLoop){
+					if (front_left < 15 || front_right < 15){
+						angle = lastServo;
+					}
+					else{
+						frontLinear = 1/(float)front_left-1/(float)front_right;
+						if(frontLinear >= 0.003 || frontLinear <= - 0.003){
+							angle = servoPIDCurv.getPID(0.0,frontLinear);
+						}else{
+							angle = servoPIDStraight.getPID(0.0,frontLinear);
+						}
+						lastServo = angle;
+						if (front_left == front_right){
+							equalMin = min(equalMin,front_left);
+							equalMax = max(equalMax,front_left);
+						}
+					}
+					led3.SetEnable(0);
+					led2.SetEnable(1);
+				}
+				else if (state == nearLoop){
+					if (leftLoop){
+						angle = servoPIDOneStraight.getPID((equalMax+equalMin)/2, mid_right);
+					}
+					else{
+						angle = servoPIDOneStraight.getPID((equalMax+equalMin)/2, mid_left);
+					}
+					led3.SetEnable(0);
+					led2.SetEnable(0);
+				}
+				else if (state == straight1 || state == straight2){
+					midLinear = 2*(1/(float)mid_left-1/(float)mid_right);
+					angle = servoPIDCurv.getPID(0.0,midLinear);
+					led3.SetEnable(1);
+					led2.SetEnable(0);
+				}
+				else if (state == turning){
+					if (leftLoop){
+						if (mid_left < (equalMax+equalMin)/2){
+							angle = 0;
+						}
+						else{
+							angle = servoPIDCurve.getPID((equalMax+equalMin)/2, mid_left);
+							lastServo = angle;
+						}
+					}
+					else{
+						if (mid_right < (equalMax+equalMin)/2){
+							angle = 0;
+						}
+						else{
+							angle = servoPIDCurve.getPID((equalMax+equalMin)/2, mid_right);
+							lastServo = angle;
+						}
+					}
+
+					lastServo = angle;
+					led3.SetEnable(1);
+					led2.SetEnable(1);
+				}
+				led0.SetEnable(!leftLoop);
+
+				angle += middleServo;
+				angle = max(rightServo,min(leftServo,angle));
+				servo.SetDegree(angle);
 
 				if (angle>middleServo){
 					motorLPID.setDesiredVelocity(speed*((angle-middleServo)/-7.5+90)/90);
@@ -361,7 +367,8 @@ int main() {
 //						lcd.FillColor(0x0000);
 //					}
 					lcd.SetRegion(Lcd::Rect(0,135,128,15));
-					sprintf(c,"%d %d", equalMin, equalMax);
+					sprintf(c,"M: %f",midLinear*100);
+//					sprintf(c,"%d %d", equalMin, equalMax);
 //					sprintf(c,"%d%d%d%d", minLeft, maxLeft, minRight, maxRight);
 					writer.WriteBuffer(c, 10);
 				}
