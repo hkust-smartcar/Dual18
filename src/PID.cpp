@@ -22,8 +22,8 @@ float PID::getPID(){
 	 lastTime = currentTime;
 	 lastlastError = lastError;
 	 lastError = currentError;
-	 if(output < -1000){
-	  output = -1000;
+	 if(output < 0){
+	  output = 0;
 	 }else if(output >= 1000){
 		 output = 1000;
 	 }
