@@ -118,14 +118,14 @@ int main() {
 
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
-    PID servoPIDCurv(5800, 110000);
-    PID servoPIDStraight(2500,80000);
-    PID servoPIDCurve(3000, 110000);//for straight123
+    PID servoPIDCurv(6000, 110000);
+    PID servoPIDStraight(2800,80000);
+    PID servoPIDCurve(6000, 110000);//for straight123
     PID servoPIDOneStraight(4,100);//10
     PID servoPIDOneCurve(-26,220);
     PID motorLPID(0.38,0.0,1, &LEncoder);
     PID motorRPID(0.38,0.0,1, &REncoder);
-    float speed = 14;
+    float speed = 20;
 	float lastServo, frontLinear, midLinear;
     bt mBT(&servoPIDCurv, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &frontLinear);
 
