@@ -73,7 +73,7 @@ bool IsOneLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 
 	return false;
 }
 
-bool IsTwoLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 1.5){
+bool IsTwoLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 1.3){
 	if (max(leftVal,rightVal) > maxVal && (leftVal+rightVal) > maxVal*multi){
 		return true;
 	}
@@ -120,14 +120,14 @@ int main() {
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
     PID servoPIDCurv(5800, 110000);
     PID servoPIDStraight(2500,80000);
-    PID servoPIDCurve(6400, 110000);//for straight123
-    PID servoPIDOneStraight(10,100);
+    PID servoPIDCurve(3000, 110000);//for straight123
+    PID servoPIDOneStraight(4,100);//10
     PID servoPIDOneCurve(-26,220);
     PID motorLPID(0.38,0.0,1, &LEncoder);
     PID motorRPID(0.38,0.0,1, &REncoder);
-    float speed = 25;
+    float speed = 14;
 	float lastServo, frontLinear, midLinear;
-    bt mBT(&servoPIDCurve, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &frontLinear);
+    bt mBT(&servoPIDCurv, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &frontLinear);
 
 	typedef enum {
 		normal = 0,
@@ -184,69 +184,70 @@ int main() {
     while(1){
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
-    		if (lastTime % 6 == 0){
+			mid_left = mag0.GetResult();
+			mid_right = mag1.GetResult();
+			front_left = mag2.GetResult();
+			front_right = mag3.GetResult();
+			if (!IsTwoLine(oneLineMax, front_left, front_right) ){
+				if (state == turning && (leftLoop && front_left>front_right*1.5 || !leftLoop && front_right>front_left*1.5)){
+					state = inLoop;
+					bigVal = false;
+				}
+				else if (IsOneLine(oneLineMax, front_left, front_right) && IsOneLine(oneLineMax, mid_left, mid_right) && (state == inLoop && bigVal || state == outLoop)){
+					state = normal;
+				}
+			}
+			else{
+				if (!IsTwoLine(oneLineMax, mid_left, mid_right)){
+					if (state == normal){
+						state = nearLoop;
+						if (front_left > front_right){
+							leftLoop = true;
+						}
+						else{
+							leftLoop = false;
+						}
+					}
+				}
+				else{
+					if (state == nearLoop){
+						state = straight1;
+					}
+					else if (state == inLoop){
+						state = outLoop;
+					}
+					else if (state == straight1 && abs(mid_left-mid_right) < 15){
+						state = straight2;
+					}
+					else if (state == straight2 && abs(mid_left-mid_right) > 15){
+						state = straight3;
+					}
+					else if (state == straight3 && (leftLoop && front_left*0.85>front_right || !leftLoop && front_right*0.85>front_left)){//originally *0.85
+						state = turning;
+					}
+				}
+			}
+
+    		if (lastTime % 4 == 0){
 				mid_left = filterSum0/filterCounter;
 				mid_right = filterSum1/filterCounter;
 				front_left = filterSum2/filterCounter;
 				front_right = filterSum3/filterCounter;
 				back_left = filterSum4/filterCounter;
 				back_right = filterSum5/filterCounter;
-				filterSum0 = 0;
-				filterSum1 = 0;
-				filterSum2 = 0;
-				filterSum3 = 0;
-				filterSum4 = 0;
-				filterSum5 = 0;
-				filterCounter = 0;
+				if (filterCounter > 15){
+					filterSum0 = 0;
+					filterSum1 = 0;
+					filterSum2 = 0;
+					filterSum3 = 0;
+					filterSum4 = 0;
+					filterSum5 = 0;
+					filterCounter = 0;
+				}
 				minLeft = min(minLeft, front_left);
 				maxLeft = max(maxLeft, front_left);
 				minRight = min(minRight, front_right);
 				maxRight = max(maxRight, front_right);
-
-				if (!goLoop){
-				}
-				else{
-					//normal, nearLoop, straight, turning, inLoop, normal
-					if (!IsTwoLine(oneLineMax, front_left, front_right) ){
-						if (state == turning && (leftLoop && front_left>front_right*1.5 || !leftLoop && front_right>front_left*1.5)){
-							state = inLoop;
-							bigVal = false;
-						}
-						else if (IsOneLine(oneLineMax, front_left, front_right) && IsOneLine(oneLineMax, mid_left, mid_right) && (state == inLoop && bigVal || state == outLoop)){
-							state = normal;
-						}
-					}
-					else{
-						if (!IsTwoLine(oneLineMax, mid_left, mid_right)){
-							if (state == normal){
-								state = nearLoop;
-								if (front_left > front_right){
-									leftLoop = true;
-								}
-								else{
-									leftLoop = false;
-								}
-							}
-						}
-						else{
-							if (state == nearLoop){
-								state = straight1;
-							}
-							else if (state == inLoop){
-								state = outLoop;
-							}
-							else if (state == straight1 && abs(mid_left-mid_right) < 10){
-								state = straight2;
-							}
-							else if (state == straight2 && abs(mid_left-mid_right) > 10){
-								state = straight3;
-							}
-							else if (state == straight3 && (leftLoop && front_left*0.9>front_right || !leftLoop && front_right*0.9>front_left)){//originally *0.85
-								state = turning;
-							}
-						}
-					}
-				}
 
 				if (state == normal){
 					if (front_left < 15 || front_right < 15){
@@ -269,6 +270,7 @@ int main() {
 					led2.SetEnable(1);
 				}
 				else if (state == nearLoop){
+
 					if (leftLoop){
 						angle = servoPIDOneStraight.getPID((equalMax+equalMin)/2, mid_right);
 					}
@@ -311,6 +313,13 @@ int main() {
 							angle = -servoPIDOneCurve.getPID((equalMax+equalMin)/2, mid_right);
 							lastServo = angle;
 						}
+
+
+
+
+
+
+
 					}
 
 					lastServo = angle;
@@ -394,12 +403,10 @@ int main() {
 			}
 
 			filterCounter++;
-			filterSum0 += mag0.GetResult();
-			filterSum1 += mag1.GetResult();
-			filterSum2 += mag2.GetResult();
-			filterSum3 += mag3.GetResult();
-			filterSum4 += mag4.GetResult();
-			filterSum5 += mag5.GetResult();
+			filterSum0 += mid_left;
+			filterSum1 += mid_right;
+			filterSum2 += front_left;
+			filterSum3 += front_right;
 
 			if (lastTime % 100 == 0){
 				if(!start){
