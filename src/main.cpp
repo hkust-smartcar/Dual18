@@ -125,7 +125,7 @@ int main() {
     PID servoPIDOneCurve(-26,220);
     PID motorLPID(0.38,0.0,1, &LEncoder);
     PID motorRPID(0.38,0.0,1, &REncoder);
-    float speed = 20;
+    float speed = 25;
 	float lastServo, frontLinear, midLinear;
     bt mBT(&servoPIDCurve, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &frontLinear);
 
@@ -241,7 +241,7 @@ int main() {
 							else if (state == straight2 && abs(mid_left-mid_right) > 10){
 								state = straight3;
 							}
-							else if (state == straight3 && (leftLoop && front_left*0.85>front_right || !leftLoop && front_right*0.85>front_left)){
+							else if (state == straight3 && (leftLoop && front_left*0.9>front_right || !leftLoop && front_right*0.9>front_left)){//originally *0.85
 								state = turning;
 							}
 						}
@@ -281,13 +281,16 @@ int main() {
 				else if (state == straight1 || state == straight2 || state == straight3){
 					midLinear = 2*(1/(float)mid_left-1/(float)mid_right);
 					angle = servoPIDCurve.getPID(0.0,midLinear);
-					if (straight1 == state || straight3 == state){
+					if (straight1 == state){
 						led3.SetEnable(1);
 						led2.SetEnable(0);
 						led1.SetEnable(1);
 					}
-					else{
+					else if (state == straight2){
 						led1.SetEnable(0);
+					}
+					else{
+						led1.SetEnable(lastTime % 100 < 50);
 					}
 				}
 				else if (state == turning){
@@ -352,7 +355,7 @@ int main() {
 					led2.SetEnable(lastTime % 100 < 50);
 				}
 				else if (state == outLoop){
-					if (front_left < 40 || front_right < 40){
+					if (front_left < 30 || front_right < 30){
 						if (leftLoop){
 							angle = 300;
 						}
@@ -379,8 +382,8 @@ int main() {
 					motorRPID.setDesiredVelocity(speed*((angle-middleServo)/8.5+90)/90);
 				}
 				else{
-					motorRPID.setDesiredVelocity(speed*((angle-middleServo)/-7.5+90)/90);
-					motorLPID.setDesiredVelocity(speed*((angle-middleServo)/8.5+90)/90);
+					motorRPID.setDesiredVelocity(speed*((middleServo-angle)/-7.5+90)/90);
+					motorLPID.setDesiredVelocity(speed*((middleServo-angle)/8.5+90)/90);
 				}
 
 				if (start){
