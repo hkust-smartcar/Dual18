@@ -66,14 +66,14 @@ float _sqrt(float x){
 int max(int a, int b){return a>b?a:b;}
 int min(int a, int b){return a<b?a:b;}
 
-bool IsOneLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 1.3){
+bool IsOneLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 1.5){
 	if (max(leftVal,rightVal) < maxVal && (leftVal+rightVal) < maxVal*multi){
 		return true;
 	}
 	return false;
 }
 
-bool IsTwoLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 1.3){
+bool IsTwoLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 1.6){
 	if (max(leftVal,rightVal) > maxVal && (leftVal+rightVal) > maxVal*multi){
 		return true;
 	}
@@ -118,14 +118,14 @@ int main() {
 
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
-    PID servoPIDCurv(6000, 110000);
-    PID servoPIDStraight(2800,80000);
-    PID servoPIDCurve(6000, 110000);//for straight123
+    PID servoPIDCurv(6165,69);
+    PID servoPIDStraight(2500,100);
+    PID servoPIDCurve(6165,69);//for straight123
     PID servoPIDOneStraight(4,100);//10
-    PID servoPIDOneCurve(-26,220);
-    PID motorLPID(0.38,0.0,1, &LEncoder);
-    PID motorRPID(0.38,0.0,1, &REncoder);
-    float speed = 20;
+    PID servoPIDOneCurve(-24,240);
+    PID motorLPID(0.23,0.0,0.5, &LEncoder);
+    PID motorRPID(0.28,0.0,0.5, &REncoder);
+    float speed = 24, lowSpeed = 15, highSpeed = 24;
 	float lastServo, frontLinear, midLinear;
     bt mBT(&servoPIDCurv, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &frontLinear);
 
@@ -144,7 +144,7 @@ int main() {
 	bool leftLoop = true, bigVal = false;
 	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0, filterSum4 = 0, filterSum5 = 0;
 	uint8_t filterCounter = 0;
-	uint32_t lastTime = 0;
+	uint32_t lastTime = 0, stateTime = 0;
 	uint8_t front_left, front_right, mid_left, mid_right, back_left, back_right;
 
 	uint16_t middleServo = 865;
@@ -153,8 +153,9 @@ int main() {
 	float angle = middleServo;
 
 	bool tuneP = false, goLoop = true;
-	uint8_t oneLineMax = 90, equalMin = 55, equalMax = 51;//swapped min and max
+	uint8_t oneLineMax = 80, equalMin = 55, equalMax = 51;//swapped min and max
 	uint8_t maxLeft = 0,minLeft = 100,maxRight = 0,minRight = 100;
+	uint8_t count1, count4;
 
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&](const uint8_t id, const Joystick::State State){
     	if (State == Joystick::State::kSelect){
@@ -189,19 +190,25 @@ int main() {
 			front_left = mag2.GetResult();
 			front_right = mag3.GetResult();
 			if (!IsTwoLine(oneLineMax, front_left, front_right) ){
-				if (state == turning && (leftLoop && front_left>front_right*1.5 || !leftLoop && front_right>front_left*1.5)){
+				if (state == turning && (leftLoop && front_left>front_right*1.55 || !leftLoop && front_right>front_left*1.55)){
 					state = inLoop;
+					speed = 20;
+					stateTime = lastTime;
 					bigVal = false;
 				}
 				else if (IsOneLine(oneLineMax, front_left, front_right) && IsOneLine(oneLineMax, mid_left, mid_right) && (state == inLoop && bigVal || state == outLoop)){
 					state = normal;
+					stateTime = lastTime;
+					speed = highSpeed;
 				}
 			}
 			else{
 				if (!IsTwoLine(oneLineMax, mid_left, mid_right)){
 					if (state == normal){
 						state = nearLoop;
-						if (front_left > front_right){
+						speed = lowSpeed;
+						stateTime = lastTime;
+						if (front_left-mid_left > front_right-mid_right){
 							leftLoop = true;
 						}
 						else{
@@ -212,18 +219,23 @@ int main() {
 				else{
 					if (state == nearLoop){
 						state = straight1;
+						stateTime = lastTime;
 					}
 					else if (state == inLoop){
 						state = outLoop;
+						stateTime = lastTime;
 					}
 					else if (state == straight1 && abs(mid_left-mid_right) < 15){
 						state = straight2;
+						stateTime = lastTime;
 					}
-					else if (state == straight2 && abs(mid_left-mid_right) > 15){
+					else if (state == straight2 && abs(mid_left-mid_right) > 10){
 						state = straight3;
+						stateTime = lastTime;
 					}
-					else if (state == straight3 && (leftLoop && front_left*0.85>front_right || !leftLoop && front_right*0.85>front_left)){//originally *0.85
+					else if (state == straight3 && (leftLoop && front_left*0.855>front_right || !leftLoop && front_right*0.855>front_left)){//originally *0.85
 						state = turning;
+						stateTime = lastTime;
 					}
 				}
 			}
@@ -244,14 +256,14 @@ int main() {
 					filterSum5 = 0;
 					filterCounter = 0;
 				}
-				minLeft = min(minLeft, front_left);
-				maxLeft = max(maxLeft, front_left);
-				minRight = min(minRight, front_right);
-				maxRight = max(maxRight, front_right);
+//				minLeft = min(minLeft, front_left);
+//				maxLeft = max(maxLeft, front_left);
+//				minRight = min(minRight, front_right);
+//				maxRight = max(maxRight, front_right);
 
 				if (state == normal){
-					if (front_left < 15 || front_right < 15){
-						angle = lastServo;
+					if (front_left < 20 || front_right < 20){
+						angle = lastServo*1.5;
 					}
 					else{
 						frontLinear = 1/(float)front_left-1/(float)front_right;
@@ -313,15 +325,7 @@ int main() {
 							angle = -servoPIDOneCurve.getPID((equalMax+equalMin)/2, mid_right);
 							lastServo = angle;
 						}
-
-
-
-
-
-
-
 					}
-
 					lastServo = angle;
 					led3.SetEnable(1);
 					led2.SetEnable(1);
@@ -364,7 +368,7 @@ int main() {
 					led2.SetEnable(lastTime % 100 < 50);
 				}
 				else if (state == outLoop){
-					if (front_left < 30 || front_right < 30){
+					if (front_left < 20 || front_right < 20){
 						if (leftLoop){
 							angle = 300;
 						}
@@ -399,7 +403,8 @@ int main() {
 					motorL.SetPower(motorLPID.getPID());
 					motorR.SetPower(motorRPID.getPID());
 				}
-				mBT.sendVelocity();
+//				mBT.sendVelocity();
+				count4++;
 			}
 
 			filterCounter++;
@@ -407,6 +412,14 @@ int main() {
 			filterSum1 += mid_right;
 			filterSum2 += front_left;
 			filterSum3 += front_right;
+			count1++;
+
+			if (lastTime % 500 == 0){
+				if (state != normal && lastTime-stateTime > 3500){
+					state = normal;
+					speed = highSpeed;
+				}
+			}
 
 			if (lastTime % 100 == 0){
 				if(!start){
@@ -423,41 +436,43 @@ int main() {
 					lcd.SetRegion(Lcd::Rect(0,45,128,15));
 					sprintf(c,"MR: %d",mid_right);
 					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,60,128,15));
-					sprintf(c,"P: %d",(int)servoPIDCurve.getkP());
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,75,128,15));
-					sprintf(c,"D: %d",(int)servoPIDCurve.getkD());
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,90,128,15));
-					sprintf(c,"A: %d",servo.GetDegree());
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,105,128,15));
-					sprintf(c,"S: %d",(int)speed);
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,120,128,15));
-					sprintf(c,"M: %f",frontLinear*100);
-					writer.WriteBuffer(c,10);
-//					if (state == normal){
-//						lcd.FillColor(0xFF00);
-//					}else if (state == nearLoop){
-//						if (isLeft){
-//							lcd.SetRegion(Lcd::Rect(0,120,64,15));
-//						}
-//						else{
-//							lcd.SetRegion(Lcd::Rect(64,120,64,15));
-//						}
-//						lcd.FillColor(0x0FF0);
-//					}else if (state == turning){
-//						lcd.FillColor(0x00FF);
-//					}else if (state == inLoop){
-//						lcd.FillColor(0x0000);
-//					}
-					lcd.SetRegion(Lcd::Rect(0,135,128,15));
-					sprintf(c,"M: %f",midLinear*100);
-//					sprintf(c,"%d %d", equalMin, equalMax);
-//					sprintf(c,"%d%d%d%d", minLeft, maxLeft, minRight, maxRight);
-					writer.WriteBuffer(c, 10);
+//					lcd.SetRegion(Lcd::Rect(0,60,128,15));
+//					sprintf(c,"P: %d %d",count1,count4);
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,75,128,15));
+//					sprintf(c,"D: %d",count4);
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,90,128,15));
+//					sprintf(c,"A: %d",servo.GetDegree());
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,105,128,15));
+//					sprintf(c,"S: %d",(int)speed);
+//					writer.WriteBuffer(c,10);
+//					lcd.SetRegion(Lcd::Rect(0,120,128,15));
+//					sprintf(c,"M: %f",frontLinear*100);
+//					writer.WriteBuffer(c,10);
+////					if (state == normal){
+////						lcd.FillColor(0xFF00);
+////					}else if (state == nearLoop){
+////						if (isLeft){
+////							lcd.SetRegion(Lcd::Rect(0,120,64,15));
+////						}
+////						else{
+////							lcd.SetRegion(Lcd::Rect(64,120,64,15));
+////						}
+////						lcd.FillColor(0x0FF0);
+////					}else if (state == turning){
+////						lcd.FillColor(0x00FF);
+////					}else if (state == inLoop){
+////						lcd.FillColor(0x0000);
+////					}
+//					lcd.SetRegion(Lcd::Rect(0,135,128,15));
+//					sprintf(c,"M: %f",midLinear*100);
+////					sprintf(c,"%d %d", equalMin, equalMax);
+////					sprintf(c,"%d%d%d%d", minLeft, maxLeft, minRight, maxRight);
+//					writer.WriteBuffer(c, 10);
+					count1 = 0;
+					count4 = 0;
 				}
 			}
     	}
