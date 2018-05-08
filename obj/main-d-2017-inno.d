@@ -45,5 +45,5 @@ obj/main-d-2017-inno.o: src/main.cpp \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/pwm.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/ftm_pwm.h \
  C:\Users\pwc02\git\libsccc\inc/libsc/alternate_motor.h \
- C:\Users\pwc02\git\libsccc\inc/libsc/motor.h inc/PID.h inc/bt.h \
- inc/PID.h inc/config.h
+ C:\Users\pwc02\git\libsccc\inc/libsc/motor.h inc/PID.h \
+ inc/DualCar_UART.h C:\Users\pwc02\git\libsccc\inc/libsc/passive_buzzer.h
