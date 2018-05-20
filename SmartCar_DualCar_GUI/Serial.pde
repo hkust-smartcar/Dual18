@@ -74,34 +74,34 @@ public class UART {
                         }
                         acker(RxBuffer[1]);
                     } else if (DataType == DATA_TYPE.DOUBLE) {
-                        if (DataCaller_double.length > MailBox_) {
+                        if (DataArray_double.length > MailBox_) {
                             byte[] byteArr = new byte[8];
                             for (int i = 0; i < 6; i++) {
                                 byteArr[7-i] = dataBuffer[i];
                             }
                             byteArr[1] = RxBuffer[2];
                             byteArr[0] = RxBuffer[3];
-                            DataCaller_double[MailBox_] = ByteBuffer.wrap(byteArr).getDouble();
+                            DataArray_double[MailBox_] = ByteBuffer.wrap(byteArr).getDouble();
                         }
                         acker(RxBuffer[1]);
                     }  else if (DataType == DATA_TYPE.FLOAT) {
                         
-                        if (DataCaller_float.length > MailBox_) {
+                        if (DataArray_float.length > MailBox_) {
                             byte[] byteArr = new byte[4];
                             byteArr[3] = dataBuffer[1];
                             byteArr[2] = dataBuffer[0];
                             byteArr[1] = RxBuffer[2];
                             byteArr[0] = RxBuffer[3];
-                            DataCaller_float[MailBox_] = ByteBuffer.wrap(byteArr).getFloat();
+                            DataArray_float[MailBox_] = ByteBuffer.wrap(byteArr).getFloat();
                         }
                         acker(RxBuffer[1]);
                     } else if (DataType == DATA_TYPE.UINT8_T) {
                     
-                        if (DataCaller_uint8_t.length > MailBox_) {
+                        if (DataArray_uint8_t.length > MailBox_) {
                             
-                            DataCaller_uint8_t[MailBox_] = RxBuffer[2];
-                            if (DataCaller_uint8_t[MailBox_] < 0) {
-                                DataCaller_uint8_t[MailBox_] += 256;
+                            DataArray_uint8_t[MailBox_] = RxBuffer[2];
+                            if (DataArray_uint8_t[MailBox_] < 0) {
+                                DataArray_uint8_t[MailBox_] += 256;
                             }
                         }
                         acker(RxBuffer[1]);
@@ -225,7 +225,7 @@ public class UART {
         }
 
         SendImmediate.add(SendImmediate.size(), pkg);
-
+        if (sendImmediateBool == true) {}
         //if (sendImmediateBool == true) {
         //    SendImmediate.add(SendImmediate.size(), pkg);
         //} else {
@@ -254,8 +254,6 @@ public class UART {
     }
 
     void acker(byte code) {
-        if (serialNeedAck == true) {
-            SendWrapper(DATA_TYPE.SYSTEM, SYSTEM_MSG.ack.ordinal(), code, (byte) 0, true);
-        }
+        SendWrapper(DATA_TYPE.SYSTEM, SYSTEM_MSG.ack.ordinal(), code, (byte) 0, true);
     }
 }

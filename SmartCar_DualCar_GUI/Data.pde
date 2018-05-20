@@ -11,9 +11,9 @@ public enum SYSTEM_MSG {
         lastTerm;
 };
 
-public int[] DataCaller_uint8_t;
-public double[] DataCaller_double;
-public float[] DataCaller_float;
+public int[] DataArray_uint8_t;
+public double[] DataArray_double;
+public float[] DataArray_float;
 
 final int LOCAL_BUFFER_MAX = 10;
 

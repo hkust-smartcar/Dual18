@@ -46,13 +46,16 @@ mailbox naming format:
  addLineBreak();
  */
 
+final String EnvPath = "E:/Desktop/";
+final boolean SameFile = true;
+
 void init() { // add tiles here 
     addInputIncDecTile(Mailbox.u0, "trig", 1, 1, 0);
 
-    addOutputValueTile(Mailbox.f0, "echo 0");
-    addOutputValueTile(Mailbox.f1, "echo 1");
-    addOutputValueTile(Mailbox.f2, "echo 2");
-    addOutputValueTile(Mailbox.f3, "echo 3");
+    addOutputValueTile(Mailbox.u0, "echo 0");
+    addOutputValueTile(Mailbox.u1, "echo 1");
+    addOutputValueTile(Mailbox.u2, "echo 2");
+    addOutputValueTile(Mailbox.u3, "echo 3");
     addElapsedTime();
 
     addLineBreak(); // break into next column
@@ -63,4 +66,8 @@ void init() { // add tiles here
     addLine(Mailbox.f1, "echo 1", BLUE); // >> put into chart 1
     addLine(Mailbox.f2, "echo 2", GREEN); // >> put into chart 1
     addLine(Mailbox.f3, "echo 3", TEAL); // >> put into chart 1
+}
+
+void cycle() {
+    //DataArray_uint8_t[uint8_t_MailBox.u0.ordinal()] = 10;
 }

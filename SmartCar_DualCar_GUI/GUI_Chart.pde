@@ -1,3 +1,8 @@
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+
 interface ScanLineChart_Interface extends GUI_interface {
     void setBoundary(double upperBound, double lowerBound);
     void setHorizontalSpacing(int spacing);
@@ -34,11 +39,13 @@ class ScanLineChart implements GUI_interface {
     private Button m_PauseBut;
     private Button m_RestartBut;
 
-    private String m_PauseBut_PauseStr =  "Pause  ";
-    private String m_PauseBut_ResumeStr = "Resume ";
+    private String m_PauseBut_PauseStr =  "G: Pause   ";
+    private String m_PauseBut_ResumeStr = "G: Resume  ";
     private Boolean m_isPause = false;
 
-    private String m_RestartBut_Restart = "Restart ";
+    private String m_RestartBut_Restart = "G: Restart ";
+
+    String FileToAppend = "test";
 
     ScanLineChart(int SampleSize_, int HorizontalSpacing, int chart_height, double LowerBound, double UpperBound) {
         m_SampleNumber = SampleSize_ > 0 ? SampleSize_ : m_SampleNumber;
@@ -60,7 +67,7 @@ class ScanLineChart implements GUI_interface {
 
         m_PauseBut = new Button(m_PauseBut_PauseStr);
         m_RestartBut = new Button(m_RestartBut_Restart);
-        
+
         m_Height = chart_height;
         m_Height = m_Height < 150 ? CHART_HEIGHT: m_Height;
     };
@@ -93,6 +100,13 @@ class ScanLineChart implements GUI_interface {
 
             cursorShape.setFill(CHART_CURSOR_COLOR);
             shape(cursorShape, m_AxisSpacing + m_TopLeftX + m_HorizontalSpacing * lines.get(0).getCursor() + 2 - cursorShapeWidth/2, m_TopLeftY + m_Height);
+
+            // save values
+            String line = Integer.toString(SYSTEM_MSG_elpasedTime);
+            for (int i = 0; i < lines.size(); i++) {
+                line += "," + lines.get(i).getValue();
+            }
+            appendToFile(line);
         } else {
             cursorShape.setVisible(false);
         }
@@ -182,12 +196,56 @@ class ScanLineChart implements GUI_interface {
             lines.get(i).setHorizontalSpacing(m_HorizontalSpacing);
             lines.get(i).setBoundary(m_UpperBound, m_LowerBound);
 
-            linesLabel.add(new TextLabel(200, lines.get(i).getLineName()));
+            linesLabel.add(new TextLabel(150, lines.get(i).getLineName()));
             linesLabel.get(i).setTextColor(lines.get(i).getLineColor());
         }
+
+        getFileName();
+
+        String header = "Ticks";
+        for (int i = 0; i < lines.size(); i++) {
+            header += "," + lines.get(i).getLineName();
+        }
+        appendToFile(header);
     };
     void setTextColor(color TextColor_) {
         m_TextColor = TextColor_;
+
+        for (int i = 0; i < lines.size(); i++) {
+            linesLabel.get(i).setTextColor(m_TextColor);
+        }
+    };
+
+    void getFileName() {
+        if (SameFile == false) {
+            int n = 0;
+            do {
+                n++;
+            } while (new File(EnvPath + FileToAppend + "-" + Integer.toString(n) + ".txt").isFile());
+
+            FileToAppend = EnvPath + FileToAppend + "-" + Integer.toString(n) + ".txt";
+        } else {
+            FileToAppend = EnvPath + FileToAppend + ".txt";
+
+            File file = new File(FileToAppend);
+            file.delete();
+        }
+    }
+
+    void appendToFile(String str) {
+        // buffered writer is not used as i am not sure if the program will be closed normally
+
+        if (FileToAppend != "" || FileToAppend != null) {
+            // https://stackoverflow.com/questions/1625234/how-to-append-text-to-an-existing-file-in-java
+            try {
+                final Path path = Paths.get(FileToAppend);
+                Files.write(path, Arrays.asList(str), StandardCharsets.UTF_8,
+                Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+            } 
+            catch (final IOException ioe) {
+                // Add your own exception handling...
+            }
+        }
     };
 };
 
@@ -317,6 +375,13 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
         return m_Width;
     };
     String getValue() {
+        if (m_DataType == DATA_TYPE.UINT8_T) {
+            return Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]);
+        } else if (m_DataType == DATA_TYPE.DOUBLE) {
+            return Double.toString(DataArray_double[double_MailBox_id.ordinal()]);
+        } else if (m_DataType == DATA_TYPE.FLOAT) {
+            return Float.toString(DataArray_float[float_MailBox_id.ordinal()]);
+        }
         return "";
     };
     void setPos(int topLeftX_, int topLeftY_) {
@@ -344,11 +409,11 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
     };
     void getNewValue() {
         if (m_DataType == DATA_TYPE.UINT8_T) {
-            m_NewValue = (double) DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()];
+            m_NewValue = (double) DataArray_uint8_t[uint8_t_MailBox_id.ordinal()];
         } else if (m_DataType == DATA_TYPE.DOUBLE) {
-            m_NewValue = DataCaller_double[double_MailBox_id.ordinal()];
+            m_NewValue = DataArray_double[double_MailBox_id.ordinal()];
         } else if (m_DataType == DATA_TYPE.FLOAT) {
-            m_NewValue = DataCaller_float[float_MailBox_id.ordinal()];
+            m_NewValue = DataArray_float[float_MailBox_id.ordinal()];
         }
         if (m_isPause == false) {
             m_Cursor++;
@@ -377,7 +442,7 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
         }
     };
     void drawClean() {
-         if (m_isPause == false) {
+        if (m_isPause == false) {
             double BoundHeight = m_UpperBound - m_LowerBound;
             double x = m_TopLeftX + m_HorizontalSpacing * m_Cursor;
             double tempY = 0;
@@ -405,7 +470,7 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
         }
     };
     void drawNew() {
-         if (m_isPause == false) {
+        if (m_isPause == false) {
             double BoundHeight = m_UpperBound - m_LowerBound;
             double x = m_TopLeftX + m_HorizontalSpacing * m_Cursor;
             double tempY = 0;
@@ -424,7 +489,7 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
             tempY = tempY > m_LowerBound ? tempY : m_LowerBound;
             tempY = tempY < m_UpperBound ? tempY : m_UpperBound;
             tempY = m_TopLeftY + m_Height - (tempY - m_LowerBound) / BoundHeight * m_Height - 2;
-            
+
             m_PastPointY = tempY;
 
             strokeWeight(LINE_STROKE_WEIGHT);
@@ -473,7 +538,9 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
         return m_LineColor;
     };
     void setTextColor(color TextColor_) {
-        m_TextColor = TextColor_;
+        if (m_TextColor != TextColor_) {
+            m_TextColor = TextColor_;
+        }
     };
     int getCursor() {
         return m_Cursor;

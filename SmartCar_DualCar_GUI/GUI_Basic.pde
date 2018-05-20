@@ -245,7 +245,7 @@ class OutputValueTile implements GUI_interface {
 
         textSize(fontSize);
         m_DataTypeLabel = new TextLabel(m_Width, m_ValueDataType.name() + ": " + uint8_t_MailBox_id.name());
-        m_ValueLabel = new TextLabel(m_Width, Integer.toString(DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()]));
+        m_ValueLabel = new TextLabel(m_Width, Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
 
         m_DataTypeLabel.setBackgroundFill(false);
         m_ValueLabel.setBackgroundFill(false);
@@ -259,7 +259,7 @@ class OutputValueTile implements GUI_interface {
 
         textSize(fontSize);
         m_DataTypeLabel = new TextLabel(m_Width, m_ValueDataType.name() + ": " + double_MailBox_id.name());
-        m_ValueLabel = new TextLabel(m_Width, Double.toString(DataCaller_double[double_MailBox_id.ordinal()]));
+        m_ValueLabel = new TextLabel(m_Width, Double.toString(DataArray_double[double_MailBox_id.ordinal()]));
 
         m_DataTypeLabel.setBackgroundFill(false);
         m_ValueLabel.setBackgroundFill(false);
@@ -273,7 +273,7 @@ class OutputValueTile implements GUI_interface {
 
         textSize(fontSize);
         m_DataTypeLabel = new TextLabel(m_Width, m_ValueDataType.name() + ": " + float_MailBox_id.name());
-        m_ValueLabel = new TextLabel(m_Width, Float.toString(DataCaller_float[float_MailBox_id.ordinal()]));
+        m_ValueLabel = new TextLabel(m_Width, Float.toString(DataArray_float[float_MailBox_id.ordinal()]));
 
         m_DataTypeLabel.setBackgroundFill(false);
         m_ValueLabel.setBackgroundFill(false);
@@ -283,11 +283,11 @@ class OutputValueTile implements GUI_interface {
 
     void tDraw() {
         if (m_ValueDataType == DATA_TYPE.UINT8_T) {
-            m_ValueLabel.setValue(Integer.toString(DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()]));
+            m_ValueLabel.setValue(Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
         } else if (m_ValueDataType == DATA_TYPE.DOUBLE) {
-            m_ValueLabel.setValue(Double.toString(DataCaller_double[double_MailBox_id.ordinal()]));
+            m_ValueLabel.setValue(Double.toString(DataArray_double[double_MailBox_id.ordinal()]));
         } else if (m_ValueDataType == DATA_TYPE.FLOAT) {
-            m_ValueLabel.setValue(Float.toString(DataCaller_float[float_MailBox_id.ordinal()]));
+            m_ValueLabel.setValue(Float.toString(DataArray_float[float_MailBox_id.ordinal()]));
         }
 
         fill(TILE_BACKGROUND_COLOR);
@@ -334,6 +334,8 @@ class OutputValueTile implements GUI_interface {
     };
     void setTextColor(color TextColor_) {
         m_TextColor = TextColor_;
+        m_DataTypeLabel.setTextColor(m_TextColor);
+        m_ValueLabel.setTextColor(m_TextColor);
     };
 }
 
@@ -374,10 +376,10 @@ class InputIncDecTile implements GUI_interface {
         m_DataType = DATA_TYPE.UINT8_T;
         uint8_t_MailBox_id = mail_id_;
 
-        DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()] = initValue;
+        DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] = initValue;
 
         m_DataTypeLabel = new TextLabel(m_Width, m_DataType.name() + ": " + uint8_t_MailBox_id.name());
-        m_ValueLabel = new TextLabel(m_Width, Integer.toString(DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()]));
+        m_ValueLabel = new TextLabel(m_Width, Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
 
         init();
         m_Height = m_ButLargeDec.getHeight() + m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight();
@@ -390,10 +392,10 @@ class InputIncDecTile implements GUI_interface {
         m_DataType = DATA_TYPE.DOUBLE;
         double_MailBox_id = mail_id_;
 
-        DataCaller_double[double_MailBox_id.ordinal()] = initValue;
+        DataArray_double[double_MailBox_id.ordinal()] = initValue;
 
         m_DataTypeLabel = new TextLabel(m_Width, m_DataType.name() + ": " + double_MailBox_id.name());
-        m_ValueLabel = new TextLabel(m_Width, Double.toString(DataCaller_double[double_MailBox_id.ordinal()]));
+        m_ValueLabel = new TextLabel(m_Width, Double.toString(DataArray_double[double_MailBox_id.ordinal()]));
 
         init();
         m_Height = m_ButLargeDec.getHeight() + m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight();
@@ -406,10 +408,10 @@ class InputIncDecTile implements GUI_interface {
         m_DataType = DATA_TYPE.FLOAT;
         float_MailBox_id = mail_id_;
 
-        DataCaller_float[float_MailBox_id.ordinal()] = initValue;
+        DataArray_float[float_MailBox_id.ordinal()] = initValue;
 
         m_DataTypeLabel = new TextLabel(m_Width, m_DataType.name() + ": " + float_MailBox_id.name());
-        m_ValueLabel = new TextLabel(m_Width, Float.toString(DataCaller_float[float_MailBox_id.ordinal()]));
+        m_ValueLabel = new TextLabel(m_Width, Float.toString(DataArray_float[float_MailBox_id.ordinal()]));
 
         init();
         m_Height = m_ButLargeDec.getHeight() + m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight();
@@ -417,9 +419,9 @@ class InputIncDecTile implements GUI_interface {
 
     void tDraw() {
         if (m_DataType == DATA_TYPE.UINT8_T) {
-            m_ValueLabel.setValue(Integer.toString(DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()]));
+            m_ValueLabel.setValue(Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
         } else if (m_DataType == DATA_TYPE.DOUBLE) {
-            m_ValueLabel.setValue(Double.toString(DataCaller_double[double_MailBox_id.ordinal()]));
+            m_ValueLabel.setValue(Double.toString(DataArray_double[double_MailBox_id.ordinal()]));
         }
 
         fill(TILE_BACKGROUND_COLOR);
@@ -451,48 +453,48 @@ class InputIncDecTile implements GUI_interface {
         if (isHovering) {
             if (m_DataType == DATA_TYPE.UINT8_T) {
                 if (m_ButLargeDec.isHovering) {
-                    DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()] -= (int) m_LargeChange;
+                    DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] -= (int) m_LargeChange;
                 } else if (m_ButSmallDec.isHovering) {
-                    DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()] -= (int) m_SmallChange;
+                    DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] -= (int) m_SmallChange;
                 } else if (m_ButSmallInc.isHovering) {
-                    DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()] += (int) m_SmallChange;
+                    DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] += (int) m_SmallChange;
                 } else if (m_ButLargeInc.isHovering) {
-                    DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()] += (int) m_LargeChange;
+                    DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] += (int) m_LargeChange;
                 }
 
-                if (DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()] <0) {
-                    DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()] = 255;
-                } else if (DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()] > 255) {
-                    DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()] = 0;
+                if (DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] <0) {
+                    DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] = 255;
+                } else if (DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] > 255) {
+                    DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] = 0;
                 }
 
-                m_ValueLabel.setValue(Integer.toString(DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()]));
+                m_ValueLabel.setValue(Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
                 serialSend();
             } else if (m_DataType == DATA_TYPE.DOUBLE) {
                 if (m_ButLargeDec.isHovering) {
-                    DataCaller_double[double_MailBox_id.ordinal()] -= m_LargeChange;
+                    DataArray_double[double_MailBox_id.ordinal()] -= m_LargeChange;
                 } else if (m_ButSmallDec.isHovering) {
-                    DataCaller_double[double_MailBox_id.ordinal()] -= m_SmallChange;
+                    DataArray_double[double_MailBox_id.ordinal()] -= m_SmallChange;
                 } else if (m_ButSmallInc.isHovering) {
-                    DataCaller_double[double_MailBox_id.ordinal()] += m_SmallChange;
+                    DataArray_double[double_MailBox_id.ordinal()] += m_SmallChange;
                 } else if (m_ButLargeInc.isHovering) {
-                    DataCaller_double[double_MailBox_id.ordinal()] += m_LargeChange;
+                    DataArray_double[double_MailBox_id.ordinal()] += m_LargeChange;
                 }
 
-                m_ValueLabel.setValue(Double.toString(DataCaller_double[double_MailBox_id.ordinal()]));
+                m_ValueLabel.setValue(Double.toString(DataArray_double[double_MailBox_id.ordinal()]));
                 serialSend();
             } else if (m_DataType == DATA_TYPE.FLOAT) {
                 if (m_ButLargeDec.isHovering) {
-                    DataCaller_float[float_MailBox_id.ordinal()] -= (float) m_LargeChange;
+                    DataArray_float[float_MailBox_id.ordinal()] -= (float) m_LargeChange;
                 } else if (m_ButSmallDec.isHovering) {
-                    DataCaller_float[float_MailBox_id.ordinal()] -= (float) m_SmallChange;
+                    DataArray_float[float_MailBox_id.ordinal()] -= (float) m_SmallChange;
                 } else if (m_ButSmallInc.isHovering) {
-                    DataCaller_float[float_MailBox_id.ordinal()] += (float) m_SmallChange;
+                    DataArray_float[float_MailBox_id.ordinal()] += (float) m_SmallChange;
                 } else if (m_ButLargeInc.isHovering) {
-                    DataCaller_float[float_MailBox_id.ordinal()] += (float) m_LargeChange;
+                    DataArray_float[float_MailBox_id.ordinal()] += (float) m_LargeChange;
                 }
 
-                m_ValueLabel.setValue(Float.toString(DataCaller_float[float_MailBox_id.ordinal()]));
+                m_ValueLabel.setValue(Float.toString(DataArray_float[float_MailBox_id.ordinal()]));
                 serialSend();
             }
         }
@@ -502,13 +504,13 @@ class InputIncDecTile implements GUI_interface {
         m_DataTypeLabel.setValue(value_);
     };
     void setValue(double double_) {
-        DataCaller_double[double_MailBox_id.ordinal()] = double_;
+        DataArray_double[double_MailBox_id.ordinal()] = double_;
     };
     void setValue(float float_) {
-        DataCaller_float[float_MailBox_id.ordinal()] = float_;
+        DataArray_float[float_MailBox_id.ordinal()] = float_;
     };
     void setValue(int int_) {
-        DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()] = int_;
+        DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] = int_;
     };
     void setBackgroundFill(boolean needBackground) {
     };
@@ -538,14 +540,22 @@ class InputIncDecTile implements GUI_interface {
     }
     void serialSend() {
         if (m_DataType == DATA_TYPE.UINT8_T) {
-            uart.Send_uint8_t(uint8_t_MailBox_id, DataCaller_uint8_t[uint8_t_MailBox_id.ordinal()]);
+            uart.Send_uint8_t(uint8_t_MailBox_id, DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]);
         } else if (m_DataType == DATA_TYPE.DOUBLE) {
-            uart.Send_double(double_MailBox_id, DataCaller_double[double_MailBox_id.ordinal()]);
+            uart.Send_double(double_MailBox_id, DataArray_double[double_MailBox_id.ordinal()]);
         } else if (m_DataType == DATA_TYPE.FLOAT) {
-            uart.Send_float(float_MailBox_id, DataCaller_float[float_MailBox_id.ordinal()]);
+            uart.Send_float(float_MailBox_id, DataArray_float[float_MailBox_id.ordinal()]);
         }
     };
     void setTextColor(color TextColor_) {
         m_TextColor = TextColor_;
+        
+        m_DataTypeLabel.setTextColor(m_TextColor);
+        m_ValueLabel.setTextColor(m_TextColor);
+
+        m_ButLargeDec.setTextColor(m_TextColor);
+        m_ButSmallDec.setTextColor(m_TextColor);
+        m_ButSmallInc.setTextColor(m_TextColor);
+        m_ButLargeInc.setTextColor(m_TextColor);
     };
 }
