@@ -157,7 +157,7 @@ int main() {
 
 	uint8_t trig = 0, pTrig = 0;
 
-	DualCar_UART uart0(0); // << BT related
+	DualCar_UART uart0(1); // << BT related
 
 	uart0.add(DualCar_UART::FLOAT::f0, &echo0, true, 0);
 	uart0.add(DualCar_UART::FLOAT::f1, &echo1, true, 0);
@@ -186,6 +186,8 @@ int main() {
 				led1.Switch();
 				led2.Switch();
 				led3.Switch();
+
+				echo0 += 1;
 
 //				echo0 = (float) us.getTime(0);
 //				echo1 = (float) us.getTime(1);
