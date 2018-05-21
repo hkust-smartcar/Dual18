@@ -50,6 +50,7 @@ using std::vector;
 
 #define REPEAT_SEND_MS 100
 #define LOCAL_BUFFER_MAX 8
+#define BUFFER_SENT_MAX 30
 // buffer size will determine the max len of the string
 // keep it between 8 to 64
 
@@ -251,9 +252,11 @@ public:
 	 *
 	 */
 	uint32_t xd = 0;
+	uint8_t BUFFER_SENT = 0;
 
 	void RunEveryMS() {
 		xd++;
+		BUFFER_SENT = 4;
 
 		RunEveryMS_StartTime = System::Time();
 		SendCooling = SendCooling == 0 ? 0 : SendCooling - 1;
@@ -269,9 +272,11 @@ public:
 			if (AutoSendWhenChanges_uint8_t.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_uint8_t) {
 					uint8_t id = (uint8_t) temp.first;
-					if (DataCaller_uint8_t[id] != nullptr && (*DataCaller_uint8_t[id]) != temp.second) {
+					if ((DataCaller_uint8_t[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+							&& (*DataCaller_uint8_t[id]) != temp.second) {
 						Send_uint8_t(temp.first, *DataCaller_uint8_t[id]);
 						temp.second = *DataCaller_uint8_t[id];
+						BUFFER_SENT += 4;
 					}
 				}
 			}
@@ -279,9 +284,11 @@ public:
 			if (AutoSendWhenChanges_double.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_double) {
 					uint8_t id = (uint8_t) temp.first;
-					if (DataCaller_double[id] != nullptr && (*DataCaller_double[id]) != temp.second) {
+					if ((DataCaller_double[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+							&& (*DataCaller_double[id]) != temp.second) {
 						Send_double(temp.first, *DataCaller_double[id]);
 						temp.second = *DataCaller_double[id];
+						BUFFER_SENT += 16;
 					}
 				}
 			}
@@ -289,9 +296,11 @@ public:
 			if (AutoSendWhenChanges_float.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_float) {
 					uint8_t id = (uint8_t) temp.first;
-					if (DataCaller_float[id] != nullptr && (*DataCaller_float[id]) != temp.second) {
+					if ((DataCaller_float[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+							&& (*DataCaller_float[id]) != temp.second) {
 						Send_float(temp.first, *DataCaller_float[id]);
 						temp.second = *DataCaller_float[id];
+						BUFFER_SENT += 8;
 					}
 				}
 			}
@@ -704,6 +713,7 @@ private:
 		config.baud_rate = _BaudRate;
 		config.id = _id;
 		config.rx_isr = isr;
+		config.tx_buf_size = 43;
 		return config;
 	}
 	;
