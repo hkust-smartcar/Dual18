@@ -260,7 +260,7 @@ public:
 
 		if (xd % 50 == 0) {
 			uint32_t timeNow = System::Time();
-			SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::elpasedTime, static_cast<uint8_t>(timeNow >> 10),
+			SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::elpasedTime, static_cast<uint8_t>(timeNow),
 					static_cast<uint8_t>(timeNow));
 		}
 
