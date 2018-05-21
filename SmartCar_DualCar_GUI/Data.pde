@@ -19,6 +19,10 @@ final int LOCAL_BUFFER_MAX = 10;
 
 int SYSTEM_MSG_elpasedTime = 0;
 
+boolean GLOBAL_PAUSE = false;
+int GLOBAL_RESTART = 0;
+int GLOBAL_TXT_NO = 0;
+
 public enum double_MailBox {
     d0, 
         d1, 

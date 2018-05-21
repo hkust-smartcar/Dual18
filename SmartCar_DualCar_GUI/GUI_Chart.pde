@@ -73,6 +73,40 @@ class ScanLineChart implements GUI_interface {
     };
 
     void tDraw() {
+
+        if (GLOBAL_RESTART > 0) {
+            for (int i = 0; i < lines.size(); i++) {
+                lines.get(i).setCursor(0);
+            }
+            needRedraw = true;
+        }
+
+        if (GLOBAL_RESTART == 1) {
+            String header = "Ticks";
+            for (int i = 0; i < lines.size(); i++) {
+                header += "," + lines.get(i).getLineName();
+            }
+
+            File file = new File(FileToAppend);
+            file.delete();
+            appendToFile(header);
+        }
+
+        if (GLOBAL_PAUSE == true && m_isPause == false) {
+
+            m_PauseBut.setValue(m_PauseBut_ResumeStr);
+            for (int i = 0; i < lines.size(); i++) {
+                lines.get(i).setPause(true);
+            }
+            m_isPause = true;
+        } else if (GLOBAL_PAUSE == false && m_isPause == true) {
+            m_PauseBut.setValue(m_PauseBut_PauseStr);
+            for (int i = 0; i < lines.size(); i++) {
+                lines.get(i).setPause(false);
+            }
+            m_isPause = false;
+        }
+
         if (needRedraw == true) {
             fill(TILE_BACKGROUND_COLOR);
             rect(m_TopLeftX, m_TopLeftY, m_Width, m_Height, RECT_ANGLE_RADIUS);
@@ -130,6 +164,7 @@ class ScanLineChart implements GUI_interface {
         m_RestartBut.onClick();
 
         if (m_RestartBut.isHovering == true) {
+            GLOBAL_RESTART = 2;
             for (int i = 0; i < lines.size(); i++) {
                 lines.get(i).setCursor(0);
             }
@@ -138,17 +173,9 @@ class ScanLineChart implements GUI_interface {
 
         if (m_PauseBut.isHovering == true) {
             if (m_PauseBut.getValue().equals(m_PauseBut_PauseStr)) {
-                m_PauseBut.setValue(m_PauseBut_ResumeStr);
-                for (int i = 0; i < lines.size(); i++) {
-                    lines.get(i).setPause(true);
-                }
-                m_isPause = true;
+                GLOBAL_PAUSE = true;
             } else {
-                m_PauseBut.setValue(m_PauseBut_PauseStr);
-                for (int i = 0; i < lines.size(); i++) {
-                    lines.get(i).setPause(false);
-                }
-                m_isPause = false;
+                GLOBAL_PAUSE = false;
             }
         }
     };
@@ -200,12 +227,12 @@ class ScanLineChart implements GUI_interface {
             linesLabel.get(i).setTextColor(lines.get(i).getLineColor());
         }
 
-        getFileName();
-
         String header = "Ticks";
         for (int i = 0; i < lines.size(); i++) {
             header += "," + lines.get(i).getLineName();
         }
+
+        getFileName();
         appendToFile(header);
     };
     void setTextColor(color TextColor_) {
@@ -225,8 +252,8 @@ class ScanLineChart implements GUI_interface {
 
             FileToAppend = EnvPath + FileToAppend + "-" + Integer.toString(n) + ".txt";
         } else {
-            FileToAppend = EnvPath + FileToAppend + ".txt";
-
+            FileToAppend = EnvPath + FileToAppend + "-" + Integer.toString(GLOBAL_TXT_NO) + ".txt";
+            GLOBAL_TXT_NO++;
             File file = new File(FileToAppend);
             file.delete();
         }
@@ -239,8 +266,8 @@ class ScanLineChart implements GUI_interface {
             // https://stackoverflow.com/questions/1625234/how-to-append-text-to-an-existing-file-in-java
             try {
                 final Path path = Paths.get(FileToAppend);
-                Files.write(path, Arrays.asList(str), StandardCharsets.UTF_8,
-                Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+                Files.write(path, Arrays.asList(str), StandardCharsets.UTF_8, 
+                    Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
             } 
             catch (final IOException ioe) {
                 // Add your own exception handling...

@@ -12,11 +12,11 @@ void setup() {
     size(400, 400);
     //fullScreen();
     frameRate(refreshRate);
-    
+
     colorMode(RGB, 255, 255, 255);
     background(BACKGROUND_COLOR);
     noStroke();
-    
+
     if (frame != null) {
         surface.setResizable(true);
     }
@@ -36,12 +36,12 @@ void setup() {
     for (int i = 0; i < double_MailBox.MaxTerm.ordinal(); i++) {
         DataArray_double[i] = 0;
     }
-    
+
     DataArray_float = new float[float_MailBox.MaxTerm.ordinal()+1];
     for (int i = 0; i < float_MailBox.MaxTerm.ordinal(); i++) {
         DataArray_float[i] = 0;
     }
-    
+
     charts = new ArrayList<ScanLineChart>();
     init();
     for (int i = 0; i < charts.size(); i++) {
@@ -55,9 +55,8 @@ int pastHeight = 0;
 
 void draw() {
     uart.tSerialEvent();
-    
     cycle();
-    
+
     if (pastWidth != width || pastHeight != height) {
         clear();
         background(BACKGROUND_COLOR);
@@ -65,11 +64,13 @@ void draw() {
         pastHeight = height;
         tileAllocator();
     }
-    
+
     for (int i = 0; i < tiles.size(); i++) {
         tiles.get(i).over();
         tiles.get(i).tDraw();
     }
+
+    GLOBAL_RESTART = GLOBAL_RESTART > 0 ? GLOBAL_RESTART - 1 : 0;
 }
 
 void mousePressed() {

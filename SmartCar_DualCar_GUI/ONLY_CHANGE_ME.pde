@@ -46,7 +46,7 @@ mailbox naming format:
  addLineBreak();
  */
 
-final String EnvPath = "E:/Desktop/";
+final String EnvPath = "/Users/JosephYim/Desktop/";
 final boolean SameFile = true;
 
 void init() { // add tiles here 
@@ -59,6 +59,13 @@ void init() { // add tiles here
     addElapsedTime();
 
     addLineBreak(); // break into next column
+
+    addChart(100, 5, 600, -1, 255); // << start a new chart, i.e. chart 1
+    addLine(Mailbox.u0, "trig", BLACK);
+    addLine(Mailbox.f0, "echo 0", RED); // >> put into chart 1
+    addLine(Mailbox.f1, "echo 1", BLUE); // >> put into chart 1
+    addLine(Mailbox.f2, "echo 2", GREEN); // >> put into chart 1
+    addLine(Mailbox.f3, "echo 3", TEAL); // >> put into chart 1
 
     addChart(100, 5, 600, -1, 255); // << start a new chart, i.e. chart 1
     addLine(Mailbox.u0, "trig", BLACK);
