@@ -50,6 +50,7 @@ using std::vector;
 
 #define REPEAT_SEND_MS 100
 #define LOCAL_BUFFER_MAX 8
+#define BUFFER_SENT_MAX 30
 // buffer size will determine the max len of the string
 // keep it between 8 to 64
 
@@ -57,13 +58,6 @@ using std::vector;
 #ifndef DEBUG
 #define DEBUG
 // no ack need
-#endif
-
-#ifndef SAVE_SPACE
-#define SAVE_SPACE
-// inline is used to speed up the program a little bit, but will
-// occupy more space
-// comment it to stop doing so
 #endif
 
 class DualCar_UART_Config {
@@ -214,7 +208,7 @@ public:
 		SendImmediate.clear();
 		dataBuffer.clear();
 		DataCaller_uint8_t.clear();
-		SendBuffer.clear();
+//		SendBuffer.clear();
 
 		AutoSendWhenChanges_uint8_t.clear();
 		AutoSendWhenChanges_double.clear();
@@ -239,72 +233,6 @@ public:
 #ifdef DEBUG
 		needAck = false;
 #endif
-
-	}
-	;
-
-	/*
-	 * send double
-	 *
-	 * @para
-	 * MailBox: which MailBox will be called
-	 * num: num to be sent
-	 *
-	 * @return
-	 *
-	 */
-
-	void Send_double(const DOUBLE &MailBox, const double &num) {
-
-		Byte* doublePtr = new Byte[8];
-		memcpy(doublePtr, &num, 8);
-
-		SendWrapper(DATA_TYPE::BUFFER, 0, *(doublePtr + 0), *(doublePtr + 1), false);
-		SendWrapper(DATA_TYPE::BUFFER, 1, *(doublePtr + 2), *(doublePtr + 3), false);
-		SendWrapper(DATA_TYPE::BUFFER, 2, *(doublePtr + 4), *(doublePtr + 5), false);
-		SendWrapper(DATA_TYPE::DOUBLE, (uint8_t) MailBox, *(doublePtr + 6), *(doublePtr + 7), false);
-
-		delete[] (doublePtr);
-		doublePtr = nullptr;
-	}
-	;
-
-	/*
-	 * send float
-	 *
-	 * @para
-	 * MailBox: which MailBox will be called
-	 * num: num to be sent
-	 *
-	 * @return
-	 *
-	 */
-
-	void Send_float(const FLOAT &MailBox, const float &num) {
-		Byte* floatPtr = new Byte[4];
-		memcpy(floatPtr, &num, 4);
-
-		SendWrapper(DATA_TYPE::BUFFER, 0, *(floatPtr + 0), *(floatPtr + 1), false);
-		SendWrapper(DATA_TYPE::FLOAT, (uint8_t) MailBox, *(floatPtr + 2), *(floatPtr + 3), false);
-
-		delete[] (floatPtr);
-		floatPtr = nullptr;
-	}
-	;
-
-	/*
-	 * send uint8_t
-	 *
-	 * @para
-	 * MailBox: which MailBox will be called
-	 * num: num to be sent
-	 *
-	 * @return
-	 *
-	 */
-
-	void Send_uint8_t(const UINT8_T &MailBox, const uint8_t &num) {
-		SendWrapper(DATA_TYPE::UINT8_T, (uint8_t) MailBox, static_cast<Byte>(num), 0, false);
 	}
 
 	/*
@@ -324,17 +252,19 @@ public:
 	 *
 	 */
 	uint32_t xd = 0;
+	uint8_t BUFFER_SENT = 0;
 
 	void RunEveryMS() {
 		xd++;
+		BUFFER_SENT = 4;
 
 		RunEveryMS_StartTime = System::Time();
 		SendCooling = SendCooling == 0 ? 0 : SendCooling - 1;
 
 		if (xd % 50 == 0) {
 			uint32_t timeNow = System::Time();
-			SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::elpasedTime, static_cast<uint8_t>(timeNow >> 8),
-					static_cast<uint8_t>(timeNow), false);
+			SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::elpasedTime, static_cast<uint8_t>(timeNow),
+					static_cast<uint8_t>(timeNow));
 		}
 
 		// send msg
@@ -342,9 +272,11 @@ public:
 			if (AutoSendWhenChanges_uint8_t.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_uint8_t) {
 					uint8_t id = (uint8_t) temp.first;
-					if (DataCaller_uint8_t[id] != nullptr && (*DataCaller_uint8_t[id]) != temp.second) {
+					if ((DataCaller_uint8_t[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+							&& (*DataCaller_uint8_t[id]) != temp.second) {
 						Send_uint8_t(temp.first, *DataCaller_uint8_t[id]);
 						temp.second = *DataCaller_uint8_t[id];
+						BUFFER_SENT += 4;
 					}
 				}
 			}
@@ -352,9 +284,11 @@ public:
 			if (AutoSendWhenChanges_double.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_double) {
 					uint8_t id = (uint8_t) temp.first;
-					if (DataCaller_double[id] != nullptr && (*DataCaller_double[id]) != temp.second) {
+					if ((DataCaller_double[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+							&& (*DataCaller_double[id]) != temp.second) {
 						Send_double(temp.first, *DataCaller_double[id]);
 						temp.second = *DataCaller_double[id];
+						BUFFER_SENT += 16;
 					}
 				}
 			}
@@ -362,9 +296,11 @@ public:
 			if (AutoSendWhenChanges_float.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_float) {
 					uint8_t id = (uint8_t) temp.first;
-					if (DataCaller_float[id] != nullptr && (*DataCaller_float[id]) != temp.second) {
+					if ((DataCaller_float[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+							&& (*DataCaller_float[id]) != temp.second) {
 						Send_float(temp.first, *DataCaller_float[id]);
 						temp.second = *DataCaller_float[id];
+						BUFFER_SENT += 8;
 					}
 				}
 			}
@@ -419,13 +355,13 @@ public:
 				} else if (DataType == DATA_TYPE::SYSTEM) {
 					if (MailBox_ == (uint8_t) SYSTEM_MSG::ack) {
 						// it is an ack
-						if (RxBuffer[2] == SendBuffer[0].COMMAND_CODE) {
-							// correct ack
-							SendCooling = 0;
-							SendBuffer.erase(SendBuffer.begin());
-						} else {
-							// wrong ack
-						}
+//						if (RxBuffer[2] == SendBuffer[0].COMMAND_CODE) {
+//							// correct ack
+//							SendCooling = 0;
+//							SendBuffer.erase(SendBuffer.begin());
+//						} else {
+//							// wrong ack
+//						}
 					} else if (MailBox_ == (uint8_t) SYSTEM_MSG::sayHi) {
 						// send all values to the request side
 						if (AutoSendWhenChanges_uint8_t.size() != 0) {
@@ -461,25 +397,25 @@ public:
 		}
 
 		// 2) send the stuff in the send buffer
-		if (!SendBuffer.empty() && SendCooling == 0) {
-			Byte *pkgPtr = new Byte[4];
-
-			*pkgPtr = SendBuffer[0].START_CODE;
-			*(pkgPtr + 1) = SendBuffer[0].COMMAND_CODE;
-			*(pkgPtr + 2) = SendBuffer[0].Data_0;
-			*(pkgPtr + 3) = SendBuffer[0].Data_1;
-			bt.SendBuffer(pkgPtr, 4);
-
-			delete[] (pkgPtr);
-			pkgPtr = nullptr;
-
-			if (needAck == true) {
-				SendCooling = REPEAT_SEND_MS;
-			} else {
-				SendCooling = 0;
-				SendBuffer.erase(SendBuffer.begin());
-			}
-		}
+//		if (!SendBuffer.empty() && SendCooling == 0) {
+//			Byte *pkgPtr = new Byte[4];
+//
+//			*pkgPtr = SendBuffer[0].START_CODE;
+//			*(pkgPtr + 1) = SendBuffer[0].COMMAND_CODE;
+//			*(pkgPtr + 2) = SendBuffer[0].Data_0;
+//			*(pkgPtr + 3) = SendBuffer[0].Data_1;
+//			bt.SendBuffer(pkgPtr, 4);
+//
+//			delete[] (pkgPtr);
+//			pkgPtr = nullptr;
+//
+//			if (needAck == true) {
+//				SendCooling = REPEAT_SEND_MS;
+//			} else {
+//				SendCooling = 0;
+//				SendBuffer.erase(SendBuffer.begin());
+//			}
+//		}
 
 		while (!SendImmediate.empty()) {
 			Byte *pkgPtr = new Byte[4];
@@ -510,7 +446,7 @@ public:
 	void parseValues() {
 		// parse all values from the other side
 		// then send back my values
-		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::sayHi, 0, 0, true);
+		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::sayHi, 0, 0);
 
 		if (AutoSendWhenChanges_uint8_t.size() != 0) {
 			for (auto &temp : AutoSendWhenChanges_uint8_t) {
@@ -540,6 +476,15 @@ public:
 		}
 	}
 
+	/*
+	 * init uint8_t
+	 */
+
+	void add(UINT8_T mailbox, uint8_t * ref, bool isAutoSend, uint8_t defaultValue) {
+		add(mailbox, ref, isAutoSend);
+		Send_uint8_t(mailbox, defaultValue);
+	}
+
 	void add(UINT8_T mailbox, uint8_t * ref, bool isAutoSend) {
 		DataCaller_uint8_t[(uint8_t) mailbox] = ref;
 		if (isAutoSend) {
@@ -547,11 +492,29 @@ public:
 		}
 	}
 
+	/*
+	 * init float
+	 */
+
+	void add(FLOAT mailbox, float * ref, bool isAutoSend, float defaultValue) {
+		add(mailbox, ref, isAutoSend);
+		Send_float(mailbox, defaultValue);
+	}
+
 	void add(FLOAT mailbox, float * ref, bool isAutoSend) {
 		DataCaller_float[(uint8_t) mailbox] = ref;
 		if (isAutoSend) {
 			AutoSendWhenChanges_float.emplace_back(mailbox, 0);
 		}
+	}
+
+	/*
+	 * init double
+	 */
+
+	void add(DOUBLE mailbox, double * ref, bool isAutoSend, double defaultValue) {
+		add(mailbox, ref, isAutoSend);
+		Send_double(mailbox, defaultValue);
 	}
 
 	void add(DOUBLE mailbox, double * ref, bool isAutoSend) {
@@ -581,7 +544,7 @@ private:
 
 	JyMcuBt106 bt;
 	std::vector<PACKAGE> SendImmediate;
-	std::vector<PACKAGE> SendBuffer;
+//	std::vector<PACKAGE> SendBuffer;
 	std::vector<Byte> RxBuffer;
 	std::vector<Byte> dataBuffer;
 
@@ -601,6 +564,70 @@ private:
 	std::vector<std::pair<FLOAT, float>> AutoSendWhenChanges_float;
 
 	/*
+	 * send double
+	 *
+	 * @para
+	 * MailBox: which MailBox will be called
+	 * num: num to be sent
+	 *
+	 * @return
+	 *
+	 */
+
+	inline void Send_double(const DOUBLE &MailBox, const double &num) {
+
+		Byte* doublePtr = new Byte[8];
+		memcpy(doublePtr, &num, 8);
+
+		SendWrapper(DATA_TYPE::BUFFER, 0, *(doublePtr + 0), *(doublePtr + 1));
+		SendWrapper(DATA_TYPE::BUFFER, 1, *(doublePtr + 2), *(doublePtr + 3));
+		SendWrapper(DATA_TYPE::BUFFER, 2, *(doublePtr + 4), *(doublePtr + 5));
+		SendWrapper(DATA_TYPE::DOUBLE, (uint8_t) MailBox, *(doublePtr + 6), *(doublePtr + 7));
+
+		delete[] (doublePtr);
+		doublePtr = nullptr;
+	}
+	;
+
+	/*
+	 * send float
+	 *
+	 * @para
+	 * MailBox: which MailBox will be called
+	 * num: num to be sent
+	 *
+	 * @return
+	 *
+	 */
+
+	inline void Send_float(const FLOAT &MailBox, const float &num) {
+		Byte* floatPtr = new Byte[4];
+		memcpy(floatPtr, &num, 4);
+
+		SendWrapper(DATA_TYPE::BUFFER, 0, *(floatPtr + 0), *(floatPtr + 1));
+		SendWrapper(DATA_TYPE::FLOAT, (uint8_t) MailBox, *(floatPtr + 2), *(floatPtr + 3));
+
+		delete[] (floatPtr);
+		floatPtr = nullptr;
+	}
+	;
+
+	/*
+	 * send uint8_t
+	 *
+	 * @para
+	 * MailBox: which MailBox will be called
+	 * num: num to be sent
+	 *
+	 * @return
+	 *
+	 */
+
+	inline void Send_uint8_t(const UINT8_T &MailBox, const uint8_t &num) {
+		SendWrapper(DATA_TYPE::UINT8_T, (uint8_t) MailBox, static_cast<Byte>(num), 0);
+	}
+
+	/*
 	 * parity checker
 	 * ref https://stackoverflow.com/questions/21617970/how-to-check-if-value-has-even-parity-of-bits-or-odd
 	 *
@@ -615,11 +642,7 @@ private:
 	 * return false if it's an even number
 	 */
 
-#ifndef SAVE_SPACE
-	inline
-#endif
-
-	bool isOdd(const uint8_t &t0, const uint8_t &t1, const uint8_t &t2, const uint8_t &t3) {
+	inline bool isOdd(const uint8_t &t0, const uint8_t &t1, const uint8_t &t2, const uint8_t &t3) {
 
 		uint32_t t = 0;
 		t ^= t0;
@@ -650,12 +673,7 @@ private:
 	 *
 	 */
 
-#ifndef SAVE_SPACE
-	inline
-#endif
-
-	void SendWrapper(const DATA_TYPE &DataType, const uint8_t &MailBox, const Byte &byte0, const Byte &byte1,
-			const bool &sendImmediateBool) {
+	inline void SendWrapper(const DATA_TYPE &DataType, const uint8_t &MailBox, const Byte &byte0, const Byte &byte1) {
 
 		PACKAGE package;
 		package.START_CODE = StartCode0;
@@ -689,12 +707,13 @@ private:
 	 * BT config
 	 */
 
-	JyMcuBt106::Config GetBluetoothConfig(const uint8_t &_id, const Uart::Config::BaudRate &_BaudRate,
+	inline JyMcuBt106::Config GetBluetoothConfig(const uint8_t &_id, const Uart::Config::BaudRate &_BaudRate,
 			const std::function<bool(const Byte *data, const size_t size)> &isr) {
 		JyMcuBt106::Config config;
 		config.baud_rate = _BaudRate;
 		config.id = _id;
 		config.rx_isr = isr;
+		config.tx_buf_size = 43;
 		return config;
 	}
 	;
