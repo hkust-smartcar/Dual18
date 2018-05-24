@@ -5,13 +5,14 @@
  *      Author: morristseng
  */
 #include "edge.h"
+#include "useful_functions.h"
 inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
     return ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1);//return 1 if black
 }
 
 vector<pair<int,int>>check_edge(const Byte* camBuffer){
 	vector<std::pair<int,int>> edge_coord{};;
-	int top_line = 30;
+	int top_line = 40;
 	int bottom_line = 60;//height==60
 	bool stop = false;
 	for(int i=bottom_line-2; i>top_line; i--){
@@ -38,9 +39,10 @@ vector<pair<int,int>>check_edge(const Byte* camBuffer){
 	return edge_coord;
 }
 
-void check_left_edge(const Byte* camBuffer, vector<pair<int,int>> &edge_coord){
-	int top_line = 30;
-	int bottom_line = 60;//height==60
+bool check_left_edge(int topline, int bottomline,const Byte* camBuffer, vector<pair<int,int>> &edge_coord){
+	int top_line = topline;//20
+	bool fail = true;
+	int bottom_line = bottomline;//60
 	bool stop = false;
 	int amount=0;
 	for(int i=bottom_line-2; i>top_line-10; i--){
@@ -64,11 +66,26 @@ void check_left_edge(const Byte* camBuffer, vector<pair<int,int>> &edge_coord){
 			}
 		}
 	}
+
+	std::vector<float> temp;
+	temp = linear_regression(edge_coord);
+	float variation=0;
+	for(int i=0; i<edge_coord.size(); i++){
+		float desire_x = 1.0*(edge_coord[i].second-temp[0])/temp[1];
+		variation += (abs(edge_coord[i].first - (int)desire_x))^2;
+	}
+	variation = variation/edge_coord.size();
+
+	if((variation>7)||edge_coord.size()<5){
+		return fail;
+	}
+	return !fail;
 }
 
-void check_right_edge(const Byte* camBuffer, vector<pair<int,int>> &edge_coord){
-	int top_line = 30;
-	int bottom_line = 60;//height==60
+bool check_right_edge(int topline, int bottomline, const Byte* camBuffer, vector<pair<int,int>> &edge_coord){
+	int top_line = topline;//20
+	bool fail = true;
+	int bottom_line = bottomline;//60
 	edge_coord.clear();
 	bool stop = false;
 	int amount = 0;
@@ -93,4 +110,50 @@ void check_right_edge(const Byte* camBuffer, vector<pair<int,int>> &edge_coord){
 			}
 		}
 	}
+	std::vector<float> temp;
+	temp = linear_regression(edge_coord);
+	float variation=0;
+	for(int i=0; i<edge_coord.size(); i++){
+		float desire_x = 1.0*(edge_coord[i].second-temp[0])/temp[1];
+		variation += (abs(edge_coord[i].first - (int)desire_x))^2;
+	}
+	variation = variation/edge_coord.size();
+
+	if((variation>7)||edge_coord.size()<5){
+		return fail;
+	}
+	return !fail;
+
+}
+
+vector<pair<int,int>> Edge::check_left_edge(const Byte* camBuffer){
+	vector<pair<int,int>> edge;
+	int black_sum =0;
+	for(int j=55; j<60; j++){
+		for(int i=0; i<80; i++){
+			black_sum = ret_cam_bit(i,j,camBuffer);
+		}
+	}
+
+	if(black_sum<5){ //on turn
+		int init_x = 0;
+		for(int j=58; j>40; j--){
+			if(ret_cam_bit(78,j,camBuffer)==0){
+				for(int i=78; i>0; i--){
+					if(ret_cam_bit(i,j,camBuffer) != ret_cam_bit(i-1,j,camBuffer)){
+						edge.push_back(make_pair(i,j));
+						break;
+					}
+				}
+			}
+			else{
+				break;
+			}
+		}
+	}
+	else{
+
+	}
+
+	return edge;
 }

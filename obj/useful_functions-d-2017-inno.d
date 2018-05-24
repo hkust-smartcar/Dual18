@@ -1,5 +1,5 @@
-obj/bluetooth-d-2017-inno.o: src/bluetooth.cpp inc/bluetooth.h \
- inc/config.h \
+obj/useful_functions-d-2017-inno.o: src/useful_functions.cpp \
+ inc/useful_functions.h inc/config.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/led.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/helper.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/gpio.h \
@@ -49,8 +49,4 @@ obj/bluetooth-d-2017-inno.o: src/bluetooth.cpp inc/bluetooth.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/ov7725_configurator.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_sccb_master.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_i2c_master.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/i2c_master_interface.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/mcg.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/mcg_c.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/system.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/timer.h
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/i2c_master_interface.h

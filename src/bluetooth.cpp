@@ -8,31 +8,38 @@
 #include <vector>
 
 void M_Bluetooth::set_y_coord(){
-	int t = buffer.size();
-	for (int i=1; i<2*how_many_lines+1;){
+	m_edge.clear();
+	for (int i=3; i<2*how_many_lines+3; i+=2){
 		m_edge.push_back(std::make_pair(buffer[i], buffer[i+1]));
-//		m_edge.emplace_back
-		i += 2;
 	}
-
-
 	buffer.clear();
 }
-
 void S_Bluetooth::send_edge(std::vector<std::pair<int,int>> input_vector){
 	int how_many_lines = input_vector.size();
-	Byte *buffer = new Byte[2*how_many_lines+1];
-	buffer[0] = how_many_lines;
+	int size = 2*how_many_lines+4;
+	Byte *buffer = new Byte[size];
+	buffer[0] = Informations::edge;
+	buffer[1] = size;
+	buffer[2] =how_many_lines;
+	buffer[size-1] = Informations::end;
+
 	for(int i=0; i<how_many_lines; i++){
-		*(buffer+(1+2*i)) = (input_vector[i].first);
-		*(buffer+(2+2*i)) = (input_vector[i].second);
-		if(i==(how_many_lines-1)){
-			m_line = *(buffer+(2+2*i));
-		}
+		buffer[3+2*i] = input_vector[i].first;
+		buffer[4+2*i] = input_vector[i].second;
 	}
-//	m_line = *(buffer);
 
-	m_bt.SendBuffer(buffer, 2*how_many_lines+1);
+	m_bt.SendBuffer(buffer, size);
 	delete buffer;
+}
 
+void S_Bluetooth::send_info(bool fail_or_not){
+	int size = 4;
+	Byte *buffer = new Byte[size];
+	buffer[0] = Informations::fail_on_turn;
+	buffer[1] = size;
+	buffer[2] = fail_or_not;
+	buffer[3] = Informations::end;
+
+	m_bt.SendBuffer(buffer,size);
+	delete buffer;
 }

@@ -163,6 +163,15 @@ public:
     		config.fps = Ov7725Configurator::Config::Fps::kHigh;
     		return config;
     }
+
+    static Ov7725::Config getCameraConfig(uint8_t id) {
+		Ov7725::Config config;
+		config.id = id;
+		config.w = 80;
+		config.h = 60;
+		config.fps = Ov7725::Config::Fps::kHigh;
+		return config;
+    }
 };
 
 
