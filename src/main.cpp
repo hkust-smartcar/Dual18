@@ -77,8 +77,8 @@ bool IsOneLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 
 	return false;
 }
 
-bool IsTwoLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 1.6){
-	if (max(leftVal,rightVal) > maxVal && (leftVal+rightVal) > maxVal*multi && min(leftVal,rightVal) > maxVal*0.4){
+bool IsTwoLine(uint8_t midMax, uint8_t sideMax, uint8_t leftVal, uint8_t rightVal){
+	if (max(leftVal,rightVal) > sideMax*1.1 || min(leftVal,rightVal) > midMax*1.1){
 		return true;
 	}
 	return false;
@@ -114,6 +114,7 @@ int main() {
 	PassiveBuzzer::Config config;
 	PassiveBuzzer buzz(config);
 	buzz.SetNote(523);
+//	buzz.SetBeep(true);
 
 	Servo servo(myConfig::GetServoConfig());
 	AlternateMotor motorL(myConfig::GetMotorConfig(0));
@@ -156,7 +157,7 @@ int main() {
 	}carState;
 	carState state = normal;
 
-	bool start = false;
+	bool star = false;
 	bool leftLoop = true, bigVal = false;
 	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0, filterSum4 = 0, filterSum5 = 0;
 	uint8_t filterCounter = 0;
@@ -171,15 +172,15 @@ int main() {
 
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&](const uint8_t id, const Joystick::State State){
     	if (State == Joystick::State::kSelect){
-    		if (start){
-    			start = false;
+    		if (star){
+    			star = false;
     			motorLPID.setDesiredVelocity(0);
     			motorRPID.setDesiredVelocity(0);
 				motorL.SetPower(0);
 				motorR.SetPower(0);
     		}
     		else{
-				start = true;
+				star = true;
 				motorLPID.setDesiredVelocity(speed);
 				motorRPID.setDesiredVelocity(speed);
     		}
@@ -234,7 +235,6 @@ int main() {
 //    			raw_mid_right = round(1.0*filterSum1/filterCounter);
 //    			raw_front_left = round(1.0*filterSum2/filterCounter);
 //    			raw_front_right = round(1.0*filterSum3/filterCounter);
-    			oneLineMin  = min(raw_front_left, min(raw_front_right, min(raw_mid_left, min(raw_mid_right, oneLineMin))));
     			if (multiplier != 0){
     				mid_left = (raw_mid_left-oneLineMin)*multiplier;
 					mid_right = (raw_mid_right-oneLineMin)*multiplier;
@@ -252,20 +252,24 @@ int main() {
 				filterSum4 = 0;
 				filterSum5 = 0;
 				filterCounter = 0;
-				if (raw_front_left == raw_front_right){
-					if (equalMin > 100 || (equalMin>raw_front_left && equalMin-raw_front_left < 5)){
-						equalMin = raw_front_left;
-    					multiplier = 50.0/(equalMin+equalMax-2*oneLineMin)*2;
+    			if (lastTime < 10000){
+					oneLineMin  = min(raw_front_left, min(raw_front_right, min(raw_mid_left, min(raw_mid_right, oneLineMin))));
+					oneLineMax  = max(raw_front_left, max(raw_front_right, max(raw_mid_left, max(raw_mid_right, oneLineMax))));
+					if (raw_front_left == raw_front_right){
+						if (equalMin > 100 || (equalMin>raw_front_left && equalMin-raw_front_left < 5)){
+							equalMin = raw_front_left;
+	    					multiplier = 50.0/(equalMin+equalMax-2*oneLineMin)*2;
 
+						}
+						if (equalMax < 10 || (equalMax<raw_front_left && raw_front_left-equalMax < 5)){
+							equalMax = raw_front_left;
+	    					multiplier = 50.0/(equalMin+equalMax-2*oneLineMin)*2;
+						}
 					}
-					if (equalMax < 10 || (equalMax<raw_front_left && raw_front_left-equalMax < 5)){
-						equalMax = raw_front_left;
-    					multiplier = 50.0/(equalMin+equalMax-2*oneLineMin)*2;
-					}
-				}
+    			}
 
-				if (start && max(max(max(front_left,front_right),mid_left),mid_right) < 20){
-					start = false;
+				if (star && max(max(max(raw_front_left,raw_front_right),raw_mid_left),raw_mid_right) < 20){
+					star = false;
 					state = normal;
 					motorL.SetPower(0);
 					motorR.SetPower(0);
@@ -273,21 +277,24 @@ int main() {
 	    			motorRPID.setDesiredVelocity(0);
 				}
 
-				if (!IsTwoLine(oneLineMax, front_left, front_right) ){
+				if (!IsTwoLine(equalMax, oneLineMax, raw_front_left, raw_front_right)){
+					buzz.SetBeep(false);
 					if (state == turning && (leftLoop && front_left>front_right*1.45 || !leftLoop && front_right>front_left*1.45)){
 						state = inLoop;
 						speed = (lowSpeed+highSpeed)/2;
 						stateTime = lastTime;
 						bigVal = false;
 					}
-					else if (IsOneLine(oneLineMax, front_left, front_right) && IsOneLine(oneLineMax, mid_left, mid_right) && (state == inLoop && bigVal || state == outLoop)){
+//					else if (IsOneLine(oneLineMax, raw_front_left, raw_front_right) && IsOneLine(oneLineMax, raw_mid_left, raw_mid_right) && (state == inLoop && bigVal || state == outLoop)){
+					else if (!IsTwoLine(equalMax, oneLineMax, raw_mid_left, raw_mid_right) && (state == inLoop && bigVal || state == outLoop)){//both is one line
 						state = normal;
 						stateTime = lastTime;
 						speed = highSpeed;
 					}
 				}
-				else{
-					if (!IsTwoLine(oneLineMax, mid_left, mid_right)){
+				else{//front is two line
+					buzz.SetBeep(lastTime >= 10000);
+					if (!IsTwoLine(equalMax, oneLineMax, raw_mid_left, raw_mid_right)){
 						if (state == normal){
 							state = nearLoop;
 							speed = lowSpeed;
@@ -300,7 +307,7 @@ int main() {
 							}
 						}
 					}
-					else{
+					else{//mid is two line too
 						if (state == nearLoop){
 							state = straight1;
 							stateTime = lastTime;
@@ -309,7 +316,7 @@ int main() {
 							state = outLoop;
 							stateTime = lastTime;
 						}
-						else if (state == straight1 && abs(front_left-front_right) < 5){
+						else if (state == straight1 && abs(front_left-front_right) < 5){//TODO
 							state = straight2;
 							stateTime = lastTime;
 						}
@@ -325,37 +332,32 @@ int main() {
 				frontLinear = 1/(float)front_left-1/(float)front_right;
 				midLinear = 1/(float)mid_left-1/(float)mid_right;
 
-				if (state != normal){
-					buzz.SetNote(698);
-					state = normal;
-				}
 				if (state == normal){
 					if (raw_front_left < 15 || raw_front_right < 15){
-						angle = lastServo*1.7;
-						buzz.SetNote(1318);
+						angle = lastServo*1.3;//1.7
 					}
 					else{
 						if(frontLinear-midLinear >= 0.01 || frontLinear-midLinear <= -0.01 || frontLinear >= 0.035 || frontLinear <= - 0.035){//0.003
 							angle = servoPIDCurve.getPID(0.0,frontLinear);
-							buzz.SetNote(587);
 						}else{
 							angle = servoPIDStraight.getPID(0.0,frontLinear);
-							buzz.SetNote(523);
 						}
 						lastServo = angle;
 					}
-					led3.SetEnable(0);
-					led2.SetEnable(1);
+					led3.SetEnable(!0);
+					led2.SetEnable(!0);
+					led1.SetEnable(!0);
 				}
 				else if (state == nearLoop){
 					if (leftLoop){
-						angle = servoPIDOneStraight.getPID((equalMax+equalMin)/2, mid_right);
+						angle = servoPIDOneStraight.getPID((equalMax+equalMin)/2, raw_mid_right);
 					}
 					else{
-						angle = -servoPIDOneStraight.getPID((equalMax+equalMin)/2, mid_left);
+						angle = -servoPIDOneStraight.getPID((equalMax+equalMin)/2, raw_mid_left);
 					}
-					led3.SetEnable(0);
-					led2.SetEnable(0);
+					led3.SetEnable(!1);
+					led2.SetEnable(!0);
+					led1.SetEnable(!0);
 				}
 				else if (state == straight1 || state == straight2){
 					midLinear = 2*midLinear;
@@ -365,14 +367,9 @@ int main() {
 					}else{
 						angle = servoPIDCurve.getPID(0.0,midLinear);
 					}
-					if (straight1 == state){
-						led3.SetEnable(1);
-						led2.SetEnable(0);
-						led1.SetEnable(1);
-					}
-					else if (state == straight2){
-						led1.SetEnable(0);
-					}
+					led3.SetEnable(!(state == straight2));
+					led2.SetEnable(!1);
+					led1.SetEnable(!0);
 				}
 				else if (state == turning){
 					if (leftLoop){
@@ -380,7 +377,7 @@ int main() {
 							angle = 100;
 						}
 						else{
-							angle = servoPIDOneCurve.getPID((equalMax+equalMin)/2, mid_left);
+							angle = servoPIDOneCurve.getPID((equalMax+equalMin)/2, raw_mid_left);
 							lastServo = angle;
 						}
 					}
@@ -389,13 +386,14 @@ int main() {
 							angle = -100;
 						}
 						else{
-							angle = -servoPIDOneCurve.getPID((equalMax+equalMin)/2, mid_right);
+							angle = -servoPIDOneCurve.getPID((equalMax+equalMin)/2, raw_mid_right);
 							lastServo = angle;
 						}
 					}
 					lastServo = angle;
-					led3.SetEnable(1);
-					led2.SetEnable(1);
+					led3.SetEnable(!0);
+					led2.SetEnable(!0);
+					led1.SetEnable(!1);
 				}
 				else if (state == inLoop){
 					if (!bigVal){
@@ -428,10 +426,10 @@ int main() {
 							frontLinear = 2*frontLinear;
 							angle = servoPIDCurve.getPID(0.0,frontLinear);
 						}
-						led1.SetEnable(lastTime % 100 < 50);
 					}
-					led3.SetEnable(lastTime % 100 < 50);
-					led2.SetEnable(lastTime % 100 < 50);
+					led3.SetEnable(!1);
+					led2.SetEnable(!0);
+					led1.SetEnable(!1);
 				}
 				else if (state == outLoop){
 					if (front_left < 20 || front_right < 20){
@@ -446,12 +444,12 @@ int main() {
 						angle = servoPIDCurve.getPID(0.0,frontLinear);
 						lastServo = angle;
 					}
-					led3.SetEnable(lastTime % 100 < 50);
-					led2.SetEnable(1);
+					led3.SetEnable(!0);
+					led2.SetEnable(!1);
+					led1.SetEnable(!1);
 				}
-//				led0.SetEnable(!leftLoop);
+				led0.SetEnable(!leftLoop);
 
-//				angle = -angle;
 				angle += middleServo;
 				angle = max(rightServo,min(leftServo,angle));
 				servo.SetDegree(angle);
@@ -467,7 +465,7 @@ int main() {
 				motorRPID.setDesiredVelocity(speed);
 				motorLPID.setDesiredVelocity(speed);
 
-				if (start){
+				if (star){
 					powerR = motorRPID.getPID();
 					powerL = motorLPID.getPID();
 					motorR.SetPower(powerR);
@@ -487,7 +485,6 @@ int main() {
 //				motorLPID.setkI(iMotor);
 //				motorLPID.setkD(dMotor);
 //				mBT.sendVelocity();
-//				buzz.SetBeep(max(0,min(1,start)));
 			}
 
 			filterCounter++;
@@ -506,9 +503,7 @@ int main() {
 			}
 
 			if (lastTime % 100 == 0){
-				led1.Switch();
-				led0.SetEnable(start);
-				if(!start){
+				if(!star){
 					char c[10];
 					lcd.SetRegion(Lcd::Rect(0,0,128,15));
 					sprintf(c,"FL: %d", raw_front_left);
@@ -526,7 +521,7 @@ int main() {
 					sprintf(c,"P: %d %d",equalMax,equalMin);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,75,128,15));
-					sprintf(c,"Min: %d", oneLineMin);
+					sprintf(c,"M: %d %d", oneLineMin, oneLineMax);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,90,128,15));
 					sprintf(c,"A: %d",servo.GetDegree());
