@@ -165,7 +165,7 @@ int main() {
 	const uint16_t middleServo = 865, leftServo = 1180, rightServo = 550;
 	float angle = middleServo;
 
-	uint8_t oneLineMax = 80, equalMin = 0, equalMax = 0;
+	uint8_t oneLineMax = 80, oneLineMin = 80, equalMin = 250, equalMax = 0;
 	uint8_t maxLeft = 0,minLeft = 100,maxRight = 0,minRight = 100;
 	uint8_t count1, count4;
 
@@ -187,7 +187,6 @@ int main() {
     	else if (State == Joystick::State::kUp){
     		state = (carState)(((int)state+1) % 7);
     	}
-    	led0.Switch();
     })));
 
 	DualCar_UART uart0; // << BT related
@@ -204,7 +203,7 @@ int main() {
 //	uart0.add(DualCar_UART::FLOAT::f25, &iMotor, false);
 //	uart0.add(DualCar_UART::FLOAT::f26, &dMotor, false);
 
-//	uart0.add(DualCar_UART::FLOAT::f4, &multiplier, true);
+	uart0.add(DualCar_UART::FLOAT::f4, &multiplier, true);
 
 	uart0.add(DualCar_UART::UINT8_T::u0, &encoderLval, true);
 	uart0.add(DualCar_UART::UINT8_T::u1, &encoderRval, true);
@@ -231,11 +230,20 @@ int main() {
     			raw_mid_right = round(1.0*filterSum1/filterCounter);
     			raw_front_left = round(1.0*filterSum2/filterCounter);
     			raw_front_right = round(1.0*filterSum3/filterCounter);
+//    			raw_mid_left = round(1.0*filterSum0/filterCounter);
+//    			raw_mid_right = round(1.0*filterSum1/filterCounter);
+//    			raw_front_left = round(1.0*filterSum2/filterCounter);
+//    			raw_front_right = round(1.0*filterSum3/filterCounter);
+    			oneLineMin  = min(raw_front_left, min(raw_front_right, min(raw_mid_left, min(raw_mid_right, oneLineMin))));
     			if (multiplier != 0){
-    				mid_left = raw_mid_left*multiplier;
-					mid_right = raw_mid_right*multiplier;
-					front_left = raw_front_left*multiplier;
-					front_right = raw_front_right*multiplier;
+    				mid_left = (raw_mid_left-oneLineMin)*multiplier;
+					mid_right = (raw_mid_right-oneLineMin)*multiplier;
+					front_left = (raw_front_left-oneLineMin)*multiplier;
+					front_right = (raw_front_right-oneLineMin)*multiplier;
+//    				mid_left = raw_mid_left*multiplier;
+//					mid_right = raw_mid_right*multiplier;
+//					front_left = raw_front_left*multiplier;
+//					front_right = raw_front_right*multiplier;
     			}
 				filterSum0 = 0;
 				filterSum1 = 0;
@@ -245,14 +253,14 @@ int main() {
 				filterSum5 = 0;
 				filterCounter = 0;
 				if (raw_front_left == raw_front_right){
-					if (equalMin < 10 || (equalMin>raw_front_left && equalMin-raw_front_left < 5)){
+					if (equalMin > 100 || (equalMin>raw_front_left && equalMin-raw_front_left < 5)){
 						equalMin = raw_front_left;
-    					multiplier = 50.0/(equalMin+equalMax)*2;
+    					multiplier = 50.0/(equalMin+equalMax-2*oneLineMin)*2;
 
 					}
 					if (equalMax < 10 || (equalMax<raw_front_left && raw_front_left-equalMax < 5)){
 						equalMax = raw_front_left;
-    					multiplier = 50.0/(equalMin+equalMax)*2;
+    					multiplier = 50.0/(equalMin+equalMax-2*oneLineMin)*2;
 					}
 				}
 
@@ -264,11 +272,6 @@ int main() {
 	    			motorLPID.setDesiredVelocity(0);
 	    			motorRPID.setDesiredVelocity(0);
 				}
-
-//				minLeft = min(minLeft, front_left);
-//				maxLeft = max(maxLeft, front_left);
-//				minRight = min(minRight, front_right);
-//				maxRight = max(maxRight, front_right);
 
 				if (!IsTwoLine(oneLineMax, front_left, front_right) ){
 					if (state == turning && (leftLoop && front_left>front_right*1.45 || !leftLoop && front_right>front_left*1.45)){
@@ -319,11 +322,12 @@ int main() {
 
 				raw_frontLinear = 1/(float)raw_front_left-1/(float)raw_front_right;
 				raw_midLinear = 1/(float)raw_mid_left-1/(float)raw_mid_right;
-				frontLinear = 1/front_left-1/front_right;
-				midLinear = 1/mid_left-1/mid_right;
+				frontLinear = 1/(float)front_left-1/(float)front_right;
+				midLinear = 1/(float)mid_left-1/(float)mid_right;
 
 				if (state != normal){
 					buzz.SetNote(698);
+					state = normal;
 				}
 				if (state == normal){
 					if (raw_front_left < 15 || raw_front_right < 15){
@@ -445,8 +449,9 @@ int main() {
 					led3.SetEnable(lastTime % 100 < 50);
 					led2.SetEnable(1);
 				}
-				led0.SetEnable(!leftLoop);
+//				led0.SetEnable(!leftLoop);
 
+//				angle = -angle;
 				angle += middleServo;
 				angle = max(rightServo,min(leftServo,angle));
 				servo.SetDegree(angle);
@@ -467,19 +472,22 @@ int main() {
 					powerL = motorLPID.getPID();
 					motorR.SetPower(powerR);
 					motorL.SetPower(powerL);
+				}else{
+					motorR.SetPower(0);
+					motorL.SetPower(0);
 				}
 
 				encoderLval = LEncoder.GetCount();
 				encoderRval = REncoder.GetCount();
-				servoPIDStraight.setkD(dStraight);
-				servoPIDStraight.setkP(pStraight);
-				servoPIDCurve.setkD(dCurve);
-				servoPIDCurve.setkP(pCurve);
+//				servoPIDStraight.setkD(dStraight);
+//				servoPIDStraight.setkP(pStraight);
+//				servoPIDCurve.setkD(dCurve);
+//				servoPIDCurve.setkP(pCurve);
 //				motorLPID.setkP(pMotor);
 //				motorLPID.setkI(iMotor);
 //				motorLPID.setkD(dMotor);
 //				mBT.sendVelocity();
-				buzz.SetBeep(start);
+//				buzz.SetBeep(max(0,min(1,start)));
 			}
 
 			filterCounter++;
@@ -498,6 +506,8 @@ int main() {
 			}
 
 			if (lastTime % 100 == 0){
+				led1.Switch();
+				led0.SetEnable(start);
 				if(!start){
 					char c[10];
 					lcd.SetRegion(Lcd::Rect(0,0,128,15));
@@ -515,9 +525,9 @@ int main() {
 					lcd.SetRegion(Lcd::Rect(0,60,128,15));
 					sprintf(c,"P: %d %d",equalMax,equalMin);
 					writer.WriteBuffer(c,10);
-//					lcd.SetRegion(Lcd::Rect(0,75,128,15));
-//					sprintf(c,"D: %d",count4);
-//					writer.WriteBuffer(c,10);
+					lcd.SetRegion(Lcd::Rect(0,75,128,15));
+					sprintf(c,"Min: %d", oneLineMin);
+					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,90,128,15));
 					sprintf(c,"A: %d",servo.GetDegree());
 					writer.WriteBuffer(c,10);
