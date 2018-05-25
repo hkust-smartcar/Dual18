@@ -40,4 +40,5 @@ obj/main-d-2017-inno.o: src/main.cpp \
  /Users/JosephYim/git/libsccc/inc/libbase/k60/pit.h \
  /Users/JosephYim/git/libsccc/inc/libbase/k60/pwm.h inc/DualCar_UART.h \
  /Users/JosephYim/git/libsccc/inc/libsc/k60/jy_mcu_bt_106.h \
- /Users/JosephYim/git/libsccc/inc/libsc/k60/uart_device.h
+ /Users/JosephYim/git/libsccc/inc/libsc/k60/uart_device.h \
+ /Users/JosephYim/git/libsccc/inc/libutil/notes.h
