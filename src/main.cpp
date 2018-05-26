@@ -78,7 +78,7 @@ bool IsOneLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 
 }
 
 bool IsTwoLine(uint8_t midMax, uint8_t sideMax, uint8_t leftVal, uint8_t rightVal){
-	if (max(leftVal,rightVal) > sideMax*1.1 || min(leftVal,rightVal) > midMax*1.1){
+	if (max(leftVal,rightVal) > sideMax*1.05 || min(leftVal,rightVal) > midMax*1.1){
 		return true;
 	}
 	return false;
@@ -128,8 +128,8 @@ int main() {
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
 //    PID servoPIDCurv(6275,69);
-    PID servoPIDStraight(2200,0.05);
-    PID servoPIDCurve(6275,0);//for straight123
+    PID servoPIDStraight(13200,0.3);//2200,0.05
+    PID servoPIDCurve(18825,0.5);//6275
     PID servoPIDOneStraight(4,100);//10
     PID servoPIDOneCurve(-18,240);//-24,240
     PID motorLPID(0.145,0.0,1.35, &LEncoder);
@@ -293,21 +293,19 @@ int main() {
 					}
 				}
 				else{//front is two line
-					buzz.SetBeep(lastTime >= 10000);
-					if (!IsTwoLine(equalMax, oneLineMax, raw_mid_left, raw_mid_right)){
-						if (state == normal){
-							state = nearLoop;
-							speed = lowSpeed;
-							stateTime = lastTime;
-							if (front_left-mid_left > front_right-mid_right){
-								leftLoop = true;
-							}
-							else{
-								leftLoop = false;
-							}
+//					buzz.SetBeep(lastTime >= 10000);
+					if (state == normal){
+						state = nearLoop;
+						speed = lowSpeed;
+						stateTime = lastTime;
+						if (front_left-mid_left > front_right-mid_right){
+							leftLoop = true;
+						}
+						else{
+							leftLoop = false;
 						}
 					}
-					else{//mid is two line too
+					if (IsTwoLine(equalMax, oneLineMax, raw_mid_left, raw_mid_right)){//mid is two line too
 						if (state == nearLoop){
 							state = straight1;
 							stateTime = lastTime;
@@ -316,11 +314,11 @@ int main() {
 							state = outLoop;
 							stateTime = lastTime;
 						}
-						else if (state == straight1 && abs(front_left-front_right) < 5){//TODO
-							state = straight2;
-							stateTime = lastTime;
-						}
-						else if (state == straight2 && (leftLoop && front_left*0.9>mid_left || !leftLoop && front_right*0.9>mid_right)){//0.9
+//						else if (state == straight1 && abs(front_left-front_right) < (front_left+front_right)*0.05){
+//							state = straight2;
+//							stateTime = lastTime;
+//						}
+						else if (state == straight1 && (leftLoop && front_left*0.9>mid_left  && mid_right*0.9>front_right || !leftLoop && front_right*0.9>mid_right && mid_left*0.9>front_left)){//0.9
 							state = turning;
 							stateTime = lastTime;
 						}
@@ -333,7 +331,7 @@ int main() {
 				midLinear = 1/(float)mid_left-1/(float)mid_right;
 
 				if (state == normal){
-					if (raw_front_left < 15 || raw_front_right < 15){
+					if (raw_front_left < oneLineMin*2 || raw_front_right < oneLineMin*2){
 						angle = lastServo*1.3;//1.7
 					}
 					else{
@@ -360,34 +358,28 @@ int main() {
 					led1.SetEnable(!0);
 				}
 				else if (state == straight1 || state == straight2){
-					midLinear = 2*midLinear;
-					frontLinear = 2*frontLinear;
-					if (state == straight1){
-						angle = servoPIDCurve.getPID(0.0,frontLinear);
-					}else{
-						angle = servoPIDCurve.getPID(0.0,midLinear);
-					}
+//					midLinear = 2*midLinear;
+//					frontLinear = 2*frontLinear;
+					angle = servoPIDCurve.getPID(0.0,frontLinear);
 					led3.SetEnable(!(state == straight2));
 					led2.SetEnable(!1);
 					led1.SetEnable(!0);
 				}
 				else if (state == turning){
 					if (leftLoop){
-						if (mid_left < (equalMax+equalMin)/2){
+						if (raw_mid_left < (equalMax+equalMin)/2){
 							angle = 100;
 						}
 						else{
 							angle = servoPIDOneCurve.getPID((equalMax+equalMin)/2, raw_mid_left);
-							lastServo = angle;
 						}
 					}
 					else{
-						if (mid_right < (equalMax+equalMin)/2){
+						if (raw_mid_right < (equalMax+equalMin)/2){
 							angle = -100;
 						}
 						else{
 							angle = -servoPIDOneCurve.getPID((equalMax+equalMin)/2, raw_mid_right);
-							lastServo = angle;
 						}
 					}
 					lastServo = angle;
@@ -397,7 +389,7 @@ int main() {
 				}
 				else if (state == inLoop){
 					if (!bigVal){
-						if (front_left < 20 || front_right < 20){
+						if (raw_front_left < oneLineMin*2 || raw_front_right < oneLineMin*2){
 							if (leftLoop){
 								angle = 300;
 							}
@@ -409,12 +401,12 @@ int main() {
 							angle = servoPIDCurve.getPID(0.0,frontLinear);
 							lastServo = angle;
 						}
-						if (max(front_left, front_right) > oneLineMax){
+						if (max(raw_front_left, raw_front_right) > oneLineMax){
 							bigVal = true;
 						}
 					}
 					else{
-						if (front_left < 50 || front_right < 50){
+						if (raw_front_left < equalMax || raw_front_right < equalMax){//equalMax may not be the best value, 50
 							if (leftLoop){
 								angle = 300;
 							}
@@ -423,7 +415,7 @@ int main() {
 							}
 						}
 						else{
-							frontLinear = 2*frontLinear;
+//							frontLinear = 2*frontLinear;
 							angle = servoPIDCurve.getPID(0.0,frontLinear);
 						}
 					}
@@ -432,7 +424,7 @@ int main() {
 					led1.SetEnable(!1);
 				}
 				else if (state == outLoop){
-					if (front_left < 20 || front_right < 20){
+					if (raw_front_left < oneLineMin*2 || raw_front_right < oneLineMin*2){
 						if (leftLoop){
 							angle = 300;
 						}
@@ -496,7 +488,7 @@ int main() {
 
 
 			if (lastTime % 500 == 0){
-				if (state != normal && lastTime-stateTime > 2000){
+				if (state != normal && lastTime-stateTime > 30000){
 					state = normal;
 					speed = highSpeed;
 				}
@@ -506,16 +498,16 @@ int main() {
 				if(!star){
 					char c[10];
 					lcd.SetRegion(Lcd::Rect(0,0,128,15));
-					sprintf(c,"FL: %d", raw_front_left);
+					sprintf(c,"rFL: %d", raw_front_left);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,15,128,15));
-					sprintf(c,"FR: %d", raw_front_right);
+					sprintf(c,"rFR: %d", raw_front_right);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,30,128,15));
-					sprintf(c,"ML: %d",raw_mid_left);
+					sprintf(c,"rML: %d",raw_mid_left);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,45,128,15));
-					sprintf(c,"MR: %d",raw_mid_right);
+					sprintf(c,"rMR: %d",raw_mid_right);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,60,128,15));
 					sprintf(c,"P: %d %d",equalMax,equalMin);
@@ -526,9 +518,9 @@ int main() {
 					lcd.SetRegion(Lcd::Rect(0,90,128,15));
 					sprintf(c,"A: %d",servo.GetDegree());
 					writer.WriteBuffer(c,10);
-//					lcd.SetRegion(Lcd::Rect(0,105,128,15));
-//					sprintf(c,"S: %f",cc);
-//					writer.WriteBuffer(c,10);
+					lcd.SetRegion(Lcd::Rect(0,105,128,15));
+					sprintf(c,"S: %f",(front_left+front_right)*0.05);
+					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,120,128,15));
 					sprintf(c,"M: %f",frontLinear*100);
 					writer.WriteBuffer(c,10);
