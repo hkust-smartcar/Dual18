@@ -50,7 +50,7 @@ final String EnvPath = "/Users/JosephYim/Desktop/";
 final boolean SameFile = true;
 
 void init() { // add tiles here 
-    addInputIncDecTile(Mailbox.u0, "trig", 1, 1, 0);
+
 
     addOutputValueTile(Mailbox.u0, "echo 0");
     addOutputValueTile(Mailbox.u1, "echo 1");
@@ -58,6 +58,9 @@ void init() { // add tiles here
     addOutputValueTile(Mailbox.u3, "echo 3");
     addElapsedTime();
 
+    addInputIncDecTile(Mailbox.u0, "u0", 1, 1, 0);
+    addInputIncDecTile(Mailbox.f0, "f0", 1, 1, 0);
+    addInputIncDecTile(Mailbox.d0, "d0", 1, 1, 0);
     addLineBreak(); // break into next column
 
     addChart(100, 5, 600, -1, 255); // << start a new chart, i.e. chart 1

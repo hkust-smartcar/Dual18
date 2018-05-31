@@ -13,6 +13,11 @@
 #include "libsc/st7735r.h"
 #include "libsc/k60/ov7725.h"
 
+#include "libsc/alternate_motor.h"
+#include "libsc/encoder.h"
+#include "libsc/futaba_s3010.h"
+#include "libsc/dir_encoder.h"
+
 #include "libsc/simple_buzzer.h"
 #include "libsc/passive_buzzer.h"
 
@@ -243,10 +248,51 @@ public:
 	}
 };
 
+DirEncoder::Config GetEncoderConfig(int m_id) {
+	DirEncoder::Config config;
+	config.id = m_id;
+	return config;
+}
+
+FutabaS3010::Config GetServoConfig() {
+	FutabaS3010::Config config;
+	config.id = 0;
+	return config;
+}
+
+AlternateMotor::Config GetMotorConfig(int id) {
+	AlternateMotor::Config config;
+	config.id = id;
+	config.multiplier = 100;
+	return config;
+}
+
+#include "libbase/k60/cmsis/mk60f15.h"
+#include "libbase/k60/flash.h"
+
 int main() {
 	System::Init();
 
-//	System::DelayS(4);
+//	constexpr NV_Type* MEM_MAPS = FTFE_FlashConfig;
+//	MEM_MAPS->FOPT = NV_FOPT_EZPORT_DIS_MASK;
+
+//	uint8_t temp[8];
+//	uint8_t *p;
+//	memset(temp, 0, 0xFF);
+//	memcpy(temp, (uint8_t *) 0x40020000, 8);
+//	temp[2] &= ~(0x02);
+//
+//	Flash::Config cc;
+//	Flash flash(cc);
+//	flash.Write1(0x40020000, temp, 8);
+
+//	uint8_t t = FTFE->FOPT;
+//	t &= ~(0x02);
+//	FTFE->FOPT = t;
+
+//	FTFE_FlashConfig->FOPT = NV_FOPT_EZPORT_DIS_MASK;
+//	FTFE->FOPT = FTFE_FOPT_OPT(0);
+
 
 	Ov7725::Config con;
 	con.h = 60;
@@ -257,10 +303,10 @@ int main() {
 	Ov7725 cam(con);
 	cam.Start();
 
-	Led led0(GetLedConfig(0));
-	Led led1(GetLedConfig(1));
-	Led led2(GetLedConfig(2));
-	Led led3(GetLedConfig(3));
+//	Led led0(GetLedConfig(0));
+//	Led led1(GetLedConfig(1));
+//	Led led2(GetLedConfig(2));
+//	Led led3(GetLedConfig(3));
 
 	St7735r lcd(GetLcdConfig());
 //	LcdTypewriter writer(GetWriterConfig(&lcd));
@@ -273,6 +319,16 @@ int main() {
 	float echo1 = 0;
 	float echo2 = 0;
 	float echo3 = 0;
+
+//	FutabaS3010 servo(GetServoConfig());
+//	AlternateMotor right_motor(GetMotorConfig(0));
+//	AlternateMotor left_motor(GetMotorConfig(1));
+//	DirEncoder dirEncoder0(GetEncoderConfig(0));
+//	DirEncoder dirEncoder1(GetEncoderConfig(1));
+
+//	servo.SetDegree(160);
+//	right_motor.SetPower(60);
+//	left_motor.SetPower(60);
 
 //	Ultrasonic us;
 
@@ -300,15 +356,21 @@ int main() {
 
 //	musicPlayer player;
 
+//	while (true);
+
 	uint32_t lastTime = 0;
 	while (true) {
 		if (System::Time() != lastTime) {
 			lastTime = System::Time();
 			if (lastTime % 100 == 0) {
-				led0.Switch();
-				led1.Switch();
-				led2.Switch();
-				led3.Switch();
+				const Byte* Buffer = cam.LockBuffer();
+				lcd.FillBits(Lcd::kBlack, Lcd::kWhite, Buffer, 60 * 80);
+				cam.UnlockBuffer();
+
+//				led0.Switch();
+//				led1.Switch();
+//				led2.Switch();
+//				led3.Switch();
 
 //				echo0 += 1;
 
@@ -317,9 +379,6 @@ int main() {
 //				echo2 = (float) us.getTime(2);
 //				echo3 = (float) us.getTime(3);
 
-				const Byte* Buffer = cam.LockBuffer();
-				cam.UnlockBuffer();
-				lcd.FillBits(Lcd::kBlack, Lcd::kWhite, Buffer, 60 * 80);
 			}
 
 			if (trig != pTrig) {

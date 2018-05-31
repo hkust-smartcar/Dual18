@@ -274,6 +274,10 @@ class ScanLineChart implements GUI_interface {
             }
         }
     };
+    void tKeyPressed() {};
+    String getPos() {
+        return "";
+    };
 };
 
 class ScanLineChart_Line implements ScanLineChart_Interface {
@@ -577,5 +581,9 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
     };
     void setPause(Boolean isPause) {
         m_isPause = isPause;
+    };
+    void tKeyPressed() {};
+    String getPos() {
+        return "";
     };
 }

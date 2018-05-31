@@ -1,15 +1,12 @@
-class BreakColumn implements GUI_interface {
-    private int m_TopLeftX = 0, m_TopLeftY = 0;
-    private int m_Height = 0, m_Width = 0;
-    private boolean m_NeedBackground = false;
-
+class BreakColumn extends GUI_Raw {
     BreakColumn(boolean needBG) {
+        super();
         m_Height = 100000000;
         m_Width = 20;
         m_NeedBackground = needBG;
     }
 
-    void tDraw() {
+    @Override void tDraw() {
         noStroke();
 
         if (m_NeedBackground == true) {
@@ -17,58 +14,24 @@ class BreakColumn implements GUI_interface {
             rect(m_TopLeftX, m_TopLeftY, m_Width, m_Height, RECT_ANGLE_RADIUS);
         }
     }
-
-    void over() {
-    };
-    void onClick() {
-    };
-    void setValue(String value_) {
-    };
-    void setValue(double double_) {
-    };
-    void setValue(float float_) {
-    };
-    void setValue(int int_) {
-    };
-    void setBackgroundFill(boolean needBackground) {
-        m_NeedBackground = needBackground;
-    };
-    int getHeight() {
-        return m_Height;
-    };
-    int getWidth() {
-        return m_Width;
-    };
-    String getValue() {
-        return "";
-    };
-    void setPos(int topLeftX_, int topLeftY_) {
-        m_TopLeftX = topLeftX_;
-        m_TopLeftY = topLeftY_;
-    };
-    void serialSend() {
-    };
-    void setTextColor(color TextColor_) {
-    };
 }
 
-class TextLabel implements GUI_interface {
-
-    private int m_TopLeftX = 0, m_TopLeftY = 0;
-    private int m_Height = 0, m_Width = 0;
+class TextLabel extends GUI_Raw {
     private final int label_X_Indent = 10;
     private String label = "Empty";
     private boolean m_NeedBackground = true;
-    private color m_TextColor = TEXT_COLOR;
 
     TextLabel(int width_, String label_) {
+        super();
         textSize(fontSize);
         m_Height = (int) textAscent() + (int) textDescent();
         m_Width = width_;
         label = label_;
     }
 
-    void tDraw() {
+    @Override void tDraw() {
+        textAlign(LEFT);
+        
         noStroke();
 
         if (m_NeedBackground == true) {
@@ -85,92 +48,67 @@ class TextLabel implements GUI_interface {
 
         text(label, m_TopLeftX + label_X_Indent, m_TopLeftY, m_Width - fontSize, m_Height);
     }
-
-    void over() {
-    };
-    void onClick() {
-    };
-    void setValue(String value_) {
+    @Override void setValue(String value_) {
         label = value_;
     };
-    void setValue(double double_) {
+    @Override void setValue(double double_) {
         label = Double.toString(double_);
     };
-    void setValue(float float_) {
+    @Override void setValue(float float_) {
         label = Float.toString(float_);
     };
-    void setValue(int int_) {
+    @Override void setValue(int int_) {
         label = Integer.toString(int_);
     };
-    void setBackgroundFill(boolean needBackground) {
-        m_NeedBackground = needBackground;
-    };
-    int getHeight() {
-        return m_Height;
-    };
-    int getWidth() {
-        return m_Width;
-    };
-    String getValue() {
+    @Override String getValue() {
         return label;
-    };
-    void setPos(int topLeftX_, int topLeftY_) {
-        m_TopLeftX = topLeftX_;
-        m_TopLeftY = topLeftY_;
-    };
-    void serialSend() {
-    };
-    void setTextColor(color TextColor_) {
-        m_TextColor = TextColor_;
     };
 }
 
-class Button implements GUI_interface {
-    private int m_TopLeftX = 0, m_TopLeftY = 0;
-    private int m_Height = 0, m_Width = 0;
-    private color m_TextColor = TEXT_COLOR;
+class Button extends GUI_Raw {
     private String text;
-    boolean isHovering = false;
-
     Button(String text_) {
-        m_TopLeftX = 0;
-        m_TopLeftY = 0;
+        super();
         m_Width = (int) textWidth(text_+" ");
         textSize(fontSize);
         m_Height = (int) textAscent() + (int) textDescent();
         text = text_;
-
-        tDraw();
+        if (text == null) {
+            text = "null";
+        }
     }
-
     Button(int topLeftX_, int topLeftY_, String text_) {
+        super();
         m_TopLeftX = topLeftX_;
         m_TopLeftY = topLeftY_;
         m_Width = (int) textWidth(text_+" ");
         textSize(fontSize);
         m_Height = (int) textAscent() + (int) textDescent();
         text = text_;
-
-        tDraw();
+        if (text == null) {
+            text = "null";
+        }
     }
-
     Button(int topLeftX_, int topLeftY_, int width_, int height_, String text_) {
+        super();
         m_TopLeftX = topLeftX_;
         m_TopLeftY = topLeftY_;
         m_Width = width_;
         m_Height = height_;
         text = text_;
-
-        tDraw();
+        if (text == null) {
+            text = "null";
+        }
     }
-
-    void tDraw() {
+    @Override void tDraw() {
         // this might casue extra resouces consumption
         if (isHovering) {
             fill(BUTTON_HOVERING_COLOR);
         } else {
             fill(BUTTON_NORMAL_COLOR);
         }
+
+        textAlign(CENTER);
 
         noStroke();
         rect(m_TopLeftX, m_TopLeftY, m_Width, m_Height, RECT_ANGLE_RADIUS);
@@ -179,55 +117,27 @@ class Button implements GUI_interface {
         textSize(fontSize);
         text(text, m_TopLeftX, m_TopLeftY, m_Width, m_Height);
     }
-    void over() {
-        if (mouseX >= m_TopLeftX && mouseX <= m_TopLeftX+m_Width && 
-            mouseY >= m_TopLeftY && mouseY <= m_TopLeftY+m_Height) {
-            isHovering = true;
-        } else {
-            isHovering = false;
-        }
-    }
-    void onClick() {
-    }
-    void setValue(String value_) {
+    @Override void setValue(String value_) {
         text = value_;
+        if (text == null) {
+            text = "null";
+        }
     };
-    void setValue(double double_) {
+    @Override void setValue(double double_) {
         text = Double.toString(double_);
     };
-    void setValue(float float_) {
+    @Override void setValue(float float_) {
         text = Float.toString(float_);
     };
-    void setValue(int int_) {
+    @Override void setValue(int int_) {
         text = Integer.toString(int_);
     };
-    void setBackgroundFill(boolean needBackground) {
-    };
-    int getHeight() {
-        return m_Height;
-    };
-    int getWidth() {
-        return m_Width;
-    };
-    String getValue() {
+    @Override String getValue() {
         return text;
-    };
-    void setPos(int topLeftX_, int topLeftY_) {
-        m_TopLeftX = topLeftX_;
-        m_TopLeftY = topLeftY_;
-    };
-    void serialSend() {
-    };
-    void setTextColor(color TextColor_) {
-        m_TextColor = TextColor_;
     };
 }
 
-class OutputValueTile implements GUI_interface {
-
-    private int m_TopLeftX = 0, m_TopLeftY = 0;
-    private int m_Height = 0, m_Width = 200;
-
+class OutputValueTile extends GUI_Raw {
     private TextLabel m_DataTypeLabel;
     private TextLabel m_ValueLabel;
 
@@ -237,9 +147,9 @@ class OutputValueTile implements GUI_interface {
     private double_MailBox double_MailBox_id = null;
     private float_MailBox float_MailBox_id = null;
 
-    private color m_TextColor = TEXT_COLOR;
-
     OutputValueTile(uint8_t_MailBox mail_id_) {
+        super();
+        m_Width = 200;
         uint8_t_MailBox_id = mail_id_;
         m_ValueDataType = DATA_TYPE.UINT8_T;
 
@@ -254,6 +164,8 @@ class OutputValueTile implements GUI_interface {
     }
 
     OutputValueTile(double_MailBox mail_id_) {
+        super();
+        m_Width = 200;
         double_MailBox_id = mail_id_;
         m_ValueDataType = DATA_TYPE.DOUBLE;
 
@@ -268,6 +180,8 @@ class OutputValueTile implements GUI_interface {
     }
 
     OutputValueTile(float_MailBox mail_id_) {
+        super();
+        m_Width = 200;
         float_MailBox_id = mail_id_;
         m_ValueDataType = DATA_TYPE.FLOAT;
 
@@ -280,8 +194,7 @@ class OutputValueTile implements GUI_interface {
 
         m_Height = m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight();
     }
-
-    void tDraw() {
+    @Override void tDraw() {
         if (m_ValueDataType == DATA_TYPE.UINT8_T) {
             m_ValueLabel.setValue(Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
         } else if (m_ValueDataType == DATA_TYPE.DOUBLE) {
@@ -296,41 +209,24 @@ class OutputValueTile implements GUI_interface {
         m_DataTypeLabel.tDraw();
         m_ValueLabel.tDraw();
     }
-    void over() {
-    };
-    void onClick() {
-    };
-    void setValue(String value_) {
+    @Override void setValue(String value_) {
         m_DataTypeLabel.setValue(value_);
     };
-    void setValue(double double_) {
+    @Override void setValue(double double_) {
         m_DataTypeLabel.setValue(double_);
     };
-    void setValue(float float_) {
+    @Override void setValue(float float_) {
         m_DataTypeLabel.setValue(float_);
     };
-    void setValue(int int_) {
+    @Override void setValue(int int_) {
         m_DataTypeLabel.setValue(int_);
     };
-    void setBackgroundFill(boolean needBackground) {
-    };
-    int getHeight() {
-        return m_Height;
-    };
-    int getWidth() {
-        return m_Width;
-    };
-    String getValue() {
-        return "";
-    };
-    void setPos(int topLeftX_, int topLeftY_) {
+    @Override void setPos(int topLeftX_, int topLeftY_) {
         m_TopLeftX = topLeftX_;
         m_TopLeftY = topLeftY_;
 
         m_DataTypeLabel.setPos(m_TopLeftX, m_TopLeftY);
         m_ValueLabel.setPos(m_TopLeftX, m_TopLeftY+m_DataTypeLabel.getHeight());
-    };
-    void serialSend() {
     };
     void setTextColor(color TextColor_) {
         m_TextColor = TextColor_;
@@ -339,12 +235,10 @@ class OutputValueTile implements GUI_interface {
     };
 }
 
-class InputIncDecTile implements GUI_interface {
+class InputIncDecTile extends GUI_Raw {
 
     private final int m_ButHeight = 30, m_ButWidth = 40;
     private final int m_ButHorizontalSpacing = 10;
-    private int m_TopLeftX = 0, m_TopLeftY = 0;
-    private int m_Height = 0, m_Width = 200;
 
     private double m_SmallChange = 0, m_LargeChange = 0;
 
@@ -362,14 +256,16 @@ class InputIncDecTile implements GUI_interface {
     private void init() {
         m_DataTypeLabel.setBackgroundFill(false);
         m_ValueLabel.setBackgroundFill(false);
+        m_Height = m_ValueLabel.getHeight() + m_DataTypeLabel.getHeight() + m_ButHeight;
 
-        m_ButLargeDec = new Button(0, 0, m_ButWidth, m_ButHeight, " --");
-        m_ButSmallDec = new Button(0, 0, m_ButWidth, m_ButHeight, "  -");
-        m_ButSmallInc = new Button(0, 0, m_ButWidth, m_ButHeight, "  +");
-        m_ButLargeInc = new Button(0, 0, m_ButWidth, m_ButHeight, " ++");
+        m_ButLargeDec = new Button(0, 0, m_ButWidth, m_ButHeight, "--");
+        m_ButSmallDec = new Button(0, 0, m_ButWidth, m_ButHeight, "-");
+        m_ButSmallInc = new Button(0, 0, m_ButWidth, m_ButHeight, "+");
+        m_ButLargeInc = new Button(0, 0, m_ButWidth, m_ButHeight, "++");
     }
-
     InputIncDecTile(uint8_t_MailBox mail_id_, int smallChange_, int largeChange_, int initValue) {
+        m_Width = 200;
+        
         m_SmallChange = (double) smallChange_;
         m_LargeChange = (double) largeChange_;
 
@@ -382,10 +278,10 @@ class InputIncDecTile implements GUI_interface {
         m_ValueLabel = new TextLabel(m_Width, Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
 
         init();
-        m_Height = m_ButLargeDec.getHeight() + m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight();
     }
-
     InputIncDecTile(double_MailBox mail_id_, double smallChange_, double largeChange_, double initValue) {
+        m_Width = 200;
+        
         m_SmallChange = smallChange_;
         m_LargeChange = largeChange_;
 
@@ -398,10 +294,10 @@ class InputIncDecTile implements GUI_interface {
         m_ValueLabel = new TextLabel(m_Width, Double.toString(DataArray_double[double_MailBox_id.ordinal()]));
 
         init();
-        m_Height = m_ButLargeDec.getHeight() + m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight();
     }
-
     InputIncDecTile(float_MailBox mail_id_, double smallChange_, double largeChange_, float initValue) {
+        m_Width = 200;
+        
         m_SmallChange = smallChange_;
         m_LargeChange = largeChange_;
 
@@ -414,14 +310,14 @@ class InputIncDecTile implements GUI_interface {
         m_ValueLabel = new TextLabel(m_Width, Float.toString(DataArray_float[float_MailBox_id.ordinal()]));
 
         init();
-        m_Height = m_ButLargeDec.getHeight() + m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight();
     }
-
-    void tDraw() {
+    @Override void tDraw() {
         if (m_DataType == DATA_TYPE.UINT8_T) {
             m_ValueLabel.setValue(Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
         } else if (m_DataType == DATA_TYPE.DOUBLE) {
             m_ValueLabel.setValue(Double.toString(DataArray_double[double_MailBox_id.ordinal()]));
+        } else if (m_DataType == DATA_TYPE.FLOAT) {
+            m_ValueLabel.setValue(Float.toString(DataArray_float[float_MailBox_id.ordinal()]));
         }
 
         fill(TILE_BACKGROUND_COLOR);
@@ -435,7 +331,7 @@ class InputIncDecTile implements GUI_interface {
         m_ButSmallInc.tDraw();
         m_ButLargeInc.tDraw();
     }
-    void over() {
+    @Override void over() {
         if (mouseX >= m_TopLeftX && mouseX <= m_TopLeftX+m_Width && 
             mouseY >= m_TopLeftY && mouseY <= m_TopLeftY+m_Height) {
             isHovering = true;
@@ -448,10 +344,21 @@ class InputIncDecTile implements GUI_interface {
         m_ButSmallInc.over();
         m_ButLargeInc.over();
     }
-
-    void onClick() {
+    @Override void onClick() {
         if (isHovering) {
-            if (m_DataType == DATA_TYPE.UINT8_T) {
+            if (!m_ButLargeDec.isHovering && !m_ButSmallDec.isHovering && !m_ButSmallInc.isHovering && !m_ButLargeInc.isHovering) {
+                if (InputBoxObj == null) {
+                    InputBoxObj = new InputBox();
+                }
+                if (m_DataType == DATA_TYPE.DOUBLE) {
+                    InputBoxObj.setValue(double_MailBox_id.ordinal());
+                } else if (m_DataType == DATA_TYPE.FLOAT) {
+                    InputBoxObj.setValue(float_MailBox_id.ordinal()+32);
+                } else if (m_DataType == DATA_TYPE.UINT8_T) {
+                    InputBoxObj.setValue(uint8_t_MailBox_id.ordinal()+64);
+                };
+                InputBoxObj.setValue(m_ValueLabel.getPos());
+            } else if (m_DataType == DATA_TYPE.UINT8_T) {
                 if (m_ButLargeDec.isHovering) {
                     DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] -= (int) m_LargeChange;
                 } else if (m_ButSmallDec.isHovering) {
@@ -499,37 +406,12 @@ class InputIncDecTile implements GUI_interface {
             }
         }
     }
-
-    void setValue(String value_) {
-        m_DataTypeLabel.setValue(value_);
-    };
-    void setValue(double double_) {
-        DataArray_double[double_MailBox_id.ordinal()] = double_;
-    };
-    void setValue(float float_) {
-        DataArray_float[float_MailBox_id.ordinal()] = float_;
-    };
-    void setValue(int int_) {
-        DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] = int_;
-    };
-    void setBackgroundFill(boolean needBackground) {
-    };
-    int getHeight() {
-        return m_Height;
-    };
-    int getWidth() {
-        return m_Width;
-    };
-    String getValue() {
-        return "";
-    };
-    void setPos(int topLeftX_, int topLeftY_) {
+    @Override void setPos(int topLeftX_, int topLeftY_) {
         m_TopLeftX = topLeftX_;
         m_TopLeftY = topLeftY_;
 
-        m_DataTypeLabel.setPos(m_TopLeftX, m_TopLeftY);
-        m_ValueLabel.setPos(m_TopLeftX, m_TopLeftY + m_DataTypeLabel.getHeight());
-        textSize(fontSize);     
+        m_DataTypeLabel.setPos(topLeftX_, m_TopLeftY);
+        m_ValueLabel.setPos(topLeftX_, m_TopLeftY + m_DataTypeLabel.getHeight());     
 
         int xOffset = (m_Width - (m_ButWidth*4 + m_ButHorizontalSpacing*3))/2;
 
@@ -538,7 +420,10 @@ class InputIncDecTile implements GUI_interface {
         m_ButSmallInc.setPos(xOffset + m_TopLeftX + (m_ButWidth + m_ButHorizontalSpacing)*2, m_TopLeftY + m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight());
         m_ButLargeInc.setPos(xOffset + m_TopLeftX + (m_ButWidth + m_ButHorizontalSpacing)*3, m_TopLeftY + m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight());
     }
-    void serialSend() {
+    @Override void setValue(String value_) {
+        m_DataTypeLabel.setValue(value_);
+    };
+    @Override void serialSend() {
         if (m_DataType == DATA_TYPE.UINT8_T) {
             uart.Send_uint8_t(uint8_t_MailBox_id, DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]);
         } else if (m_DataType == DATA_TYPE.DOUBLE) {
@@ -547,9 +432,9 @@ class InputIncDecTile implements GUI_interface {
             uart.Send_float(float_MailBox_id, DataArray_float[float_MailBox_id.ordinal()]);
         }
     };
-    void setTextColor(color TextColor_) {
+    @Override void setTextColor(color TextColor_) {
         m_TextColor = TextColor_;
-        
+
         m_DataTypeLabel.setTextColor(m_TextColor);
         m_ValueLabel.setTextColor(m_TextColor);
 

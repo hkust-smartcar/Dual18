@@ -260,11 +260,11 @@ void addOutputValueTile(float_MailBox mailbox, String name) {
 }
 
 // addInputIncDecTile
-<T> void addInputIncDecTile(Mailbox mailbox, String name, T small, T large, T initValue) {
+void addInputIncDecTile(Mailbox mailbox, String name, double small, double large, double initValue) {
     if (mailbox.ordinal() < 32) {
-        addInputIncDecTile(double_MailBox.values()[mailbox.ordinal()], name, (Double) small, (Double) large, (Double) initValue);
+        addInputIncDecTile(double_MailBox.values()[mailbox.ordinal()], name, (double) small, (double) large, (double) initValue);
     } else if (mailbox.ordinal() < 64) {
-        addInputIncDecTile(float_MailBox.values()[mailbox.ordinal() - 32], name, (Float) small, (Float) large, (Float) initValue);
+        addInputIncDecTile(float_MailBox.values()[mailbox.ordinal() - 32], name, (float) small, (float) large, (float) initValue);
     } else if (mailbox.ordinal() < 96) {
         addInputIncDecTile(uint8_t_MailBox.values()[mailbox.ordinal() - 64], name, (int) small, (int) large, (int) initValue);
     }
@@ -293,6 +293,7 @@ void addElapsedTime() {
     tiles.add(new ElapsedTime());
 }
 
+// addChart
 void addChart(int SampleSize_, int HorizontalSpacing, int chart_height, double LowerBound, double UpperBound) {
     ScanLineChart chart = new ScanLineChart(SampleSize_, HorizontalSpacing, chart_height, LowerBound, UpperBound);
     charts.add(chart);

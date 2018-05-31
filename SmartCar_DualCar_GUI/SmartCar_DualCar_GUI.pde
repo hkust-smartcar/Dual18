@@ -6,6 +6,7 @@ import java.util.Random;
 Random rand = new Random();
 ArrayList<ScanLineChart> charts;
 int chartsNum = -1;
+InputBox InputBoxObj = null;
 
 void setup() {
     // init windows
@@ -70,8 +71,15 @@ void draw() {
         tiles.get(i).tDraw();
     }
 
+    if (InputBoxObj != null) {
+        InputBoxObj.tDraw();
+    }
     GLOBAL_RESTART = GLOBAL_RESTART > 0 ? GLOBAL_RESTART - 1 : 0;
-}
+};
+
+void keyPressed() {
+    InputBoxObj.tKeyPressed();
+};
 
 void mousePressed() {
     for (int i = 0; i < tiles.size(); i++) {
