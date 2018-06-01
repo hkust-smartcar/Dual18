@@ -141,7 +141,7 @@ int main() {
 	float raw_frontLinear, raw_midLinear;
 	float multiplier = 0.0;
 	float front_left = 1, front_right = 1, mid_left = 1, mid_right = 1, back_left = 1, back_right = 1;
-	uint8_t raw_front_left, raw_front_right, raw_mid_left, raw_mid_right;
+	uint8_t raw_front_left, raw_front_right, raw_mid_left, raw_mid_right, raw4, raw5;
 	uint8_t encoderLval, encoderRval, powerL, powerR;
 	float pCurve, dCurve, pStraight, dStraight, pMotor, iMotor, dMotor;
 //    bt mBT(&servoPIDCurv, &servoPIDStraight, &motorLPID, &motorRPID, &speed, &frontLinear);
@@ -158,7 +158,7 @@ int main() {
 	carState state = normal;
 
 	bool start = false;
-	bool onlyNormal = false, tuningPID = true;
+	bool onlyNormal = false, tuningPID = false;
 	bool leftLoop = true, bigVal = false;
 	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0, filterSum4 = 0, filterSum5 = 0;
 	uint8_t filterCounter = 0;
@@ -167,7 +167,7 @@ int main() {
 	const uint16_t middleServo = 865, leftServo = 1180, rightServo = 550;
 	float angle = middleServo;
 
-	uint8_t oneLineMax = 80, oneLineMin = 80, equalMin = 250, equalMax = 0;
+	uint8_t oneLineMax = 0, oneLineMin = 250, equalMin = 250, equalMax = 0;
 	uint8_t maxLeft = 0,minLeft = 100,maxRight = 0,minRight = 100;
 	uint8_t count1, count4;
 
@@ -233,19 +233,17 @@ int main() {
     			raw_mid_right = round(1.0*filterSum1/filterCounter);
     			raw_front_left = round(1.0*filterSum2/filterCounter);
     			raw_front_right = round(1.0*filterSum3/filterCounter);
-//    			raw_mid_left = round(1.0*filterSum0/filterCounter);
-//    			raw_mid_right = round(1.0*filterSum1/filterCounter);
-//    			raw_front_left = round(1.0*filterSum2/filterCounter);
-//    			raw_front_right = round(1.0*filterSum3/filterCounter);
+    			raw4 = round(1.0*filterSum4/filterCounter);
+    			raw5 = round(1.0*filterSum5/filterCounter);
     			if (multiplier != 0){
-    				mid_left = (raw_mid_left-oneLineMin)*multiplier;
-					mid_right = (raw_mid_right-oneLineMin)*multiplier;
-					front_left = (raw_front_left-oneLineMin)*multiplier;
-					front_right = (raw_front_right-oneLineMin)*multiplier;
-//    				mid_left = raw_mid_left*multiplier;
-//					mid_right = raw_mid_right*multiplier;
-//					front_left = raw_front_left*multiplier;
-//					front_right = raw_front_right*multiplier;
+//    				mid_left = (raw_mid_left-oneLineMin)*multiplier;
+//					mid_right = (raw_mid_right-oneLineMin)*multiplier;
+//					front_left = (raw_front_left-oneLineMin)*multiplier;
+//					front_right = (raw_front_right-oneLineMin)*multiplier;
+    				mid_left = raw_mid_left*multiplier;
+					mid_right = raw_mid_right*multiplier;
+					front_left = raw_front_left*multiplier;
+					front_right = raw_front_right*multiplier;
     			}
 				filterSum0 = 0;
 				filterSum1 = 0;
@@ -267,7 +265,7 @@ int main() {
 						}
 					}
     			}else if (lastTime < 10010 || multiplier == 0){
-					multiplier = 50.0/(equalMin+equalMax-2*oneLineMin)*2;
+					multiplier = 50.0/(equalMin+equalMax)*2;//-2*oneLineMin
     			}
 
 				if (start && max(max(max(raw_front_left,raw_front_right),raw_mid_left),raw_mid_right) < oneLineMin*1.5){
@@ -307,7 +305,7 @@ int main() {
 							leftLoop = false;
 						}
 					}
-					if (IsTwoLine(equalMax, oneLineMax, raw_mid_left, raw_mid_right)){//mid is two line too
+					if (IsTwoLine(equalMax, oneLineMax, raw_mid_left, raw_mid_right)){//both are two line
 						if (state == nearLoop){
 							state = straight1;
 							stateTime = lastTime;
@@ -495,6 +493,8 @@ int main() {
 			filterSum1 += mag1.GetResult();
 			filterSum2 += mag2.GetResult();
 			filterSum3 += mag3.GetResult();
+			filterSum4 += mag4.GetResult();
+			filterSum5 += mag5.GetResult();
 
 
 
@@ -530,7 +530,7 @@ int main() {
 					sprintf(c,"A: %d",servo.GetDegree());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,105,128,15));
-					sprintf(c,"pS: %f",servoPIDStraight.getkP());
+					sprintf(c,"%d %d",raw4, raw5);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,120,128,15));
 					sprintf(c,"M: %f",frontLinear*100);
