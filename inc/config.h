@@ -23,6 +23,7 @@
 #include "libbase/k60/uart.h"
 #include "libsc/dir_encoder.h"
 #include "libbase/k60/adc.h"
+#include "libbase/k60/pin.h"
 #include "libsc/servo.h"
 #include <libsc/alternate_motor.h>
 
@@ -38,6 +39,7 @@ using libbase::k60::Pit;
 using libbase::k60::Uart;
 using libsc::DirEncoder;
 using libbase::k60::Adc;
+using libbase::k60::Pin;
 using libsc::AlternateMotor;
 using libsc::Servo;
 
@@ -108,29 +110,49 @@ public:
     static Adc::Config GetAdcConfig(int id){
     	Adc::Config config;
     	if (id == 0){
-    		config.adc = Adc::Name::kAdc0Ad13;
+    		config.pin = Pin::Name::kPtc11;
     	}
     	else if (id == 1){
-    		config.adc = Adc::Name::kAdc0Ad12;
+    		config.pin = Pin::Name::kPtc10;
     	}
     	else if (id == 2){
-    		config.adc = Adc::Name::kAdc1Ad9;
+    		config.pin = Pin::Name::kPtb1;
     	}
     	else if (id == 3) {
-    		config.adc = Adc::Name::kAdc1Ad8;
+    		config.pin = Pin::Name::kPtb0;
     	}
     	else if (id == 4) {
-    		config.adc = Adc::Name::kAdc0Ad17;
+    		config.pin = Pin::Name::kPtb11;
     	}
     	else if (id == 5) {
-    		config.adc = Adc::Name::kAdc0Ad18;
+    		config.pin = Pin::Name::kPtb6;
     	}
+//    	if (id == 0){
+//    		config.adc = Adc::Name::kAdc0Ad13;
+//    	}
+//    	else if (id == 1){
+//    		config.adc = Adc::Name::kAdc0Ad12;
+//    	}
+//    	else if (id == 2){
+//    		config.adc = Adc::Name::kAdc1Ad9;
+//    	}
+//    	else if (id == 3) {
+//    		config.adc = Adc::Name::kAdc1Ad8;
+//    	}
+//    	else if (id == 4) {
+//    		config.adc = Adc::Name::kAdc0Ad17;
+//    	}
+//    	else if (id == 5) {
+//    		config.adc = Adc::Name::kAdc0Ad18;
+//    	}
     	config.resolution = Adc::Config::Resolution::k8Bit;
     	config.speed = Adc::Config::SpeedMode::kExSlow;
     	config.is_continuous_mode = true;
     	config.avg_pass = Adc::Config::AveragePass::k32;
+    	config.is_diff_mode = false;
     	return config;
     }
+
 
     static AlternateMotor::Config GetMotorConfig(uint8_t id){
     		AlternateMotor::Config config;

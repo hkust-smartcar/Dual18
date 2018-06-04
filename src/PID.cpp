@@ -15,7 +15,11 @@ float PID::getPID(){
 	  dTime +=1;
 	 }
 	 encoder->Update();
-	 currentVelocity = std::abs(encoder->GetCount());
+	 if (dir){
+		 currentVelocity = -(encoder->GetCount());
+	 }else{
+		 currentVelocity = encoder->GetCount();
+	 }
 	 currentError = desireVelocity - currentVelocity ;
 //	 output +=(kP*(currentError - lastError) + kP*dTime * currentError/kI +(kP*kD/dTime)*((currentError - lastError)-(lastError - lastlastError)));
 	 output += kP*(currentError) + kD*(currentError - lastError);
