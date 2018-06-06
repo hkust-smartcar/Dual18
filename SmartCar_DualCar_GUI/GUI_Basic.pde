@@ -146,6 +146,7 @@ class OutputValueTile extends GUI_Raw {
     private uint8_t_MailBox uint8_t_MailBox_id = null;
     private double_MailBox double_MailBox_id = null;
     private float_MailBox float_MailBox_id = null;
+    private int_MailBox int_MailBox_id = null;
 
     OutputValueTile(uint8_t_MailBox mail_id_) {
         super();
@@ -156,6 +157,22 @@ class OutputValueTile extends GUI_Raw {
         textSize(fontSize);
         m_DataTypeLabel = new TextLabel(m_Width, m_ValueDataType.name() + ": " + uint8_t_MailBox_id.name());
         m_ValueLabel = new TextLabel(m_Width, Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
+
+        m_DataTypeLabel.setBackgroundFill(false);
+        m_ValueLabel.setBackgroundFill(false);
+
+        m_Height = m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight();
+    }
+
+    OutputValueTile(int_MailBox mail_id_) {
+        super();
+        m_Width = 200;
+        int_MailBox_id = mail_id_;
+        m_ValueDataType = DATA_TYPE.INT;
+
+        textSize(fontSize);
+        m_DataTypeLabel = new TextLabel(m_Width, m_ValueDataType.name() + ": " + int_MailBox_id.name());
+        m_ValueLabel = new TextLabel(m_Width, Integer.toString(DataArray_int[int_MailBox_id.ordinal()]));
 
         m_DataTypeLabel.setBackgroundFill(false);
         m_ValueLabel.setBackgroundFill(false);
@@ -201,6 +218,8 @@ class OutputValueTile extends GUI_Raw {
             m_ValueLabel.setValue(Double.toString(DataArray_double[double_MailBox_id.ordinal()]));
         } else if (m_ValueDataType == DATA_TYPE.FLOAT) {
             m_ValueLabel.setValue(Float.toString(DataArray_float[float_MailBox_id.ordinal()]));
+        } else if (m_ValueDataType == DATA_TYPE.INT) {
+            m_ValueLabel.setValue(Integer.toString(DataArray_int[int_MailBox_id.ordinal()]));
         }
 
         fill(TILE_BACKGROUND_COLOR);
@@ -246,6 +265,7 @@ class InputIncDecTile extends GUI_Raw {
     private uint8_t_MailBox uint8_t_MailBox_id = null;
     private double_MailBox double_MailBox_id = null;
     private float_MailBox float_MailBox_id = null;
+    private int_MailBox int_MailBox_id = null;
 
     private TextLabel m_DataTypeLabel, m_ValueLabel;
     private Button m_ButLargeDec, m_ButSmallDec, m_ButSmallInc, m_ButLargeInc;
@@ -276,6 +296,22 @@ class InputIncDecTile extends GUI_Raw {
 
         m_DataTypeLabel = new TextLabel(m_Width, m_DataType.name() + ": " + uint8_t_MailBox_id.name());
         m_ValueLabel = new TextLabel(m_Width, Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
+
+        init();
+    }
+    InputIncDecTile(int_MailBox mail_id_, int smallChange_, int largeChange_, int initValue) {
+        m_Width = 200;
+        
+        m_SmallChange = (double) smallChange_;
+        m_LargeChange = (double) largeChange_;
+
+        m_DataType = DATA_TYPE.INT;
+        int_MailBox_id = mail_id_;
+
+        DataArray_int[int_MailBox_id.ordinal()] = initValue;
+
+        m_DataTypeLabel = new TextLabel(m_Width, m_DataType.name() + ": " + int_MailBox_id.name());
+        m_ValueLabel = new TextLabel(m_Width, Integer.toString(DataArray_int[int_MailBox_id.ordinal()]));
 
         init();
     }
@@ -318,6 +354,8 @@ class InputIncDecTile extends GUI_Raw {
             m_ValueLabel.setValue(Double.toString(DataArray_double[double_MailBox_id.ordinal()]));
         } else if (m_DataType == DATA_TYPE.FLOAT) {
             m_ValueLabel.setValue(Float.toString(DataArray_float[float_MailBox_id.ordinal()]));
+        } else if (m_DataType == DATA_TYPE.INT) {
+            m_ValueLabel.setValue(Integer.toString(DataArray_int[int_MailBox_id.ordinal()]));
         }
 
         fill(TILE_BACKGROUND_COLOR);
@@ -356,7 +394,9 @@ class InputIncDecTile extends GUI_Raw {
                     InputBoxObj.setValue(float_MailBox_id.ordinal()+32);
                 } else if (m_DataType == DATA_TYPE.UINT8_T) {
                     InputBoxObj.setValue(uint8_t_MailBox_id.ordinal()+64);
-                };
+                } else if (m_DataType == DATA_TYPE.INT) {
+                    InputBoxObj.setValue(int_MailBox_id.ordinal()+96);
+                }
                 InputBoxObj.setValue(m_ValueLabel.getPos());
             } else if (m_DataType == DATA_TYPE.UINT8_T) {
                 if (m_ButLargeDec.isHovering) {
@@ -376,6 +416,25 @@ class InputIncDecTile extends GUI_Raw {
                 }
 
                 m_ValueLabel.setValue(Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
+                serialSend();
+            } else if (m_DataType == DATA_TYPE.INT) {
+                if (m_ButLargeDec.isHovering) {
+                    DataArray_uint8_t[int_MailBox_id.ordinal()] -= (int) m_LargeChange;
+                } else if (m_ButSmallDec.isHovering) {
+                    DataArray_uint8_t[int_MailBox_id.ordinal()] -= (int) m_SmallChange;
+                } else if (m_ButSmallInc.isHovering) {
+                    DataArray_uint8_t[int_MailBox_id.ordinal()] += (int) m_SmallChange;
+                } else if (m_ButLargeInc.isHovering) {
+                    DataArray_uint8_t[int_MailBox_id.ordinal()] += (int) m_LargeChange;
+                }
+
+                if (DataArray_int[int_MailBox_id.ordinal()] <0) {
+                    DataArray_int[int_MailBox_id.ordinal()] = 255;
+                } else if (DataArray_int[int_MailBox_id.ordinal()] > 255) {
+                    DataArray_int[int_MailBox_id.ordinal()] = 0;
+                }
+
+                m_ValueLabel.setValue(Integer.toString(DataArray_int[int_MailBox_id.ordinal()]));
                 serialSend();
             } else if (m_DataType == DATA_TYPE.DOUBLE) {
                 if (m_ButLargeDec.isHovering) {
@@ -430,6 +489,8 @@ class InputIncDecTile extends GUI_Raw {
             uart.Send_double(double_MailBox_id, DataArray_double[double_MailBox_id.ordinal()]);
         } else if (m_DataType == DATA_TYPE.FLOAT) {
             uart.Send_float(float_MailBox_id, DataArray_float[float_MailBox_id.ordinal()]);
+        } else if (m_DataType == DATA_TYPE.INT) {
+            uart.Send_int(int_MailBox_id, DataArray_int[int_MailBox_id.ordinal()]);
         }
     };
     @Override void setTextColor(color TextColor_) {

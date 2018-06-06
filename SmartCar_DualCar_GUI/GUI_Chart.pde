@@ -288,9 +288,11 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
     private uint8_t_MailBox uint8_t_MailBox_id = null;
     private double_MailBox double_MailBox_id = null;
     private float_MailBox float_MailBox_id = null;
+    private int_MailBox int_MailBox_id = null;
     private double m_LowerBound = 0, m_UpperBound = 1;
     private int m_SampleNumber = 0;
     private int[] uint8_t_value = null;
+    private int[] int_value = null;
     private double[] double_value = null;
     private float[] float_value = null;
     private boolean needRedraw = true;
@@ -305,6 +307,13 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
     ScanLineChart_Line(uint8_t_MailBox mail_id_, color lineColor_) {
         m_DataType = DATA_TYPE.UINT8_T;
         uint8_t_MailBox_id = mail_id_;
+        needRedraw = true;
+        m_LineColor = lineColor_;
+    }
+
+    ScanLineChart_Line(int_MailBox mail_id_, color lineColor_) {
+        m_DataType = DATA_TYPE.INT;
+        int_MailBox_id = mail_id_;
         needRedraw = true;
         m_LineColor = lineColor_;
     }
@@ -325,7 +334,6 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
 
     void tDraw() {
         fill(m_LineColor);
-        //if (m_DataType == DATA_TYPE.UINT8_T || m_DataType == DATA_TYPE.DOUBLE) {
         if (needRedraw == true) {
             double tempY = 0;
             double BoundHeight = m_UpperBound - m_LowerBound;
@@ -352,16 +360,16 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
                         tempYp = double_value[x-1];
                     } else if (m_DataType == DATA_TYPE.FLOAT) {
                         tempYp = float_value[x-1];
+                    } else if (m_DataType == DATA_TYPE.INT) {
+                        tempYp = int_value[x-1];
                     }
 
                     tempYp = tempYp > m_LowerBound ? tempYp : m_LowerBound;
                     tempYp = tempYp < m_UpperBound ? tempYp : m_UpperBound;
                     tempYp = m_TopLeftY + m_Height - (tempYp - m_LowerBound) / BoundHeight * m_Height - 2;
 
-                    //line(m_TopLeftX + m_HorizontalSpacing * (x-1), (float) tempYp, m_TopLeftX + m_HorizontalSpacing * x, (float) tempY);
                     line(m_TopLeftX + m_HorizontalSpacing * (x-1), (int) tempYp, m_TopLeftX + m_HorizontalSpacing * x, (int) tempY);
                 }
-                //ellipse(m_TopLeftX + m_HorizontalSpacing * x, (float) tempY, 2, 2);
                 ellipse(m_TopLeftX + m_HorizontalSpacing * x, (int) tempY, 2, 2);
             }
             needRedraw = false;
@@ -412,6 +420,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
             return Double.toString(DataArray_double[double_MailBox_id.ordinal()]);
         } else if (m_DataType == DATA_TYPE.FLOAT) {
             return Float.toString(DataArray_float[float_MailBox_id.ordinal()]);
+        } else if (m_DataType == DATA_TYPE.INT) {
+            return Integer.toString(DataArray_int[int_MailBox_id.ordinal()]);
         }
         return "";
     };
@@ -445,6 +455,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
             m_NewValue = DataArray_double[double_MailBox_id.ordinal()];
         } else if (m_DataType == DATA_TYPE.FLOAT) {
             m_NewValue = DataArray_float[float_MailBox_id.ordinal()];
+        } else if (m_DataType == DATA_TYPE.INT) {
+            m_NewValue = DataArray_int[int_MailBox_id.ordinal()];
         }
         if (m_isPause == false) {
             m_Cursor++;
@@ -470,6 +482,11 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
             for (int i = 0; i < m_SampleNumber; i++) {
                 float_value[i] = 0;
             }
+        } else if (m_DataType == DATA_TYPE.INT) {
+            int_value = new int[m_SampleNumber];
+            for (int i = 0; i < m_SampleNumber; i++) {
+                int_value[i] = 0;
+            }
         }
     };
     void drawClean() {
@@ -487,6 +504,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
                 tempY = double_value[m_Cursor];
             } else if (m_DataType == DATA_TYPE.FLOAT) {
                 tempY = float_value[m_Cursor];
+            } else if (m_DataType == DATA_TYPE.INT) {
+                tempY = int_value[m_Cursor];
             }
 
             tempY = tempY > m_LowerBound ? tempY : m_LowerBound;
@@ -515,6 +534,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
                 tempY = double_value[m_Cursor];
             } else if (m_DataType == DATA_TYPE.FLOAT) {
                 tempY = float_value[m_Cursor];
+            } else if (m_DataType == DATA_TYPE.INT) {
+                tempY = int_value[m_Cursor];
             }
 
             tempY = tempY > m_LowerBound ? tempY : m_LowerBound;
@@ -532,6 +553,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
                 double_value[m_Cursor] = m_NewValue;
             } else if (m_DataType == DATA_TYPE.FLOAT) {
                 float_value[m_Cursor] = (float) m_NewValue;
+            } else if (m_DataType == DATA_TYPE.INT) {
+                int_value[m_Cursor] = (int) m_NewValue;
             }
 
             tempY = m_NewValue;
@@ -548,17 +571,17 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
                     tempYp = double_value[m_Cursor-1];
                 } else if (m_DataType == DATA_TYPE.FLOAT) {
                     tempYp = float_value[m_Cursor-1];
+                } else if (m_DataType == DATA_TYPE.INT) {
+                    tempYp = int_value[m_Cursor-1];
                 }
 
                 tempYp = tempYp > m_LowerBound ? tempYp : m_LowerBound;
                 tempYp = tempYp < m_UpperBound ? tempYp : m_UpperBound;
                 tempYp = m_TopLeftY + m_Height - (tempYp - m_LowerBound) / BoundHeight * m_Height - 2;
 
-                //line((float) (x - m_HorizontalSpacing), (float) tempYp, (float) x, (float) tempY);
                 line((int) (x - m_HorizontalSpacing), (int) tempYp, (int) x, (int) tempY);
             }
 
-            //ellipse((float) x, (float) tempY, (float) 2, (float) 2);
             ellipse((int) x, (int) tempY, (int) 2, (int) 2);
         }
     };

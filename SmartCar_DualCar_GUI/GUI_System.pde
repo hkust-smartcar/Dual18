@@ -4,7 +4,7 @@ class ElapsedTime extends GUI_Raw {
 
     private int m_Last_SYSTEM_MSG_elpasedTime = 0;
     private int m_ConnLostCount = 0;
-    private final int m_ConnLostCountMax = 2;
+    private final int m_ConnLostCountMax = 6;
 
     ElapsedTime() {
         super();

@@ -1,7 +1,7 @@
 import java.util.*; 
 
 public enum DATA_TYPE {
-    BUFFER, DOUBLE, UINT8_T, FLOAT, DIU, DIUDIU, DIUDIUDIU, SYSTEM;
+    BUFFER, DOUBLE, UINT8_T, FLOAT, INT, DIUDIU, DIUDIUDIU, SYSTEM;
 }
 
 public enum SYSTEM_MSG {
@@ -14,6 +14,7 @@ public enum SYSTEM_MSG {
 public int[] DataArray_uint8_t;
 public double[] DataArray_double;
 public float[] DataArray_float;
+public int[] DataArray_int;
 
 final int LOCAL_BUFFER_MAX = 10;
 
@@ -129,6 +130,42 @@ public enum uint8_t_MailBox {
         MaxTerm
 }
 
+public enum int_MailBox {
+    // nah, max support for 32 terms so far, tell me if you want more la ^^
+    i0, 
+        i1, 
+        i2, 
+        i3, 
+        i4, 
+        i5, 
+        i6, 
+        i7, 
+        i8, 
+        i9, 
+        i10, 
+        i11, 
+        i12, 
+        i13, 
+        i14, 
+        i15, 
+        i16, 
+        i17, 
+        i18, 
+        i19, 
+        i20, 
+        i21, 
+        i22, 
+        i23, 
+        i24, 
+        i25, 
+        i26, 
+        i27, 
+        i28, 
+        i29, 
+        i30, 
+        MaxTerm
+}
+
 public enum Mailbox {
     d0, 
         d1, 
@@ -227,7 +264,40 @@ public enum Mailbox {
         u28, 
         u29, 
         u30, 
-        u_MaxTerm
+        u_MaxTerm,
+        
+            i0, 
+        i1, 
+        i2, 
+        i3, 
+        i4, 
+        i5, 
+        i6, 
+        i7, 
+        i8, 
+        i9, 
+        i10, 
+        i11, 
+        i12, 
+        i13, 
+        i14, 
+        i15, 
+        i16, 
+        i17, 
+        i18, 
+        i19, 
+        i20, 
+        i21, 
+        i22, 
+        i23, 
+        i24, 
+        i25, 
+        i26, 
+        i27, 
+        i28, 
+        i29, 
+        i30, 
+        i_MaxTerm
 }
 
 // addOutputValueTile
@@ -238,6 +308,8 @@ void addOutputValueTile(Mailbox mailbox, String name) {
         addOutputValueTile(float_MailBox.values()[mailbox.ordinal() - 32], name);
     } else if (mailbox.ordinal() < 96) {
         addOutputValueTile(uint8_t_MailBox.values()[mailbox.ordinal() - 64], name);
+    } else if (mailbox.ordinal() < 128) {
+        addOutputValueTile(int_MailBox.values()[mailbox.ordinal() - 96], name);
     }
 }
 
@@ -259,6 +331,12 @@ void addOutputValueTile(float_MailBox mailbox, String name) {
     tiles.add(t);
 }
 
+void addOutputValueTile(int_MailBox mailbox, String name) {
+    OutputValueTile t = new OutputValueTile(mailbox);
+    t.setValue(name);
+    tiles.add(t);
+}
+
 // addInputIncDecTile
 void addInputIncDecTile(Mailbox mailbox, String name, double small, double large, double initValue) {
     if (mailbox.ordinal() < 32) {
@@ -267,10 +345,21 @@ void addInputIncDecTile(Mailbox mailbox, String name, double small, double large
         addInputIncDecTile(float_MailBox.values()[mailbox.ordinal() - 32], name, (float) small, (float) large, (float) initValue);
     } else if (mailbox.ordinal() < 96) {
         addInputIncDecTile(uint8_t_MailBox.values()[mailbox.ordinal() - 64], name, (int) small, (int) large, (int) initValue);
+    } else if (mailbox.ordinal() < 128) {
+        addInputIncDecTile(int_MailBox.values()[mailbox.ordinal() - 96], name, (int) small, (int) large, (int) initValue);
     }
 }
 
+void addInputIncDecTile(int_MailBox mailbox, String name, int small, int large, int initValue) {
+    InputIncDecTile t = new InputIncDecTile(mailbox, small, large, initValue);
+    t.setValue(name);
+    tiles.add(t);
+}
+
 void addInputIncDecTile(uint8_t_MailBox mailbox, String name, int small, int large, int initValue) {
+    
+    // !!! missing range check here
+    
     InputIncDecTile t = new InputIncDecTile(mailbox, small, large, initValue);
     t.setValue(name);
     tiles.add(t);
@@ -308,6 +397,8 @@ void addLine(Mailbox mailbox, String name, color c) {
         addLine(float_MailBox.values()[mailbox.ordinal() - 32], name, c);
     } else if (mailbox.ordinal() < 96) {
         addLine(uint8_t_MailBox.values()[mailbox.ordinal() - 64], name, c);
+    } else if (mailbox.ordinal() < 128) {
+        addLine(uint8_t_MailBox.values()[mailbox.ordinal() - 96], name, c);
     }
 }
 
@@ -318,6 +409,12 @@ void addLine(float_MailBox mailbox, String name, color c) {
 }
 
 void addLine(uint8_t_MailBox mailbox, String name, color c) {
+    ScanLineChart_Line t = new ScanLineChart_Line(mailbox, c);
+    t.setValue(name);
+    charts.get(chartsNum).lines.add(t);
+}
+
+void addLine(int_MailBox mailbox, String name, color c) {
     ScanLineChart_Line t = new ScanLineChart_Line(mailbox, c);
     t.setValue(name);
     charts.get(chartsNum).lines.add(t);

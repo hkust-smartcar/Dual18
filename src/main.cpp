@@ -12,6 +12,7 @@
 #include "libsc/lcd_typewriter.h"
 #include "libsc/st7735r.h"
 #include "libsc/k60/ov7725.h"
+#include "libsc/joystick.h"
 
 #include "libsc/alternate_motor.h"
 #include "libsc/encoder.h"
@@ -273,77 +274,48 @@ AlternateMotor::Config GetMotorConfig(int id) {
 int main() {
 	System::Init();
 
-//	constexpr NV_Type* MEM_MAPS = FTFE_FlashConfig;
-//	MEM_MAPS->FOPT = NV_FOPT_EZPORT_DIS_MASK;
-
-//	uint8_t temp[8];
-//	uint8_t *p;
-//	memset(temp, 0, 0xFF);
-//	memcpy(temp, (uint8_t *) 0x40020000, 8);
-//	temp[2] &= ~(0x02);
-//
-//	Flash::Config cc;
-//	Flash flash(cc);
-//	flash.Write1(0x40020000, temp, 8);
-
-//	uint8_t t = FTFE->FOPT;
-//	t &= ~(0x02);
-//	FTFE->FOPT = t;
-
-//	FTFE_FlashConfig->FOPT = NV_FOPT_EZPORT_DIS_MASK;
-//	FTFE->FOPT = FTFE_FOPT_OPT(0);
-
-
-	Ov7725::Config con;
-	con.h = 60;
-	con.w = 80;
-	con.id = 0;
-	con.fps = Ov7725::Config::Fps::kHigh;
-
-	Ov7725 cam(con);
-	cam.Start();
-
-//	Led led0(GetLedConfig(0));
-//	Led led1(GetLedConfig(1));
-//	Led led2(GetLedConfig(2));
-//	Led led3(GetLedConfig(3));
+	Led led0(GetLedConfig(0));
+	Led led1(GetLedConfig(1));
+	Led led2(GetLedConfig(2));
+	Led led3(GetLedConfig(3));
 
 	St7735r lcd(GetLcdConfig());
-//	LcdTypewriter writer(GetWriterConfig(&lcd));
+	LcdTypewriter writer(GetWriterConfig(&lcd));
 	lcd.SetRegion(Lcd::Rect(0, 0, 80, 60));
 
 //	char t[10] = "123456789";
 //	writer.WriteBuffer(t, 10);
 
-	float echo0 = 0;
-	float echo1 = 0;
-	float echo2 = 0;
-	float echo3 = 0;
+//	float echo0 = 0;
+//	float echo1 = 0;
+//	float echo2 = 0;
+//	float echo3 = 0;
 
-//	FutabaS3010 servo(GetServoConfig());
-//	AlternateMotor right_motor(GetMotorConfig(0));
-//	AlternateMotor left_motor(GetMotorConfig(1));
-//	DirEncoder dirEncoder0(GetEncoderConfig(0));
-//	DirEncoder dirEncoder1(GetEncoderConfig(1));
+	FutabaS3010 servo(GetServoConfig());
+	AlternateMotor right_motor(GetMotorConfig(0));
+	AlternateMotor left_motor(GetMotorConfig(1));
+	DirEncoder dirEncoder0(GetEncoderConfig(0));
+	DirEncoder dirEncoder1(GetEncoderConfig(1));
 
-//	servo.SetDegree(160);
-//	right_motor.SetPower(60);
-//	left_motor.SetPower(60);
+	int t = 250;
+	servo.SetDegree(100);
+	right_motor.SetPower(t);
+	left_motor.SetPower(t);
 
 //	Ultrasonic us;
 
 	uint8_t trig = 0, pTrig = 0;
 
-//	DualCar_UART uart0(1); // << BT related
-//
+	DualCar_UART uart0(1); // << BT related
+
 //	uart0.add(DualCar_UART::FLOAT::f0, &echo0, true, 0);
 //	uart0.add(DualCar_UART::FLOAT::f1, &echo1, true, 0);
 //	uart0.add(DualCar_UART::FLOAT::f2, &echo2, true, 0);
 //	uart0.add(DualCar_UART::FLOAT::f3, &echo3, true, 0);
-//
-//	uart0.add(DualCar_UART::UINT8_T::u0, &trig, true);
-//
-//	uart0.parseValues(); // << BT related
+
+	uart0.add(DualCar_UART::UINT8_T::u0, &trig, true);
+
+	uart0.parseValues(); // << BT related
 
 //	SimpleBuzzer::Config config;
 //	config.id = 0;
@@ -358,19 +330,76 @@ int main() {
 
 //	while (true);
 
+	char str[10] = "null";
+	Joystick::Listener jDispatcher = [&](const uint8_t id, const Joystick::State which) {
+		if (id == 0)
+		switch (which) {
+			case Joystick::State::kDown:
+			sprintf(str, "down");
+			break;
+			case Joystick::State::kLeft:
+			sprintf(str, "left");
+			break;
+			case Joystick::State::kRight:
+			sprintf(str, "right");
+			break;
+			case Joystick::State::kSelect:
+			sprintf(str, "select");
+			break;
+			case Joystick::State::kUp:
+			sprintf(str, "up");
+			break;
+			default:
+			break;
+		}
+	};
+
+	Joystick::Config jCon;
+	jCon.id = 0;
+	jCon.is_active_low = true;
+	jCon.dispatcher = jDispatcher;
+	jCon.listener_triggers[0] = Joystick::Config::Trigger::kDown;
+	jCon.listener_triggers[1] = Joystick::Config::Trigger::kDown;
+	jCon.listener_triggers[2] = Joystick::Config::Trigger::kDown;
+	jCon.listener_triggers[3] = Joystick::Config::Trigger::kDown;
+	jCon.listener_triggers[4] = Joystick::Config::Trigger::kDown;
+	Joystick jStick(jCon);
+
+	Ov7725::Config con;
+	con.h = 60;
+	con.w = 80;
+	con.id = 0;
+	con.fps = Ov7725::Config::Fps::kHigh;
+
+//	Ov7725 cam(con);
+//	cam.Start();
+
 	uint32_t lastTime = 0;
 	while (true) {
 		if (System::Time() != lastTime) {
 			lastTime = System::Time();
 			if (lastTime % 100 == 0) {
-				const Byte* Buffer = cam.LockBuffer();
-				lcd.FillBits(Lcd::kBlack, Lcd::kWhite, Buffer, 60 * 80);
-				cam.UnlockBuffer();
+//				lcd.SetRegion(Lcd::Rect(0, 0, 80, 60));
+//				const Byte* Buffer = cam.LockBuffer();
+//				lcd.FillBits(Lcd::kBlack, Lcd::kWhite, Buffer, 60 * 80);
+//				cam.UnlockBuffer();
 
-//				led0.Switch();
-//				led1.Switch();
-//				led2.Switch();
-//				led3.Switch();
+				lcd.SetRegion(Lcd::Rect(0, 60, 80, 15));
+				lcd.FillColor(Lcd::kBlack);
+				writer.WriteBuffer(str, 10);
+
+				char str1[10] = "null";
+				dirEncoder0.Update();
+				int e = dirEncoder0.GetCount();
+				sprintf(str1, "%d", e);
+				lcd.SetRegion(Lcd::Rect(0, 75, 80, 15));
+				lcd.FillColor(Lcd::kBlack);
+				writer.WriteBuffer(str1, 10);
+
+				led0.Switch();
+				led1.Switch();
+				led2.Switch();
+				led3.Switch();
 
 //				echo0 += 1;
 
@@ -390,7 +419,7 @@ int main() {
 				trig++;
 			}
 
-//			uart0.RunEveryMS(); // << BT related
+			uart0.RunEveryMS(); // << BT related
 		}
 	}
 }

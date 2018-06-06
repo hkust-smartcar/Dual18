@@ -84,7 +84,7 @@ public class UART {
                             DataArray_double[MailBox_] = ByteBuffer.wrap(byteArr).getDouble();
                         }
                         acker(RxBuffer[1]);
-                    }  else if (DataType == DATA_TYPE.FLOAT) {
+                    } else if (DataType == DATA_TYPE.FLOAT) {
                         
                         if (DataArray_float.length > MailBox_) {
                             byte[] byteArr = new byte[4];
@@ -93,6 +93,17 @@ public class UART {
                             byteArr[1] = RxBuffer[2];
                             byteArr[0] = RxBuffer[3];
                             DataArray_float[MailBox_] = ByteBuffer.wrap(byteArr).getFloat();
+                        }
+                        acker(RxBuffer[1]);
+                    } else if (DataType == DATA_TYPE.INT) {
+                        
+                        if (DataArray_int.length > MailBox_) {
+                            byte[] byteArr = new byte[4];
+                            byteArr[3] = dataBuffer[1];
+                            byteArr[2] = dataBuffer[0];
+                            byteArr[1] = RxBuffer[2];
+                            byteArr[0] = RxBuffer[3];
+                            DataArray_int[MailBox_] = ByteBuffer.wrap(byteArr).getInt();
                         }
                         acker(RxBuffer[1]);
                     } else if (DataType == DATA_TYPE.UINT8_T) {
@@ -251,6 +262,13 @@ public class UART {
         ByteBuffer.wrap(floatPtr).putFloat(num);
         SendWrapper(DATA_TYPE.BUFFER, 0, floatPtr[3], floatPtr[2], false);
         SendWrapper(DATA_TYPE.FLOAT, MailBox.ordinal(), floatPtr[1], floatPtr[0], false);
+    }
+
+    void Send_int(int_MailBox MailBox, int num) {
+        byte[] intPtr = new byte[4];
+        ByteBuffer.wrap(intPtr).putInt(num);
+        SendWrapper(DATA_TYPE.BUFFER, 0, intPtr[3], intPtr[2], false);
+        SendWrapper(DATA_TYPE.INT, MailBox.ordinal(), intPtr[1], intPtr[0], false);
     }
 
     void acker(byte code) {

@@ -6,6 +6,7 @@ class InputBox extends GUI_Raw {
     private uint8_t_MailBox uint8_t_MailBox_id = null;
     private double_MailBox double_MailBox_id = null;
     private float_MailBox float_MailBox_id = null;
+    private int_MailBox int_MailBox_id = null;
 
     InputBox() {
         super();
@@ -24,6 +25,9 @@ class InputBox extends GUI_Raw {
         } else if (int_ < 96) {
             m_ValueDataType = DATA_TYPE.UINT8_T;
             uint8_t_MailBox_id = uint8_t_MailBox.values()[int_-64];
+        } else if (int_ < 128) {
+            m_ValueDataType = DATA_TYPE.INT;
+            int_MailBox_id = int_MailBox.values()[int_-96];
         }
         m_Value = "";
     };
@@ -74,6 +78,8 @@ class InputBox extends GUI_Raw {
                         m_Value = Double.toString(y);
                     } else if (m_ValueDataType == DATA_TYPE.FLOAT) {
                         DataArray_float[float_MailBox_id.ordinal()] = (float) y;
+                    } else if (m_ValueDataType == DATA_TYPE.INT) {
+                        DataArray_int[int_MailBox_id.ordinal()] = (int) y;
                     }
 
                     m_Value = "0";

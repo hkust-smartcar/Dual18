@@ -23,7 +23,7 @@ void setup() {
     }
 
     // uart setup
-    int id = 0;
+    int id = 1;
     println(Serial.list()[id]);
     uart = new UART(new Serial(this, Serial.list()[id], 38400));
 
@@ -41,6 +41,11 @@ void setup() {
     DataArray_float = new float[float_MailBox.MaxTerm.ordinal()+1];
     for (int i = 0; i < float_MailBox.MaxTerm.ordinal(); i++) {
         DataArray_float[i] = 0;
+    }
+    
+    DataArray_int = new int[int_MailBox.MaxTerm.ordinal()+1];
+    for (int i = 0; i < int_MailBox.MaxTerm.ordinal(); i++) {
+        DataArray_int[i] = 0;
     }
 
     charts = new ArrayList<ScanLineChart>();

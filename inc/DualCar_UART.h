@@ -181,6 +181,43 @@ public:
 		MaxTerm
 	// keep it as the last term
 	};
+
+	enum class INT {
+		// nah, max support for 32 terms so far, tell me if you want more la ^^
+		i0,
+		i1,
+		i2,
+		i3,
+		i4,
+		i5,
+		i6,
+		i7,
+		i8,
+		i9,
+		i10,
+		i11,
+		i12,
+		i13,
+		i14,
+		i15,
+		i16,
+		i17,
+		i18,
+		i19,
+		i20,
+		i21,
+		i22,
+		i23,
+		i24,
+		i25,
+		i26,
+		i27,
+		i28,
+		i29,
+		i30,
+		MaxTerm
+	// keep it as the last term
+	};
 };
 
 class DualCar_UART: public DualCar_UART_Config {
@@ -213,6 +250,7 @@ public:
 		AutoSendWhenChanges_uint8_t.clear();
 		AutoSendWhenChanges_double.clear();
 		AutoSendWhenChanges_float.clear();
+		AutoSendWhenChanges_int.clear();
 
 		for (uint8_t t = 0; t < LOCAL_BUFFER_MAX; t++) {
 			dataBuffer.emplace_back(0);
@@ -228,6 +266,10 @@ public:
 
 		for (uint8_t t = 0; t < static_cast<uint8_t>(FLOAT::MaxTerm); t++) {
 			DataCaller_float.emplace_back(nullptr);
+		}
+
+		for (uint8_t t = 0; t < static_cast<uint8_t>(INT::MaxTerm); t++) {
+			DataCaller_int.emplace_back(nullptr);
 		}
 
 #ifdef DEBUG
@@ -304,6 +346,18 @@ public:
 					}
 				}
 			}
+
+			if (AutoSendWhenChanges_int.size() != 0) {
+				for (auto &temp : AutoSendWhenChanges_int) {
+					uint8_t id = (uint8_t) temp.first;
+					if ((DataCaller_int[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+							&& (*DataCaller_int[id]) != temp.second) {
+						Send_int(temp.first, *DataCaller_int[id]);
+						temp.second = *DataCaller_int[id];
+						BUFFER_SENT += 8;
+					}
+				}
+			}
 		}
 
 		// handle incoming msg
@@ -351,6 +405,20 @@ public:
 
 						delete[] (floatPtr);
 						floatPtr = nullptr;
+					}
+				} else if (DataType == DATA_TYPE::INT) {
+					if (DataCaller_int.size() > MailBox_ && DataCaller_int[MailBox_] != nullptr) {
+						Byte* intPtr = new Byte[4];
+
+						*(intPtr + 0) = dataBuffer[0];
+						*(intPtr + 1) = dataBuffer[1];
+						*(intPtr + 2) = RxBuffer[2];
+						*(intPtr + 3) = RxBuffer[3];
+
+						memcpy(DataCaller_int[MailBox_], intPtr, 4);
+
+						delete[] (intPtr);
+						intPtr = nullptr;
 					}
 				} else if (DataType == DATA_TYPE::SYSTEM) {
 					if (MailBox_ == (uint8_t) SYSTEM_MSG::ack) {
@@ -474,6 +542,15 @@ public:
 				}
 			}
 		}
+
+		if (AutoSendWhenChanges_int.size() != 0) {
+			for (auto &temp : AutoSendWhenChanges_int) {
+				uint8_t id = (uint8_t) temp.first;
+				if (DataCaller_int[id] != nullptr) {
+					Send_int(temp.first, *DataCaller_int[id]);
+				}
+			}
+		}
 	}
 
 	/*
@@ -509,6 +586,22 @@ public:
 	}
 
 	/*
+	 * init int
+	 */
+
+	void add(INT mailbox, int * ref, bool isAutoSend, int defaultValue) {
+		add(mailbox, ref, isAutoSend);
+		Send_int(mailbox, defaultValue);
+	}
+
+	void add(INT mailbox, int * ref, bool isAutoSend) {
+		DataCaller_int[(uint8_t) mailbox] = ref;
+		if (isAutoSend) {
+			AutoSendWhenChanges_int.emplace_back(mailbox, 0);
+		}
+	}
+
+	/*
 	 * init double
 	 */
 
@@ -533,7 +626,7 @@ private:
 	};
 
 	enum class DATA_TYPE {
-		BUFFER = 0, DOUBLE, UINT8_T, FLOAT, DIU, DIUDIU, DIUDIUDIU, SYSTEM = 7
+		BUFFER = 0, DOUBLE, UINT8_T, FLOAT, INT, DIUDIU, DIUDIUDIU, SYSTEM = 7
 	};
 
 	// the attribute sayHi is for the client side to inquire for values
@@ -558,10 +651,12 @@ private:
 	std::vector<uint8_t*> DataCaller_uint8_t;
 	std::vector<double*> DataCaller_double;
 	std::vector<float*> DataCaller_float;
+	std::vector<int*> DataCaller_int;
 
 	std::vector<std::pair<UINT8_T, uint8_t>> AutoSendWhenChanges_uint8_t;
 	std::vector<std::pair<DOUBLE, double>> AutoSendWhenChanges_double;
 	std::vector<std::pair<FLOAT, float>> AutoSendWhenChanges_float;
+	std::vector<std::pair<INT, int>> AutoSendWhenChanges_int;
 
 	/*
 	 * send double
@@ -610,7 +705,28 @@ private:
 		delete[] (floatPtr);
 		floatPtr = nullptr;
 	}
-	;
+
+	/*
+	 * send int
+	 *
+	 * @para
+	 * MailBox: which MailBox will be called
+	 * num: num to be sent
+	 *
+	 * @return
+	 *
+	 */
+
+	inline void Send_int(const INT &MailBox, const int &num) {
+		Byte* intPtr = new Byte[4];
+		memcpy(intPtr, &num, 4);
+
+		SendWrapper(DATA_TYPE::BUFFER, 0, *(intPtr + 0), *(intPtr + 1));
+		SendWrapper(DATA_TYPE::INT, (uint8_t) MailBox, *(intPtr + 2), *(intPtr + 3));
+
+		delete[] (intPtr);
+		intPtr = nullptr;
+	}
 
 	/*
 	 * send uint8_t
