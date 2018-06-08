@@ -125,7 +125,7 @@ public:
     		config.pin = Pin::Name::kPtb11;
     	}
     	else if (id == 5) {
-    		config.pin = Pin::Name::kPtb6;
+    		config.pin = Pin::Name::kPtc0;
     	}
 //    	if (id == 0){
 //    		config.adc = Adc::Name::kAdc0Ad13;
