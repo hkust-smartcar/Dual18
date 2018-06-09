@@ -43,6 +43,7 @@ using libsc::k60::Ov7725;
 Led::Config GetLedConfig(uint8_t id) {
 	Led::Config config;
 	config.id = id;
+	config.is_active_low = true;
 	return config;
 }
 
@@ -305,8 +306,9 @@ int main() {
 //	Ultrasonic us;
 
 	uint8_t trig = 0, pTrig = 0;
+	int i0 = 0, i1 = 0;
 
-	DualCar_UART uart0(1); // << BT related
+	DualCar_UART uart0(0); // << BT related
 
 //	uart0.add(DualCar_UART::FLOAT::f0, &echo0, true, 0);
 //	uart0.add(DualCar_UART::FLOAT::f1, &echo1, true, 0);
@@ -314,6 +316,8 @@ int main() {
 //	uart0.add(DualCar_UART::FLOAT::f3, &echo3, true, 0);
 
 	uart0.add(DualCar_UART::UINT8_T::u0, &trig, true);
+	uart0.add(DualCar_UART::INT::i0, &i0, true);
+	uart0.add(DualCar_UART::INT::i1, &i1, true);
 
 	uart0.parseValues(); // << BT related
 
@@ -396,6 +400,16 @@ int main() {
 				lcd.FillColor(Lcd::kBlack);
 				writer.WriteBuffer(str1, 10);
 
+				sprintf(str1, "i0: %d", i0);
+				lcd.SetRegion(Lcd::Rect(0, 90, 80, 15));
+				lcd.FillColor(Lcd::kBlack);
+				writer.WriteBuffer(str1, 10);
+
+				sprintf(str1, "i1: %d", i1);
+				lcd.SetRegion(Lcd::Rect(0, 105, 80, 15));
+				lcd.FillColor(Lcd::kBlack);
+				writer.WriteBuffer(str1, 10);
+
 				led0.Switch();
 				led1.Switch();
 				led2.Switch();
@@ -417,6 +431,7 @@ int main() {
 
 			if (lastTime % 1000 == 0) {
 				trig++;
+				i0++;
 			}
 
 			uart0.RunEveryMS(); // << BT related
