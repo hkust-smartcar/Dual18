@@ -35,6 +35,7 @@ private:
 	float kD = 0.0;
 	bool dir = false;
 	uint32_t lastTime = 0, dTime = 0;
+	float lastVelocity = 0;
 	float currentVelocity = 0;
 	float desireVelocity = 0;
 	float accumlateError = 0;
