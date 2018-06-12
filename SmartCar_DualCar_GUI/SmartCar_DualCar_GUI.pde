@@ -26,7 +26,7 @@ void setup() {
     // uart setup
     String target = null;
     
-    target = "/dev/cu.usbmodem1411";
+    target = ""; 
         
     int id = 0;
     while (((Serial.list().length > id) && (target != null)) && (!Serial.list()[id].contains(target))) {
@@ -37,6 +37,8 @@ void setup() {
         println("UART: ERROR: Can't Connect BT");
         while (true);
     }
+    
+    id = 0; // change the id value here!!!
     
     println("UART port selected is " + Serial.list()[id]);
     uart = new UART(new Serial(this, Serial.list()[id], 38400));
