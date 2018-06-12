@@ -7,6 +7,7 @@ Random rand = new Random();
 ArrayList<ScanLineChart> charts;
 int chartsNum = -1;
 InputBox InputBoxObj = null;
+int TotalTrashedByte = 0;
 
 void setup() {
     // init windows
@@ -23,8 +24,21 @@ void setup() {
     }
 
     // uart setup
-    int id = 1;
-    println(Serial.list()[id]);
+    String target = null;
+    
+    target = "/dev/cu.usbmodem1411";
+        
+    int id = 0;
+    while (((Serial.list().length > id) && (target != null)) && (!Serial.list()[id].contains(target))) {
+        id++;
+    }
+    
+    if (!(Serial.list().length > id)) {
+        println("UART: ERROR: Can't Connect BT");
+        while (true);
+    }
+    
+    println("UART port selected is " + Serial.list()[id]);
     uart = new UART(new Serial(this, Serial.list()[id], 38400));
 
     // init array
@@ -42,7 +56,7 @@ void setup() {
     for (int i = 0; i < float_MailBox.MaxTerm.ordinal(); i++) {
         DataArray_float[i] = 0;
     }
-    
+
     DataArray_int = new int[int_MailBox.MaxTerm.ordinal()+1];
     for (int i = 0; i < int_MailBox.MaxTerm.ordinal(); i++) {
         DataArray_int[i] = 0;
@@ -83,7 +97,12 @@ void draw() {
 };
 
 void keyPressed() {
-    InputBoxObj.tKeyPressed();
+    if (InputBoxObj != null) {
+        InputBoxObj.tKeyPressed();
+    } else {
+        print("\nReminder: You are not selecting any tile.\n");
+        print("InputBoxObj is null, but key pressed.\n");
+    }
 };
 
 void mousePressed() {

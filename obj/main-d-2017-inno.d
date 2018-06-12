@@ -34,6 +34,7 @@ obj/main-d-2017-inno.o: src/main.cpp \
  /Users/JosephYim/git/libsccc/inc/libbase/k60/soft_i2c_master.h \
  /Users/JosephYim/git/libsccc/inc/libbase/k60/i2c_master_interface.h \
  /Users/JosephYim/git/libsccc/inc/libsc/joystick.h \
+ /Users/JosephYim/git/libsccc/inc/libbase/k60/adc.h \
  /Users/JosephYim/git/libsccc/inc/libsc/alternate_motor.h \
  /Users/JosephYim/git/libsccc/inc/libbase/pinout_macros.h \
  /Users/JosephYim/git/libsccc/inc/libbase/k60/ftm_pwm.h \

@@ -19,7 +19,7 @@ public class UART {
     Byte[] RxBuffer;
     int RxBuffer_Cursor;
 
-    public Byte[] dataBuffer;
+    Byte[] dataBuffer = new Byte[LOCAL_BUFFER_MAX];
 
     ArrayList<PACKAGE> SendImmediate;
     ArrayList<PACKAGE> SendBuffer;
@@ -44,10 +44,20 @@ public class UART {
 
         SendCooling = 0;
 
-        dataBuffer = new Byte[LOCAL_BUFFER_MAX];
-
         SendImmediate = new ArrayList<PACKAGE>(0);
         SendBuffer = new ArrayList<PACKAGE>(0);
+
+        print("\nUART: Init success\n");
+        print("Port Connected is " + port + "\n");
+    }
+
+    String to8BitBinary(byte t) {
+        String x = Integer.toBinaryString(t);
+        if (x.length() < 8) {
+            return ("00000000" + x).substring(x.length());
+        } else {
+            return x.substring(24, 32);
+        }
     }
 
     void tSerialEvent() {
@@ -61,19 +71,28 @@ public class UART {
                 if ((DATA_TYPE_index >= 0 && DATA_TYPE_index <= 7) &&
                     (RxBuffer[0] == StartCode0 || RxBuffer[0] == StartCode1) && 
                     isOdd(RxBuffer[0], RxBuffer[1], RxBuffer[2], RxBuffer[3])) {
-                    
+
                     DATA_TYPE DataType = DATA_TYPE.values()[DATA_TYPE_index]; // 0b1110 0000
-                    
+
                     int MailBox_ = (RxBuffer[1] & 31); // 0b00011111
                     MailBox_ += MailBox_ < 0 ? 256 : 0;
+
+                    print("\nUART: Received Complete Package. \n");
+                    print("Content: ");
+                    print(to8BitBinary(RxBuffer[0]) + " ");
+                    print(to8BitBinary(RxBuffer[1]) + " ");
+                    print(to8BitBinary(RxBuffer[2]) + " ");
+                    print(to8BitBinary(RxBuffer[3]) + "\n");
 
                     if (DataType == DATA_TYPE.BUFFER) {
                         if (MailBox_ < (LOCAL_BUFFER_MAX/2)) {
                             dataBuffer[MailBox_*2] = RxBuffer[2];
                             dataBuffer[MailBox_*2+1] = RxBuffer[3];
+
+                            print("> Buffer\n");
                         }
                         acker(RxBuffer[1]);
-                    } else if (DataType == DATA_TYPE.DOUBLE) {
+                    } else if (DataType == DATA_TYPE.DOUBLE && dataBuffer[0] != null) {
                         if (DataArray_double.length > MailBox_) {
                             byte[] byteArr = new byte[8];
                             for (int i = 0; i < 6; i++) {
@@ -82,37 +101,45 @@ public class UART {
                             byteArr[1] = RxBuffer[2];
                             byteArr[0] = RxBuffer[3];
                             DataArray_double[MailBox_] = ByteBuffer.wrap(byteArr).getDouble();
+
+                            print("> Double, MailBox: " + MailBox_ + ", Value: " + DataArray_double[MailBox_] + "\n");
                         }
                         acker(RxBuffer[1]);
-                    } else if (DataType == DATA_TYPE.FLOAT) {
-                        
+                    } else if (DataType == DATA_TYPE.FLOAT && dataBuffer[0] != null) {
+
                         if (DataArray_float.length > MailBox_) {
                             byte[] byteArr = new byte[4];
-                            byteArr[3] = dataBuffer[1];
-                            byteArr[2] = dataBuffer[0];
+                            byteArr[3] = dataBuffer[0];
+                            byteArr[2] = dataBuffer[1];
                             byteArr[1] = RxBuffer[2];
                             byteArr[0] = RxBuffer[3];
                             DataArray_float[MailBox_] = ByteBuffer.wrap(byteArr).getFloat();
+
+                            print("> Float, MailBox: " + MailBox_ + ", Value: " + DataArray_float[MailBox_] + "\n");
                         }
                         acker(RxBuffer[1]);
                     } else if (DataType == DATA_TYPE.INT) {
-                        
-                        if (DataArray_int.length > MailBox_) {
+
+                        if (DataArray_int.length > MailBox_ && dataBuffer[0] != null) {
                             byte[] byteArr = new byte[4];
-                            byteArr[3] = dataBuffer[1];
-                            byteArr[2] = dataBuffer[0];
+                            byteArr[3] = dataBuffer[0];
+                            byteArr[2] = dataBuffer[1];
                             byteArr[1] = RxBuffer[2];
                             byteArr[0] = RxBuffer[3];
                             DataArray_int[MailBox_] = ByteBuffer.wrap(byteArr).getInt();
+
+                            print("> Int, MailBox: " + MailBox_ + ", Value: " + DataArray_int[MailBox_] + "\n");
                         }
                         acker(RxBuffer[1]);
                     } else if (DataType == DATA_TYPE.UINT8_T) {
-                    
+
                         if (DataArray_uint8_t.length > MailBox_) {
-                            
+
                             DataArray_uint8_t[MailBox_] = RxBuffer[2];
                             if (DataArray_uint8_t[MailBox_] < 0) {
                                 DataArray_uint8_t[MailBox_] += 256;
+
+                                print("> UINT8_T, MailBox: " + MailBox_ + ", Value: " + DataArray_uint8_t[MailBox_] + "\n");
                             }
                         }
                         acker(RxBuffer[1]);
@@ -123,6 +150,8 @@ public class UART {
                                     // correct ack
                                     SendBuffer.remove(0);
                                     SendCooling = 0;
+
+                                    print("> ACK.\n");
                                 } else {
                                     // wrong ack, ignore it
                                 }
@@ -132,6 +161,8 @@ public class UART {
                                 for (int i = 0; i < tiles.size(); i++) {
                                     tiles.get(i).serialSend();
                                 }
+
+                                print("> Say Hi.\n");
                             } else if (MailBox_ == SYSTEM_MSG.elpasedTime.ordinal()) {
                                 int upperHalf = RxBuffer[2];
                                 int lowerHalf = RxBuffer[3];
@@ -140,6 +171,8 @@ public class UART {
 
                                 SYSTEM_MSG_elpasedTime = (upperHalf<<8) + lowerHalf;
                                 acker(RxBuffer[1]);
+
+                                print("> Elapsed time: " + SYSTEM_MSG_elpasedTime + ".\n");
                             }
                         }
                     }
@@ -149,22 +182,23 @@ public class UART {
                 } else {
                     // parity check failed
                     // discard the first one and shift everything left
+                    println("UART: Trashed 1 byte: " + to8BitBinary(RxBuffer[0]));
+
+                    TotalTrashedByte++;
+                    println("TotalTrashedByte: " + TotalTrashedByte);
+
                     RxBuffer[0] = RxBuffer[1];
                     RxBuffer[1] = RxBuffer[2];
                     RxBuffer[2] = RxBuffer[3];
                     RxBuffer[3] = 0;
                     RxBuffer_Cursor = 3;
 
-                    if (!(DATA_TYPE_index >= 0 && DATA_TYPE_index <= 7)) {
-                        print("wrong data type   ");
-                    }
-
-                    if (!(RxBuffer[0] == StartCode0 || RxBuffer[0] == StartCode1)) {
-                        print("wrong start code   ");
-                    }
-
                     if (!(isOdd(RxBuffer[0], RxBuffer[1], RxBuffer[2], RxBuffer[3]))) {
-                        print("Parity check failed la " + DATA_TYPE_index);
+                        println("UART: Parity check failed");
+                    } else if (!(DATA_TYPE_index >= 0 && DATA_TYPE_index <= 7)) {
+                        println("UART: Wrong data type");
+                    } else if (!(RxBuffer[0] == StartCode0 || RxBuffer[0] == StartCode1)) {
+                        println("UART: Wrong start code");
                     }
 
                     println();
@@ -174,17 +208,7 @@ public class UART {
                 RxBuffer[RxBuffer_Cursor] = m_port.readBytes(1)[0];
                 RxBuffer_Cursor++;
             }
-
-            //print(RxBuffer[0] < 0 ? RxBuffer[0] + 256 : RxBuffer[0]);
-            //print(" ");
-            //print(RxBuffer[1] < 0 ? RxBuffer[1] + 256 : RxBuffer[1]);
-            //print(" ");
-            //print(RxBuffer[2] < 0 ? RxBuffer[2] + 256 : RxBuffer[2]);
-            //print(" ");
-            //print(RxBuffer[3] < 0 ? RxBuffer[3] + 256 : RxBuffer[3]);
-            //println(" ");
         }
-
 
         if (SendBuffer.size() != 0 && SendCooling == 0) {
             PACKAGE pkg = SendBuffer.get(0);
@@ -194,6 +218,13 @@ public class UART {
             pkgByte[2] = pkg.Data_0;
             pkgByte[3] = pkg.Data_1;
             m_port.write(pkgByte);
+
+            println("UART: SendBuffer, ");
+            print("sent: ");
+            print(to8BitBinary(pkgByte[0]) + " ");
+            print(to8BitBinary(pkgByte[1]) + " ");
+            print(to8BitBinary(pkgByte[2]) + " ");
+            print(to8BitBinary(pkgByte[3]) + "\n");
         }
 
         while (SendImmediate.size() != 0) {
@@ -205,23 +236,39 @@ public class UART {
             pkgByte[3] = pkg.Data_1;
             m_port.write(pkgByte);
             SendImmediate.remove(0);
+
+            print("UART: SendImmediate, ");
+            print("sent: ");
+            print(to8BitBinary(pkgByte[0]) + " ");
+            print(to8BitBinary(pkgByte[1]) + " ");
+            print(to8BitBinary(pkgByte[2]) + " ");
+            print(to8BitBinary(pkgByte[3]) + "\n");
         }
     }
 
     boolean isOdd(Byte t0, Byte t1, Byte t2, Byte t3) {
         int t = 0;
-        t ^= t0;
-        t ^= t1 << 8;
-        t ^= t2 << 16;
-        t ^= t3 << 24;
-
-        t ^= t >> 16;
-        t ^= t >> 8;
-        t ^= t >> 4;
-        t ^= t >> 2;
-        t ^= t >> 1;
-
-        return ((~t) & 1) == 1;
+        for (int i = 0; i < 8; i++) {
+            if ((t0 & 1) == 1) {
+                t++;
+            }
+            if ((t1 & 1) == 1) {
+                t++;
+            }
+            if ((t2 & 1) == 1) {
+                t++;
+            }
+            if ((t3 & 1) == 1) {
+                t++;
+            }
+            
+            t0 = (byte) (t0 >> 1);
+            t1 = (byte) (t1 >> 1);
+            t2 = (byte) (t2 >> 1);
+            t3 = (byte) (t3 >> 1);
+        }
+        
+        return (t % 2 == 1);
     }
 
     void SendWrapper(DATA_TYPE DataType, int MailBox, byte byte0, byte byte1, boolean sendImmediateBool) {
@@ -236,7 +283,8 @@ public class UART {
         }
 
         SendImmediate.add(SendImmediate.size(), pkg);
-        if (sendImmediateBool == true) {}
+        if (sendImmediateBool == true) {
+        }
         //if (sendImmediateBool == true) {
         //    SendImmediate.add(SendImmediate.size(), pkg);
         //} else {
@@ -246,6 +294,9 @@ public class UART {
 
     void Send_uint8_t(uint8_t_MailBox MailBox, int num) {
         SendWrapper(DATA_TYPE.UINT8_T, MailBox.ordinal(), (byte) num, (byte) 0, false);
+
+        print("\nUART: Send_uint8_t, ");
+        print("MailBox: " + MailBox + " Value is " + num + "\n");
     }
 
     void Send_double(double_MailBox MailBox, double num) {
@@ -255,6 +306,9 @@ public class UART {
         SendWrapper(DATA_TYPE.BUFFER, 1, doublePtr[5], doublePtr[4], false);
         SendWrapper(DATA_TYPE.BUFFER, 2, doublePtr[3], doublePtr[2], false);
         SendWrapper(DATA_TYPE.DOUBLE, MailBox.ordinal(), doublePtr[1], doublePtr[0], false);
+
+        print("\nUART: Send_double, ");
+        print("MailBox: " + MailBox + " Value is " + num + "\n");
     }
 
     void Send_float(float_MailBox MailBox, float num) {
@@ -262,6 +316,9 @@ public class UART {
         ByteBuffer.wrap(floatPtr).putFloat(num);
         SendWrapper(DATA_TYPE.BUFFER, 0, floatPtr[3], floatPtr[2], false);
         SendWrapper(DATA_TYPE.FLOAT, MailBox.ordinal(), floatPtr[1], floatPtr[0], false);
+
+        print("\nUART: Send_float, ");
+        print("MailBox: " + MailBox + " Value is " + num + "\n");
     }
 
     void Send_int(int_MailBox MailBox, int num) {
@@ -269,9 +326,13 @@ public class UART {
         ByteBuffer.wrap(intPtr).putInt(num);
         SendWrapper(DATA_TYPE.BUFFER, 0, intPtr[3], intPtr[2], false);
         SendWrapper(DATA_TYPE.INT, MailBox.ordinal(), intPtr[1], intPtr[0], false);
+
+        print("\nUART: Send_int, ");
+        print("MailBox: " + MailBox + " Value is " + num + "\n");
     }
 
     void acker(byte code) {
-        SendWrapper(DATA_TYPE.SYSTEM, SYSTEM_MSG.ack.ordinal(), code, (byte) 0, true);
+        //SendWrapper(DATA_TYPE.SYSTEM, SYSTEM_MSG.ack.ordinal(), code, (byte) 0, true);
+        //print("\nAck sent.\n");
     }
 }

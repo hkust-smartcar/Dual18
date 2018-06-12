@@ -35,6 +35,10 @@
 #include <cassert>
 #include <cstring>
 #include <string>
+
+#define K60
+
+#ifdef K60
 #include <libbase/k60/mcg.h>
 #include <libbase/k60/uart.h>
 #include <libsc/system.h>
@@ -46,11 +50,19 @@
 using libsc::System;
 using libsc::k60::JyMcuBt106;
 using libbase::k60::Uart;
+
+#else
+
+#define Byte uint8_t
+
+#endif
+
 using std::vector;
 
 #define REPEAT_SEND_MS 100
 #define LOCAL_BUFFER_MAX 8
-#define BUFFER_SENT_MAX 30
+#define BUFFER_SENT_MAX 100
+#define CHECK_VALUE_PER 10
 // buffer size will determine the max len of the string
 // keep it between 8 to 64
 
@@ -233,14 +245,18 @@ public:
 	 *
 	 */
 
+#ifdef K60
 	DualCar_UART(const uint8_t &BT_id = 0, const Uart::Config::BaudRate &_BaudRate = Uart::Config::BaudRate::k38400) :
-			bt(GetBluetoothConfig(BT_id, _BaudRate, [&](const Byte *data, const size_t size) {
-				if (size == 1) {
-				} // it is put here to remve the warning
-					RxBuffer.push_back(*data);
-					return true;
-				})), SendCooling(0), needAck(true) {
-
+	bt(GetBluetoothConfig(BT_id, _BaudRate, [&](const Byte *data, const size_t size) {
+						if (size == 1) {
+						} // it is put here to remve the warning
+						RxBuffer.push_back(*data);
+						return true;
+					})), SendCooling(0), needAck(true) {
+#else
+	DualCar_UART(const uint8_t &BT_id = 0) :
+			SendCooling(0), needAck(true) {
+#endif
 		RxBuffer.clear();
 		SendImmediate.clear();
 		dataBuffer.clear();
@@ -253,23 +269,43 @@ public:
 		AutoSendWhenChanges_int.clear();
 
 		for (uint8_t t = 0; t < LOCAL_BUFFER_MAX; t++) {
+#ifdef K60
 			dataBuffer.emplace_back(0);
+#else
+			dataBuffer.push_back(0);
+#endif
 		}
 
 		for (uint8_t t = 0; t < static_cast<uint8_t>(UINT8_T::MaxTerm); t++) {
+#ifdef K60
 			DataCaller_uint8_t.emplace_back(nullptr);
+#else
+			DataCaller_uint8_t.push_back(nullptr);
+#endif
 		}
 
 		for (uint8_t t = 0; t < static_cast<uint8_t>(DOUBLE::MaxTerm); t++) {
+#ifdef K60
 			DataCaller_double.emplace_back(nullptr);
+#else
+			DataCaller_double.push_back(nullptr);
+#endif
 		}
 
 		for (uint8_t t = 0; t < static_cast<uint8_t>(FLOAT::MaxTerm); t++) {
+#ifdef K60
 			DataCaller_float.emplace_back(nullptr);
+#else
+			DataCaller_float.push_back(nullptr);
+#endif
 		}
 
 		for (uint8_t t = 0; t < static_cast<uint8_t>(INT::MaxTerm); t++) {
+#ifdef K60
 			DataCaller_int.emplace_back(nullptr);
+#else
+			DataCaller_int.push_back(nullptr);
+#endif
 		}
 
 #ifdef DEBUG
@@ -300,21 +336,32 @@ public:
 		xd++;
 		BUFFER_SENT = 4;
 
+#ifdef K60
 		RunEveryMS_StartTime = System::Time();
+#else
+		RunEveryMS_StartTime = millis();
+#endif
 		SendCooling = SendCooling == 0 ? 0 : SendCooling - 1;
 
-		if (xd % 50 == 0) {
+		if (xd % 1000 == 0) {
+#ifdef K60
 			uint32_t timeNow = System::Time();
-			SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::elpasedTime, static_cast<uint8_t>(timeNow),
+#else
+			uint32_t timeNow = millis();
+#endif
+			timeNow /= 1000;
+			SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::elpasedTime,
+					static_cast<uint8_t>(timeNow >> 8),
 					static_cast<uint8_t>(timeNow));
 		}
 
 		// send msg
-		if (xd % 50 == 0) {
+		if (xd % CHECK_VALUE_PER == 0) {
 			if (AutoSendWhenChanges_uint8_t.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_uint8_t) {
 					uint8_t id = (uint8_t) temp.first;
-					if ((DataCaller_uint8_t[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+					if ((DataCaller_uint8_t[id] != nullptr
+							&& BUFFER_SENT < BUFFER_SENT_MAX)
 							&& (*DataCaller_uint8_t[id]) != temp.second) {
 						Send_uint8_t(temp.first, *DataCaller_uint8_t[id]);
 						temp.second = *DataCaller_uint8_t[id];
@@ -326,7 +373,8 @@ public:
 			if (AutoSendWhenChanges_double.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_double) {
 					uint8_t id = (uint8_t) temp.first;
-					if ((DataCaller_double[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+					if ((DataCaller_double[id] != nullptr
+							&& BUFFER_SENT < BUFFER_SENT_MAX)
 							&& (*DataCaller_double[id]) != temp.second) {
 						Send_double(temp.first, *DataCaller_double[id]);
 						temp.second = *DataCaller_double[id];
@@ -338,7 +386,8 @@ public:
 			if (AutoSendWhenChanges_float.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_float) {
 					uint8_t id = (uint8_t) temp.first;
-					if ((DataCaller_float[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+					if ((DataCaller_float[id] != nullptr
+							&& BUFFER_SENT < BUFFER_SENT_MAX)
 							&& (*DataCaller_float[id]) != temp.second) {
 						Send_float(temp.first, *DataCaller_float[id]);
 						temp.second = *DataCaller_float[id];
@@ -350,7 +399,8 @@ public:
 			if (AutoSendWhenChanges_int.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_int) {
 					uint8_t id = (uint8_t) temp.first;
-					if ((DataCaller_int[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+					if ((DataCaller_int[id] != nullptr
+							&& BUFFER_SENT < BUFFER_SENT_MAX)
 							&& (*DataCaller_int[id]) != temp.second) {
 						Send_int(temp.first, *DataCaller_int[id]);
 						temp.second = *DataCaller_int[id];
@@ -363,23 +413,30 @@ public:
 		// handle incoming msg
 		while (RxBuffer.size() >= 4) {
 			if ((RxBuffer[0] == StartCode0 || RxBuffer[0] == StartCode1)
-					&& isOdd(RxBuffer[0], RxBuffer[1], RxBuffer[2], RxBuffer[3])) {
+					&& isOdd(RxBuffer[0], RxBuffer[1], RxBuffer[2],
+							RxBuffer[3])) {
 
-				DATA_TYPE DataType = static_cast<DATA_TYPE>((RxBuffer[1] & 224) >> 5); // 0b1110 0000
+				DATA_TYPE DataType = static_cast<DATA_TYPE>((RxBuffer[1] & 224)
+						>> 5); // 0b1110 0000
 				uint8_t MailBox_ = static_cast<uint8_t>(RxBuffer[1] & 31); // 0b00011111
 
 				if (DataType == DATA_TYPE::BUFFER) {
 					if (MailBox_ < (LOCAL_BUFFER_MAX / 2)) {
-						dataBuffer[MailBox_ * 2] = static_cast<Byte>(RxBuffer[2]);
-						dataBuffer[MailBox_ * 2 + 1] = static_cast<Byte>(RxBuffer[3]);
+						dataBuffer[MailBox_ * 2] =
+								static_cast<Byte>(RxBuffer[2]);
+						dataBuffer[MailBox_ * 2 + 1] =
+								static_cast<Byte>(RxBuffer[3]);
 					}
 				} else if (DataType == DATA_TYPE::UINT8_T) {
 					// check if the mail box has been declared in the client side
-					if (DataCaller_uint8_t.size() > MailBox_ && DataCaller_uint8_t[MailBox_] != nullptr) {
-						*DataCaller_uint8_t[MailBox_] = static_cast<uint8_t>(RxBuffer[2]);
+					if (DataCaller_uint8_t.size() > MailBox_
+							&& DataCaller_uint8_t[MailBox_] != nullptr) {
+						*DataCaller_uint8_t[MailBox_] =
+								static_cast<uint8_t>(RxBuffer[2]);
 					}
 				} else if (DataType == DATA_TYPE::DOUBLE) {
-					if (DataCaller_double.size() > MailBox_ && DataCaller_double[MailBox_] != nullptr) {
+					if (DataCaller_double.size() > MailBox_
+							&& DataCaller_double[MailBox_] != nullptr) {
 						Byte* doublePtr = new Byte[8];
 
 						for (uint8_t t = 0; t < 6; t++) {
@@ -393,7 +450,8 @@ public:
 						doublePtr = nullptr;
 					}
 				} else if (DataType == DATA_TYPE::FLOAT) {
-					if (DataCaller_float.size() > MailBox_ && DataCaller_float[MailBox_] != nullptr) {
+					if (DataCaller_float.size() > MailBox_
+							&& DataCaller_float[MailBox_] != nullptr) {
 						Byte* floatPtr = new Byte[4];
 
 						*(floatPtr + 0) = dataBuffer[0];
@@ -407,7 +465,8 @@ public:
 						floatPtr = nullptr;
 					}
 				} else if (DataType == DATA_TYPE::INT) {
-					if (DataCaller_int.size() > MailBox_ && DataCaller_int[MailBox_] != nullptr) {
+					if (DataCaller_int.size() > MailBox_
+							&& DataCaller_int[MailBox_] != nullptr) {
 						Byte* intPtr = new Byte[4];
 
 						*(intPtr + 0) = dataBuffer[0];
@@ -436,7 +495,8 @@ public:
 							for (auto &temp : AutoSendWhenChanges_uint8_t) {
 								uint8_t id = (uint8_t) temp.first;
 								if (DataCaller_uint8_t[id] != nullptr) {
-									Send_uint8_t(temp.first, *DataCaller_uint8_t[id]);
+									Send_uint8_t(temp.first,
+											*DataCaller_uint8_t[id]);
 								}
 							}
 						}
@@ -445,7 +505,8 @@ public:
 							for (auto &temp : AutoSendWhenChanges_double) {
 								uint8_t id = (uint8_t) temp.first;
 								if (DataCaller_double[id] != nullptr) {
-									Send_double(temp.first, *DataCaller_double[id]);
+									Send_double(temp.first,
+											*DataCaller_double[id]);
 								}
 							}
 						}
@@ -492,7 +553,12 @@ public:
 			*(pkgPtr + 2) = SendImmediate[0].Data_0;
 			*(pkgPtr + 3) = SendImmediate[0].Data_1;
 
+#ifdef K60
 			bt.SendBuffer(pkgPtr, 4);
+#else
+			Serial.write(pkgPtr, 4);
+#endif
+
 			SendImmediate.erase(SendImmediate.begin());
 
 			delete[] (pkgPtr);
@@ -557,7 +623,8 @@ public:
 	 * init uint8_t
 	 */
 
-	void add(UINT8_T mailbox, uint8_t * ref, bool isAutoSend, uint8_t defaultValue) {
+	void add(UINT8_T mailbox, uint8_t * ref, bool isAutoSend,
+			uint8_t defaultValue) {
 		add(mailbox, ref, isAutoSend);
 		Send_uint8_t(mailbox, defaultValue);
 	}
@@ -565,7 +632,12 @@ public:
 	void add(UINT8_T mailbox, uint8_t * ref, bool isAutoSend) {
 		DataCaller_uint8_t[(uint8_t) mailbox] = ref;
 		if (isAutoSend) {
+#ifdef K60
 			AutoSendWhenChanges_uint8_t.emplace_back(mailbox, 0);
+#else
+			AutoSendWhenChanges_uint8_t.push_back(std::pair<UINT8_T, uint8_t> {
+					mailbox, 0 });
+#endif
 		}
 	}
 
@@ -581,7 +653,12 @@ public:
 	void add(FLOAT mailbox, float * ref, bool isAutoSend) {
 		DataCaller_float[(uint8_t) mailbox] = ref;
 		if (isAutoSend) {
+#ifdef K60
 			AutoSendWhenChanges_float.emplace_back(mailbox, 0);
+#else
+			AutoSendWhenChanges_float.push_back(std::pair<FLOAT, float> {
+					mailbox, 0 });
+#endif
 		}
 	}
 
@@ -589,15 +666,21 @@ public:
 	 * init int
 	 */
 
-	void add(INT mailbox, int * ref, bool isAutoSend, int defaultValue) {
+	void add(INT mailbox, int32_t * ref, bool isAutoSend,
+			int32_t defaultValue) {
 		add(mailbox, ref, isAutoSend);
 		Send_int(mailbox, defaultValue);
 	}
 
-	void add(INT mailbox, int * ref, bool isAutoSend) {
+	void add(INT mailbox, int32_t * ref, bool isAutoSend) {
 		DataCaller_int[(uint8_t) mailbox] = ref;
 		if (isAutoSend) {
+#ifdef K60
 			AutoSendWhenChanges_int.emplace_back(mailbox, 0);
+#else
+			AutoSendWhenChanges_int.push_back(std::pair<INT, int32_t> { mailbox,
+					0 });
+#endif
 		}
 	}
 
@@ -605,7 +688,8 @@ public:
 	 * init double
 	 */
 
-	void add(DOUBLE mailbox, double * ref, bool isAutoSend, double defaultValue) {
+	void add(DOUBLE mailbox, double * ref, bool isAutoSend,
+			double defaultValue) {
 		add(mailbox, ref, isAutoSend);
 		Send_double(mailbox, defaultValue);
 	}
@@ -613,16 +697,18 @@ public:
 	void add(DOUBLE mailbox, double * ref, bool isAutoSend) {
 		DataCaller_double[(uint8_t) mailbox] = ref;
 		if (isAutoSend) {
+#ifdef K60
 			AutoSendWhenChanges_double.emplace_back(mailbox, 0);
+#else
+			AutoSendWhenChanges_double.push_back(std::pair<DOUBLE, double> {
+					mailbox, 0 });
+#endif
 		}
 	}
 
-private:
+//private:
 	struct PACKAGE {
-		Byte START_CODE;
-		Byte COMMAND_CODE;
-		Byte Data_0;
-		Byte Data_1;
+		Byte START_CODE;Byte COMMAND_CODE;Byte Data_0;Byte Data_1;
 	};
 
 	enum class DATA_TYPE {
@@ -635,7 +721,10 @@ private:
 		ack = 0, sayHi, elpasedTime, lastTerm
 	};
 
+#ifdef K60
 	JyMcuBt106 bt;
+#endif
+
 	std::vector<PACKAGE> SendImmediate;
 //	std::vector<PACKAGE> SendBuffer;
 	std::vector<Byte> RxBuffer;
@@ -645,18 +734,17 @@ private:
 	const Byte StartCode1 = 255; // 0b11111111
 
 	uint32_t RunEveryMS_StartTime;
-	uint8_t SendCooling;
-	bool needAck;
+	uint8_t SendCooling;bool needAck;
 
 	std::vector<uint8_t*> DataCaller_uint8_t;
 	std::vector<double*> DataCaller_double;
 	std::vector<float*> DataCaller_float;
-	std::vector<int*> DataCaller_int;
+	std::vector<int32_t*> DataCaller_int;
 
 	std::vector<std::pair<UINT8_T, uint8_t>> AutoSendWhenChanges_uint8_t;
 	std::vector<std::pair<DOUBLE, double>> AutoSendWhenChanges_double;
 	std::vector<std::pair<FLOAT, float>> AutoSendWhenChanges_float;
-	std::vector<std::pair<INT, int>> AutoSendWhenChanges_int;
+	std::vector<std::pair<INT, int32_t>> AutoSendWhenChanges_int;
 
 	/*
 	 * send double
@@ -670,19 +758,18 @@ private:
 	 */
 
 	inline void Send_double(const DOUBLE &MailBox, const double &num) {
-
 		Byte* doublePtr = new Byte[8];
 		memcpy(doublePtr, &num, 8);
 
 		SendWrapper(DATA_TYPE::BUFFER, 0, *(doublePtr + 0), *(doublePtr + 1));
 		SendWrapper(DATA_TYPE::BUFFER, 1, *(doublePtr + 2), *(doublePtr + 3));
 		SendWrapper(DATA_TYPE::BUFFER, 2, *(doublePtr + 4), *(doublePtr + 5));
-		SendWrapper(DATA_TYPE::DOUBLE, (uint8_t) MailBox, *(doublePtr + 6), *(doublePtr + 7));
+		SendWrapper(DATA_TYPE::DOUBLE, (uint8_t) MailBox, *(doublePtr + 6),
+				*(doublePtr + 7));
 
 		delete[] (doublePtr);
 		doublePtr = nullptr;
 	}
-	;
 
 	/*
 	 * send float
@@ -700,7 +787,8 @@ private:
 		memcpy(floatPtr, &num, 4);
 
 		SendWrapper(DATA_TYPE::BUFFER, 0, *(floatPtr + 0), *(floatPtr + 1));
-		SendWrapper(DATA_TYPE::FLOAT, (uint8_t) MailBox, *(floatPtr + 2), *(floatPtr + 3));
+		SendWrapper(DATA_TYPE::FLOAT, (uint8_t) MailBox, *(floatPtr + 2),
+				*(floatPtr + 3));
 
 		delete[] (floatPtr);
 		floatPtr = nullptr;
@@ -717,12 +805,14 @@ private:
 	 *
 	 */
 
-	inline void Send_int(const INT &MailBox, const int &num) {
+	inline void Send_int(const INT &MailBox, const int32_t &num) {
+//	inline void Send_int(const INT &MailBox, int32_t num) {
 		Byte* intPtr = new Byte[4];
 		memcpy(intPtr, &num, 4);
 
 		SendWrapper(DATA_TYPE::BUFFER, 0, *(intPtr + 0), *(intPtr + 1));
-		SendWrapper(DATA_TYPE::INT, (uint8_t) MailBox, *(intPtr + 2), *(intPtr + 3));
+		SendWrapper(DATA_TYPE::INT, (uint8_t) MailBox, *(intPtr + 2),
+				*(intPtr + 3));
 
 		delete[] (intPtr);
 		intPtr = nullptr;
@@ -740,7 +830,8 @@ private:
 	 */
 
 	inline void Send_uint8_t(const UINT8_T &MailBox, const uint8_t &num) {
-		SendWrapper(DATA_TYPE::UINT8_T, (uint8_t) MailBox, static_cast<Byte>(num), 0);
+		SendWrapper(DATA_TYPE::UINT8_T, (uint8_t) MailBox,
+				static_cast<Byte>(num), 0);
 	}
 
 	/*
@@ -758,23 +849,46 @@ private:
 	 * return false if it's an even number
 	 */
 
-	inline bool isOdd(const uint8_t &t0, const uint8_t &t1, const uint8_t &t2, const uint8_t &t3) {
+	inline bool isOdd(uint8_t t0, uint8_t t1, uint8_t t2, uint8_t t3) {
 
 		uint32_t t = 0;
-		t ^= t0;
-		t ^= t1 << 8;
-		t ^= t2 << 16;
-		t ^= t3 << 24;
+//		t ^= t0;
+//		t ^= t1 << 8;
+//		t ^= t2 << 16;
+//		t ^= t3 << 24;
+//
+//		t ^= t >> 16;
+//		t ^= t >> 8;
+//		t ^= t >> 4;
+//		t ^= t >> 2;
+//		t ^= t >> 1;
+//
+//		return (~t) & 1;
 
-		t ^= t >> 16;
-		t ^= t >> 8;
-		t ^= t >> 4;
-		t ^= t >> 2;
-		t ^= t >> 1;
+		for (int i = 0; i < 8; i++) {
+			if ((t0 & 1) == 1) {
+				t++;
+			}
+			if ((t1 & 1) == 1) {
+				t++;
+			}
+			if ((t2 & 1) == 1) {
+				t++;
+			}
+			if ((t3 & 1) == 1) {
+				t++;
+			}
 
-		return (~t) & 1;
+			t0 = (byte) (t0 >> 1);
+			t1 = (byte) (t1 >> 1);
+			t2 = (byte) (t2 >> 1);
+			t3 = (byte) (t3 >> 1);
+		}
+
+		return (t % 2 == 1);
+
+//		return true;
 	}
-	;
 
 	/*
 	 * SendWrapper
@@ -789,20 +903,27 @@ private:
 	 *
 	 */
 
-	inline void SendWrapper(const DATA_TYPE &DataType, const uint8_t &MailBox, const Byte &byte0, const Byte &byte1) {
+	inline void SendWrapper(const DATA_TYPE &DataType, const uint8_t &MailBox,
+			const Byte &byte0, const Byte &byte1) {
 
 		PACKAGE package;
 		package.START_CODE = StartCode0;
-		package.COMMAND_CODE = static_cast<Byte>(((static_cast<uint8_t>(DataType)) << 5)
-				+ (static_cast<uint8_t>(MailBox)));
+		package.COMMAND_CODE =
+				static_cast<Byte>(((static_cast<uint8_t>(DataType)) << 5)
+						+ (static_cast<uint8_t>(MailBox)));
 		package.Data_0 = byte0;
 		package.Data_1 = byte1;
 
-		if (!isOdd(package.START_CODE, package.COMMAND_CODE, package.Data_0, package.Data_1)) {
+		if (!isOdd(package.START_CODE, package.COMMAND_CODE, package.Data_0,
+				package.Data_1)) {
 			package.START_CODE = StartCode1;
 		}
 
+#ifdef K60
 		SendImmediate.emplace_back(package);
+#else
+		SendImmediate.push_back(package);
+#endif
 
 //		if (sendImmediateBool) {
 //			SendImmediate.emplace_back(package);
@@ -811,6 +932,7 @@ private:
 //		}
 	}
 
+#ifdef K60
 	/*
 	 * bluetooth config
 	 *
@@ -823,7 +945,8 @@ private:
 	 * BT config
 	 */
 
-	inline JyMcuBt106::Config GetBluetoothConfig(const uint8_t &_id, const Uart::Config::BaudRate &_BaudRate,
+	inline JyMcuBt106::Config GetBluetoothConfig(const uint8_t &_id,
+			const Uart::Config::BaudRate &_BaudRate,
 			const std::function<bool(const Byte *data, const size_t size)> &isr) {
 		JyMcuBt106::Config config;
 		config.baud_rate = _BaudRate;
@@ -832,7 +955,7 @@ private:
 		config.tx_buf_size = 43;
 		return config;
 	}
-	;
+#endif
 
 };
 

@@ -103,4 +103,6 @@ void tileAllocator() {
 
         maxX = (maxX < tiles.get(i).getWidth()) ? tiles.get(i).getWidth() : maxX;
     }
+    
+    print("\nGUI: tileAllocator \n");
 }

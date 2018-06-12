@@ -90,6 +90,8 @@ class InputBox extends GUI_Raw {
                         uart.Send_int(int_MailBox_id, DataArray_int[int_MailBox_id.ordinal()]);
                     }
 
+                    print("GUI: InputBox-ENTER:" + m_Value + "\n\n");
+
                     m_Value = "0";
                     isHide = true;
                 }

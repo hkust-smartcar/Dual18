@@ -426,6 +426,12 @@ void addLine(double_MailBox mailbox, String name, color c) {
     charts.get(chartsNum).lines.add(t);
 }
 
+void addLine(double value, String name, color c) {
+    ScanLineChart_Line t = new ScanLineChart_Line(value, c);
+    t.setValue(name);
+    charts.get(chartsNum).lines.add(t);
+}
+
 // addLineBreak
 void addLineBreak() {
     tiles.add(new BreakColumn(false));

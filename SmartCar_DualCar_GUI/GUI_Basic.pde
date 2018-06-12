@@ -419,19 +419,13 @@ class InputIncDecTile extends GUI_Raw {
                 serialSend();
             } else if (m_DataType == DATA_TYPE.INT) {
                 if (m_ButLargeDec.isHovering) {
-                    DataArray_uint8_t[int_MailBox_id.ordinal()] -= (int) m_LargeChange;
+                    DataArray_int[int_MailBox_id.ordinal()] -= (int) m_LargeChange;
                 } else if (m_ButSmallDec.isHovering) {
-                    DataArray_uint8_t[int_MailBox_id.ordinal()] -= (int) m_SmallChange;
+                    DataArray_int[int_MailBox_id.ordinal()] -= (int) m_SmallChange;
                 } else if (m_ButSmallInc.isHovering) {
-                    DataArray_uint8_t[int_MailBox_id.ordinal()] += (int) m_SmallChange;
+                    DataArray_int[int_MailBox_id.ordinal()] += (int) m_SmallChange;
                 } else if (m_ButLargeInc.isHovering) {
-                    DataArray_uint8_t[int_MailBox_id.ordinal()] += (int) m_LargeChange;
-                }
-
-                if (DataArray_int[int_MailBox_id.ordinal()] <0) {
-                    DataArray_int[int_MailBox_id.ordinal()] = 255;
-                } else if (DataArray_int[int_MailBox_id.ordinal()] > 255) {
-                    DataArray_int[int_MailBox_id.ordinal()] = 0;
+                    DataArray_int[int_MailBox_id.ordinal()] += (int) m_LargeChange;
                 }
 
                 m_ValueLabel.setValue(Integer.toString(DataArray_int[int_MailBox_id.ordinal()]));

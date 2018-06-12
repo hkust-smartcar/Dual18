@@ -13,6 +13,7 @@
 #include "libsc/st7735r.h"
 #include "libsc/k60/ov7725.h"
 #include "libsc/joystick.h"
+#include "libbase/k60/adc.h"
 
 #include "libsc/alternate_motor.h"
 #include "libsc/encoder.h"
@@ -56,6 +57,51 @@ LcdTypewriter::Config GetWriterConfig(St7735r *lcd) {
 St7735r::Config GetLcdConfig() {
 	St7735r::Config config;
 	config.fps = 20;
+	return config;
+}
+
+Adc::Config getADCConfig(uint8_t id) {
+	Adc::Config config;
+	config.speed = Adc::Config::SpeedMode::kExFast;
+	config.is_continuous_mode = true;
+	config.avg_pass = Adc::Config::AveragePass::k16;
+	config.resolution = Adc::Config::Resolution::k8Bit;
+	switch (id) {
+		case 0:
+			config.adc = Adc::Name::kAdc0Ad4B;
+//			config.pin = libbase::k60::Pin::Name::kPtc2;
+			break;
+		case 1:
+			config.adc = Adc::Name::kAdc1Ad4B;
+//			config.pin = libbase::k60::Pin::Name::kPtc8;
+			break;
+		case 2:
+			config.adc = Adc::Name::kAdc1Ad5B;
+//			config.pin = libbase::k60::Pin::Name::kPtc9;
+			break;
+		case 3:
+			config.adc = Adc::Name::kAdc1Ad6B;
+//			config.pin = libbase::k60::Pin::Name::kPtc10;
+			break;
+		case 4:
+			config.adc = Adc::Name::kAdc1Ad7B;
+//			config.pin = libbase::k60::Pin::Name::kPtc11;
+			break;
+		case 5:
+			config.adc = Adc::Name::kAdc0Ad5B;
+//			config.pin = libbase::k60::Pin::Name::kPtd1;
+			break;
+		case 6:
+			config.adc = Adc::Name::kAdc0Ad6B;
+//			config.pin = libbase::k60::Pin::Name::kPtd5;
+			break;
+		case 7:
+			config.adc = Adc::Name::kAdc0Ad7B;
+//			config.pin = libbase::k60::Pin::Name::kPtd6;
+			break;
+		default:
+			break;
+	}
 	return config;
 }
 
@@ -284,6 +330,24 @@ int main() {
 	LcdTypewriter writer(GetWriterConfig(&lcd));
 	lcd.SetRegion(Lcd::Rect(0, 0, 80, 60));
 
+	Adc adc0(getADCConfig(0));
+	Adc adc1(getADCConfig(1));
+	Adc adc2(getADCConfig(2));
+	Adc adc3(getADCConfig(3));
+	Adc adc4(getADCConfig(4));
+	Adc adc5(getADCConfig(5));
+	Adc adc6(getADCConfig(6));
+	Adc adc7(getADCConfig(7));
+
+	adc0.StartConvert();
+	adc1.StartConvert();
+	adc2.StartConvert();
+	adc3.StartConvert();
+	adc4.StartConvert();
+	adc5.StartConvert();
+	adc6.StartConvert();
+	adc7.StartConvert();
+
 //	char t[10] = "123456789";
 //	writer.WriteBuffer(t, 10);
 
@@ -293,22 +357,22 @@ int main() {
 //	float echo3 = 0;
 
 	FutabaS3010 servo(GetServoConfig());
-	AlternateMotor right_motor(GetMotorConfig(0));
-	AlternateMotor left_motor(GetMotorConfig(1));
-	DirEncoder dirEncoder0(GetEncoderConfig(0));
-	DirEncoder dirEncoder1(GetEncoderConfig(1));
+//	AlternateMotor right_motor(GetMotorConfig(0));
+//	AlternateMotor left_motor(GetMotorConfig(1));
+//	DirEncoder dirEncoder0(GetEncoderConfig(0));
+//	DirEncoder dirEncoder1(GetEncoderConfig(1));
 
-	int t = 250;
-	servo.SetDegree(100);
-	right_motor.SetPower(t);
-	left_motor.SetPower(t);
+//	int t = 250;
+	servo.SetDegree(900);
+//	right_motor.SetPower(t);
+//	left_motor.SetPower(t);
 
 //	Ultrasonic us;
 
 	uint8_t trig = 0, pTrig = 0;
 	int i0 = 0, i1 = 0;
 
-	DualCar_UART uart0(0); // << BT related
+	DualCar_UART uart0(1); // << BT related
 
 //	uart0.add(DualCar_UART::FLOAT::f0, &echo0, true, 0);
 //	uart0.add(DualCar_UART::FLOAT::f1, &echo1, true, 0);
@@ -388,24 +452,72 @@ int main() {
 //				lcd.FillBits(Lcd::kBlack, Lcd::kWhite, Buffer, 60 * 80);
 //				cam.UnlockBuffer();
 
-				lcd.SetRegion(Lcd::Rect(0, 60, 80, 15));
-				lcd.FillColor(Lcd::kBlack);
-				writer.WriteBuffer(str, 10);
+//				lcd.SetRegion(Lcd::Rect(0, 60, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str, 10);
 
 				char str1[10] = "null";
-				dirEncoder0.Update();
-				int e = dirEncoder0.GetCount();
-				sprintf(str1, "%d", e);
+//				dirEncoder0.Update();
+//				int e = dirEncoder0.GetCount();
+//				sprintf(str1, "%d", e);
+//				lcd.SetRegion(Lcd::Rect(0, 75, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str1, 10);
+
+//				sprintf(str1, "i0: %d", i0);
+//				lcd.SetRegion(Lcd::Rect(0, 90, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str1, 10);
+//
+//				sprintf(str1, "i1: %d", i1);
+//				lcd.SetRegion(Lcd::Rect(0, 105, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str1, 10);
+
+				int t = adc0.GetResult();
+				sprintf(str1, "0: %d", t);
+				lcd.SetRegion(Lcd::Rect(0, 0, 80, 15));
+				lcd.FillColor(Lcd::kBlack);
+				writer.WriteBuffer(str1, 10);
+
+				t = adc1.GetResult();
+				sprintf(str1, "1: %d", t);
+				lcd.SetRegion(Lcd::Rect(0, 15, 80, 15));
+				lcd.FillColor(Lcd::kBlack);
+				writer.WriteBuffer(str1, 10);
+
+				t = adc2.GetResult();
+				sprintf(str1, "2: %d", t);
+				lcd.SetRegion(Lcd::Rect(0, 30, 80, 15));
+				lcd.FillColor(Lcd::kBlack);
+				writer.WriteBuffer(str1, 10);
+
+				t = adc3.GetResult();
+				sprintf(str1, "3: %d", t);
+				lcd.SetRegion(Lcd::Rect(0, 45, 80, 15));
+				lcd.FillColor(Lcd::kBlack);
+				writer.WriteBuffer(str1, 10);
+
+				t = adc4.GetResult();
+				sprintf(str1, "4: %d", t);
+				lcd.SetRegion(Lcd::Rect(0, 60, 80, 15));
+				lcd.FillColor(Lcd::kBlack);
+				writer.WriteBuffer(str1, 10);
+
+				t = adc5.GetResult();
+				sprintf(str1, "5: %d", t);
 				lcd.SetRegion(Lcd::Rect(0, 75, 80, 15));
 				lcd.FillColor(Lcd::kBlack);
 				writer.WriteBuffer(str1, 10);
 
-				sprintf(str1, "i0: %d", i0);
+				t = adc6.GetResult();
+				sprintf(str1, "6: %d", t);
 				lcd.SetRegion(Lcd::Rect(0, 90, 80, 15));
 				lcd.FillColor(Lcd::kBlack);
 				writer.WriteBuffer(str1, 10);
 
-				sprintf(str1, "i1: %d", i1);
+				t = adc7.GetResult();
+				sprintf(str1, "7: %d", t);
 				lcd.SetRegion(Lcd::Rect(0, 105, 80, 15));
 				lcd.FillColor(Lcd::kBlack);
 				writer.WriteBuffer(str1, 10);

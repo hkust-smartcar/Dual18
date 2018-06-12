@@ -4,7 +4,7 @@ class ElapsedTime extends GUI_Raw {
 
     private int m_Last_SYSTEM_MSG_elpasedTime = 0;
     private int m_ConnLostCount = 0;
-    private final int m_ConnLostCountMax = 6;
+    private final int m_ConnLostCountMax = 20;
 
     ElapsedTime() {
         super();
@@ -36,7 +36,7 @@ class ElapsedTime extends GUI_Raw {
         if (m_ConnLostCount >= m_ConnLostCountMax) {
             m_ValueLabel.setValue("Conn Lost");
         } else {
-            m_ValueLabel.setValue(Integer.toString(SYSTEM_MSG_elpasedTime) + " ms ?");
+            m_ValueLabel.setValue(Integer.toString(SYSTEM_MSG_elpasedTime) + " s");
         }
 
         m_Last_SYSTEM_MSG_elpasedTime = SYSTEM_MSG_elpasedTime;

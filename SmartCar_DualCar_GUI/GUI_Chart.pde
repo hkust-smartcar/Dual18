@@ -274,7 +274,8 @@ class ScanLineChart implements GUI_interface {
             }
         }
     };
-    void tKeyPressed() {};
+    void tKeyPressed() {
+    };
     String getPos() {
         return "";
     };
@@ -303,6 +304,16 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
     private double m_PastPointY = 0;
     private Boolean m_isPause = false;
     private String name = "none";
+
+    private Boolean iskLine = false;
+    private double kValue = 0;
+
+    ScanLineChart_Line(double _kValue, color lineColor_) {
+        iskLine = true;
+        kValue = _kValue;
+        needRedraw = true;
+        m_LineColor = lineColor_;
+    }
 
     ScanLineChart_Line(uint8_t_MailBox mail_id_, color lineColor_) {
         m_DataType = DATA_TYPE.UINT8_T;
@@ -333,6 +344,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
     }
 
     void tDraw() {
+        println("GUI: LINE-tDraw");
+        
         fill(m_LineColor);
         if (needRedraw == true) {
             double tempY = 0;
@@ -346,6 +359,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
                     tempY = double_value[x];
                 } else if (m_DataType == DATA_TYPE.FLOAT) {
                     tempY = float_value[x];
+                } else if (iskLine) {
+                    tempY = kValue;
                 }
                 tempY = tempY > m_LowerBound ? tempY : m_LowerBound;
                 tempY = tempY < m_UpperBound ? tempY : m_UpperBound;
@@ -362,6 +377,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
                         tempYp = float_value[x-1];
                     } else if (m_DataType == DATA_TYPE.INT) {
                         tempYp = int_value[x-1];
+                    } else if (iskLine) {
+                        tempYp = kValue;
                     }
 
                     tempYp = tempYp > m_LowerBound ? tempYp : m_LowerBound;
@@ -375,45 +392,31 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
             needRedraw = false;
         }
     };
-    void over() {
-    };
-    void onClick() {
-    };
-    void setValue(String value_) {
+        void setValue(String value_) {
         name = value_;
     };
-    void setValue(double double_) {
+        void setValue(double double_) {
         m_NewValue = double_;
         if (m_isPause == false) {
             m_Cursor++;
         }
         m_Cursor = m_Cursor == m_SampleNumber ? 0 : m_Cursor;
     };
-    void setValue(float float_) {
+        void setValue(float float_) {
         m_NewValue = float_;
         if (m_isPause == false) {
             m_Cursor++;
         }
         m_Cursor = m_Cursor == m_SampleNumber ? 0 : m_Cursor;
     };
-    void setValue(int int_) {
+        void setValue(int int_) {
         m_NewValue = (double) int_;
         if (m_isPause == false) {
             m_Cursor++;
         }
         m_Cursor = m_Cursor == m_SampleNumber ? 0 : m_Cursor;
     };
-    void serialSend() {
-    };
-    void setBackgroundFill(boolean needBackground) {
-    };
-    int getHeight() { 
-        return m_Height;
-    };
-    int getWidth() {
-        return m_Width;
-    };
-    String getValue() {
+        String getValue() {
         if (m_DataType == DATA_TYPE.UINT8_T) {
             return Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]);
         } else if (m_DataType == DATA_TYPE.DOUBLE) {
@@ -422,6 +425,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
             return Float.toString(DataArray_float[float_MailBox_id.ordinal()]);
         } else if (m_DataType == DATA_TYPE.INT) {
             return Integer.toString(DataArray_int[int_MailBox_id.ordinal()]);
+        } else if (iskLine) {
+            return Double.toString(kValue);
         }
         return "";
     };
@@ -457,7 +462,10 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
             m_NewValue = DataArray_float[float_MailBox_id.ordinal()];
         } else if (m_DataType == DATA_TYPE.INT) {
             m_NewValue = DataArray_int[int_MailBox_id.ordinal()];
+        } else if (iskLine) {
+            m_NewValue = kValue;
         }
+
         if (m_isPause == false) {
             m_Cursor++;
         }
@@ -490,6 +498,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
         }
     };
     void drawClean() {
+        println("GUI: LINE-drawClean");
+        
         if (m_isPause == false) {
             double BoundHeight = m_UpperBound - m_LowerBound;
             double x = m_TopLeftX + m_HorizontalSpacing * m_Cursor;
@@ -506,6 +516,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
                 tempY = float_value[m_Cursor];
             } else if (m_DataType == DATA_TYPE.INT) {
                 tempY = int_value[m_Cursor];
+            } else if (iskLine) {
+                tempY = kValue;
             }
 
             tempY = tempY > m_LowerBound ? tempY : m_LowerBound;
@@ -520,6 +532,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
         }
     };
     void drawNew() {
+        println("GUI: LINE-drawNew");
+        
         if (m_isPause == false) {
             double BoundHeight = m_UpperBound - m_LowerBound;
             double x = m_TopLeftX + m_HorizontalSpacing * m_Cursor;
@@ -536,6 +550,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
                 tempY = float_value[m_Cursor];
             } else if (m_DataType == DATA_TYPE.INT) {
                 tempY = int_value[m_Cursor];
+            } else if (iskLine) {
+                tempY = kValue;
             }
 
             tempY = tempY > m_LowerBound ? tempY : m_LowerBound;
@@ -573,6 +589,8 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
                     tempYp = float_value[m_Cursor-1];
                 } else if (m_DataType == DATA_TYPE.INT) {
                     tempYp = int_value[m_Cursor-1];
+                } else if (iskLine) {
+                    tempYp = kValue;
                 }
 
                 tempYp = tempYp > m_LowerBound ? tempYp : m_LowerBound;
@@ -605,8 +623,23 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
     void setPause(Boolean isPause) {
         m_isPause = isPause;
     };
-    void tKeyPressed() {};
+    void tKeyPressed() {
+    };
     String getPos() {
         return "";
+    };
+    void setBackgroundFill(boolean needBackground) {
+    };
+    int getHeight() {
+        return m_Height;
+    };
+    int getWidth() {
+        return m_Width;
+    };
+    void over() {
+    };
+    void onClick() {
+    };
+    void serialSend() {
     };
 }

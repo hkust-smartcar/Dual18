@@ -74,7 +74,7 @@ $(info Build = DEBUG)
 else ifeq ($(SCCC_BUILD),RELEASE)
 BIN_SUFFIX:=$(BIN_SUFFIX)-r
 CPPFLAGS+=-DRELEASE=1 -DNDEBUG
-CCFLAGS+=-O2 -g0
+CCFLAGS+=-O0 -g0
 $(info Build = RELEASE)
 
 else
