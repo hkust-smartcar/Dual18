@@ -28,7 +28,7 @@ void setup() {
     // uart setup
     String target = null;
 
-    target = "1421"; 
+    target = ""; 
 
     int id = 0;
     while (((Serial.list().length > id) && (target != null)) && (!Serial.list()[id].contains(target))) {
@@ -42,7 +42,7 @@ void setup() {
         }
     }
 
-    //id = 0; // change the id value here!!!
+    id = 0; // change the id value here!!!
 
     println("UART port selected is " + Serial.list()[id]);
     uart = new UART(new Serial(this, Serial.list()[id], 38400));
