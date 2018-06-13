@@ -31,3 +31,6 @@ final int CHART_HEIGHT = 600;
 final int fontSize = 20;
 final boolean serialNeedAck = false; // dont enable it cause I haven't tested it!!!
 final int LINE_STROKE_WEIGHT = 2;
+
+final int CAMERA_GRAPH_X = 80;
+final int CAMERA_GRAPH_Y = 60;

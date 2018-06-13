@@ -31,7 +31,7 @@ class TextLabel extends GUI_Raw {
 
     @Override void tDraw() {
         textAlign(LEFT);
-        
+
         noStroke();
 
         if (m_NeedBackground == true) {
@@ -67,6 +67,10 @@ class TextLabel extends GUI_Raw {
 
 class Button extends GUI_Raw {
     private String text;
+    private color Hovering_Color = BUTTON_HOVERING_COLOR;
+    private color Normal_Color = BUTTON_NORMAL_COLOR;
+
+
     Button(String text_) {
         super();
         m_Width = (int) textWidth(text_+" ");
@@ -103,9 +107,9 @@ class Button extends GUI_Raw {
     @Override void tDraw() {
         // this might casue extra resouces consumption
         if (isHovering) {
-            fill(BUTTON_HOVERING_COLOR);
+            fill(Hovering_Color);
         } else {
-            fill(BUTTON_NORMAL_COLOR);
+            fill(Normal_Color);
         }
 
         textAlign(CENTER);
@@ -135,6 +139,11 @@ class Button extends GUI_Raw {
     @Override String getValue() {
         return text;
     };
+
+    void setColor(color h_, color n_) {
+        Hovering_Color = h_;
+        Normal_Color = n_;
+    }
 }
 
 class OutputValueTile extends GUI_Raw {
@@ -147,6 +156,7 @@ class OutputValueTile extends GUI_Raw {
     private double_MailBox double_MailBox_id = null;
     private float_MailBox float_MailBox_id = null;
     private int_MailBox int_MailBox_id = null;
+    private bool_MailBox bool_MailBox_id = null;
 
     OutputValueTile(uint8_t_MailBox mail_id_) {
         super();
@@ -157,6 +167,22 @@ class OutputValueTile extends GUI_Raw {
         textSize(fontSize);
         m_DataTypeLabel = new TextLabel(m_Width, m_ValueDataType.name() + ": " + uint8_t_MailBox_id.name());
         m_ValueLabel = new TextLabel(m_Width, Integer.toString(DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]));
+
+        m_DataTypeLabel.setBackgroundFill(false);
+        m_ValueLabel.setBackgroundFill(false);
+
+        m_Height = m_DataTypeLabel.getHeight() + m_ValueLabel.getHeight();
+    }
+
+    OutputValueTile(bool_MailBox mail_id_) {
+        super();
+        m_Width = 200;
+        bool_MailBox_id = mail_id_;
+        m_ValueDataType = DATA_TYPE.BOOLEAN;
+
+        textSize(fontSize);
+        m_DataTypeLabel = new TextLabel(m_Width, m_ValueDataType.name() + ": " + bool_MailBox_id.name());
+        m_ValueLabel = new TextLabel(m_Width, DataArray_bool[bool_MailBox_id.ordinal()] == true ? "True" : "False");
 
         m_DataTypeLabel.setBackgroundFill(false);
         m_ValueLabel.setBackgroundFill(false);
@@ -220,6 +246,8 @@ class OutputValueTile extends GUI_Raw {
             m_ValueLabel.setValue(Float.toString(DataArray_float[float_MailBox_id.ordinal()]));
         } else if (m_ValueDataType == DATA_TYPE.INT) {
             m_ValueLabel.setValue(Integer.toString(DataArray_int[int_MailBox_id.ordinal()]));
+        } else if (m_ValueDataType == DATA_TYPE.BOOLEAN) {
+            m_ValueLabel.setValue(DataArray_bool[bool_MailBox_id.ordinal()] == true ? "True" : "False");
         }
 
         fill(TILE_BACKGROUND_COLOR);
@@ -239,6 +267,9 @@ class OutputValueTile extends GUI_Raw {
     };
     @Override void setValue(int int_) {
         m_DataTypeLabel.setValue(int_);
+    };
+    @Override void setValue(boolean bool_) {
+        m_DataTypeLabel.setValue(bool_ == true ? "True" : "False");
     };
     @Override void setPos(int topLeftX_, int topLeftY_) {
         m_TopLeftX = topLeftX_;
@@ -285,7 +316,7 @@ class InputIncDecTile extends GUI_Raw {
     }
     InputIncDecTile(uint8_t_MailBox mail_id_, int smallChange_, int largeChange_, int initValue) {
         m_Width = 200;
-        
+
         m_SmallChange = (double) smallChange_;
         m_LargeChange = (double) largeChange_;
 
@@ -301,7 +332,7 @@ class InputIncDecTile extends GUI_Raw {
     }
     InputIncDecTile(int_MailBox mail_id_, int smallChange_, int largeChange_, int initValue) {
         m_Width = 200;
-        
+
         m_SmallChange = (double) smallChange_;
         m_LargeChange = (double) largeChange_;
 
@@ -317,7 +348,7 @@ class InputIncDecTile extends GUI_Raw {
     }
     InputIncDecTile(double_MailBox mail_id_, double smallChange_, double largeChange_, double initValue) {
         m_Width = 200;
-        
+
         m_SmallChange = smallChange_;
         m_LargeChange = largeChange_;
 
@@ -333,7 +364,7 @@ class InputIncDecTile extends GUI_Raw {
     }
     InputIncDecTile(float_MailBox mail_id_, double smallChange_, double largeChange_, float initValue) {
         m_Width = 200;
-        
+
         m_SmallChange = smallChange_;
         m_LargeChange = largeChange_;
 
@@ -497,5 +528,78 @@ class InputIncDecTile extends GUI_Raw {
         m_ButSmallDec.setTextColor(m_TextColor);
         m_ButSmallInc.setTextColor(m_TextColor);
         m_ButLargeInc.setTextColor(m_TextColor);
+    };
+}
+
+class ButtonTile extends GUI_Raw {
+    private final int m_ButHeight = 25;
+    private Button m_but;
+    private TextLabel m_var;
+    private bool_MailBox bool_MailBox_id = null;
+    private int deBounce;
+
+    ButtonTile(bool_MailBox id) {
+        bool_MailBox_id = id;
+        m_Width = 200;
+
+
+        m_but = new Button(0, 0, m_Width - 40, m_ButHeight, "null");
+        m_var = new TextLabel(m_Width, "null");
+
+        m_Height = m_but.getHeight() + m_var.getHeight() + 10;
+        deBounce = 0;
+    }
+
+    @Override 
+        void tDraw() {
+        deBounce = deBounce == 0 ? 0 : deBounce-1;
+
+        fill(TILE_BACKGROUND_COLOR);
+        rect(m_TopLeftX, m_TopLeftY, m_Width, m_Height, RECT_ANGLE_RADIUS);
+
+        if (DataArray_bool[bool_MailBox_id.ordinal()]) {
+            m_but.setValue("Now TRUE");
+            m_but.setColor(GREEN, GREEN);
+        } else {
+            m_but.setValue("Now FALSE");
+            m_but.setColor(RED, RED);
+        }
+
+        m_but.tDraw();
+        m_var.tDraw();
+    }
+
+    @Override
+        void onClick() {
+        if (m_but.isHovering && deBounce == 0) {
+            DataArray_bool[bool_MailBox_id.ordinal()] = !DataArray_bool[bool_MailBox_id.ordinal()];
+            serialSend();
+
+            deBounce = 4;
+        }
+    }
+
+    @Override
+        void over() {
+        m_but.over();
+    }
+
+    @Override
+        void setValue(String name) {
+        m_var.setValue(name);
+    }
+
+    @Override
+        void setPos(int topLeftX_, int topLeftY_) {
+        m_TopLeftX = topLeftX_;
+        m_TopLeftY = topLeftY_;
+
+        m_var.setPos(m_TopLeftX, m_TopLeftY);
+        m_but.setPos(m_TopLeftX + 20, m_TopLeftY+m_var.getHeight()+5);
+    }
+
+    @Override
+        void serialSend() {
+        uart.Send_bool(bool_MailBox_id, DataArray_bool[bool_MailBox_id.ordinal()]);
     };
 }

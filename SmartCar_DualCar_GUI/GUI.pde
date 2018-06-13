@@ -9,6 +9,7 @@ public interface GUI_interface {
     void setValue(double double_);
     void setValue(float float_);
     void setValue(int int_);
+    void setValue(boolean bool_);
     void serialSend();
     void setBackgroundFill(boolean needBackground);
     void setTextColor(color TextColor_);
@@ -49,6 +50,8 @@ public class GUI_Raw implements GUI_interface {
     void setValue(float float_) {
     };
     void setValue(int int_) {
+    };
+    void setValue(boolean bool_) {
     };
     void setBackgroundFill(boolean needBackground) {
         m_NeedBackground = needBackground;
@@ -103,6 +106,6 @@ void tileAllocator() {
 
         maxX = (maxX < tiles.get(i).getWidth()) ? tiles.get(i).getWidth() : maxX;
     }
-    
+
     print("\nGUI: tileAllocator \n");
 }

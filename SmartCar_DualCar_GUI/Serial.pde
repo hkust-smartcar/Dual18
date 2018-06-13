@@ -28,6 +28,7 @@ public class UART {
     final Byte StartCode1 = -1; // 0b11111111
 
     int SendCooling;
+    int CameraOffset = 0;
 
     UART(Serial port) {
         // init usb serial
@@ -61,6 +62,41 @@ public class UART {
     }
 
     void tSerialEvent() {
+        if (SendBuffer.size() != 0 && SendCooling == 0) {
+            PACKAGE pkg = SendBuffer.get(0);
+            byte[] pkgByte = new byte[4];
+            pkgByte[0] = pkg.START_CODE;
+            pkgByte[1] = pkg.COMMAND_CODE;
+            pkgByte[2] = pkg.Data_0;
+            pkgByte[3] = pkg.Data_1;
+            m_port.write(pkgByte);
+
+            println("UART: SendBuffer, ");
+            print("sent: ");
+            print(to8BitBinary(pkgByte[0]) + " ");
+            print(to8BitBinary(pkgByte[1]) + " ");
+            print(to8BitBinary(pkgByte[2]) + " ");
+            print(to8BitBinary(pkgByte[3]) + "\n");
+        }
+
+        while (SendImmediate.size() != 0) {
+            PACKAGE pkg = SendImmediate.get(0);
+            byte[] pkgByte = new byte[4];
+            pkgByte[0] = pkg.START_CODE;
+            pkgByte[1] = pkg.COMMAND_CODE;
+            pkgByte[2] = pkg.Data_0;
+            pkgByte[3] = pkg.Data_1;
+            m_port.write(pkgByte);
+            SendImmediate.remove(0);
+
+            print("UART: SendImmediate, ");
+            print("sent: ");
+            print(to8BitBinary(pkgByte[0]) + " ");
+            print(to8BitBinary(pkgByte[1]) + " ");
+            print(to8BitBinary(pkgByte[2]) + " ");
+            print(to8BitBinary(pkgByte[3]) + "\n");
+        }
+
         while (m_port.available() > 0) {
             if (RxBuffer_Cursor == 4) {
                 // a complete queue la
@@ -131,22 +167,34 @@ public class UART {
                             print("> Int, MailBox: " + MailBox_ + ", Value: " + DataArray_int[MailBox_] + "\n");
                         }
                         acker(RxBuffer[1]);
+                    } else if (DataType == DATA_TYPE.MORRIS_VECTOR) {
+
+                        VectorGraph_ArraryList.get(MailBox_ + 1).setCor(RxBuffer[2], RxBuffer[3]);
+                        print("> MORRIS_VECTOR, Node: " + (MailBox_+1) + ", XPos: " + RxBuffer[2] + ", YPos: " + RxBuffer[3]+ "\n");
                     } else if (DataType == DATA_TYPE.UINT8_T) {
 
                         if (DataArray_uint8_t.length > MailBox_) {
 
-                            DataArray_uint8_t[MailBox_] = RxBuffer[2];
-                            if (DataArray_uint8_t[MailBox_] < 0) {
-                                DataArray_uint8_t[MailBox_] += 256;
+                            println("Debug Info: MailBox_->" + MailBox_);
+                            
+                            if (MailBox_ == uint8_t_MailBox.BOOLEAN.ordinal()) {
+                                DataArray_bool[RxBuffer[2]] = (RxBuffer[3] == 1);
 
-                                print("> UINT8_T, MailBox: " + MailBox_ + ", Value: " + DataArray_uint8_t[MailBox_] + "\n");
+                                print("> BOOLEAN, MailBox: " + RxBuffer[2] + ", Value: " + DataArray_bool[RxBuffer[2]] + "\n");
+                            } else {
+                                DataArray_uint8_t[MailBox_] = RxBuffer[2];
+                                if (DataArray_uint8_t[MailBox_] < 0) {
+                                    DataArray_uint8_t[MailBox_] += 256;
+
+                                    print("> UINT8_T, MailBox: " + MailBox_ + ", Value: " + DataArray_uint8_t[MailBox_] + "\n");
+                                }
                             }
                         }
                         acker(RxBuffer[1]);
                     } else if (DataType == DATA_TYPE.SYSTEM) {
                         if (SYSTEM_MSG.lastTerm.ordinal() >= MailBox_) {
                             if (MailBox_ == SYSTEM_MSG.ack.ordinal()) {
-                                if (SendBuffer.get(0).COMMAND_CODE == RxBuffer[2]) {
+                                if (SendBuffer.size() !=0 && SendBuffer.get(0).COMMAND_CODE == RxBuffer[2]) {
                                     // correct ack
                                     SendBuffer.remove(0);
                                     SendCooling = 0;
@@ -173,7 +221,63 @@ public class UART {
                                 acker(RxBuffer[1]);
 
                                 print("> Elapsed time: " + SYSTEM_MSG_elpasedTime + ".\n");
+                            } else if (MailBox_ == SYSTEM_MSG.vector_StartSend.ordinal()) {
+
+                                print("> vector_StartSend: Node: 0, XPos: " + RxBuffer[2] + ", YPos: " + RxBuffer[3]+ "\n");
+
+                                if (VectorGraph_ArraryList != null) {
+                                    int len = VectorGraph_ArraryList.size();
+                                    for (int i = 0; i < len; i++) {
+                                        VectorGraph_ArraryList.get(i).setClean();
+                                    }
+                                } else {
+                                    println("GUI: Critical Error! VectorGraph_ArraryList is null!");
+                                }
+
+                                VectorGraph_ArraryList.get(0).setCor(RxBuffer[2], RxBuffer[3]);
+                            } else if (MailBox_ == SYSTEM_MSG.vector_EndSend.ordinal()) {
+
+                                print("> vector_EndSend, NumOfNode: " + RxBuffer[2] + ".\n");
+
+                                if (VectorGraph_ArraryList != null) {
+                                    int len = VectorGraph_ArraryList.size();
+                                    for (int i = 0; i < len; i++) {
+                                        VectorGraph_ArraryList.get(i).update();
+                                    }
+                                } else {
+                                    println("GUI: Critical Error! VectorGraph_ArraryList is null!");
+                                }
                             }
+
+                            //else if (MailBox_ == SYSTEM_MSG.camera_StartSend.ordinal()) {
+
+                            //    print("> camera_StartSend, Width: " + RxBuffer[2] + ", Height: " + RxBuffer[3] + ".\n");
+
+                            //    if (RxBuffer[2] != CAMERA_GRAPH_X || RxBuffer[3] != CAMERA_GRAPH_Y) {
+                            //        println("UART: Critical ERROR! Camera Config Wrong!");
+                            //    }
+
+                            //    if (CameraGraph_ArraryList != null) {
+                            //        int len = CameraGraph_ArraryList.size();
+                            //        for (int i = 0; i < len; i++) {
+                            //            CameraGraph_ArraryList.get(i).setClean();
+                            //        }
+                            //    } else {
+                            //        println("GUI: Critical Error! CameraGraph_ArraryList is null!");
+                            //    }
+                            //} else if (MailBox_ == SYSTEM_MSG.camera_EndSend.ordinal()) {
+
+                            //    print("> camera_EndSend.\n");
+
+                            //    if (CameraGraph_ArraryList != null) {
+                            //        int len = CameraGraph_ArraryList.size();
+                            //        for (int i = 0; i < len; i++) {
+                            //            CameraGraph_ArraryList.get(i).update();
+                            //        }
+                            //    } else {
+                            //        println("GUI: Critical Error! CameraGraph_ArraryList is null!");
+                            //    }
+                            //}
                         }
                     }
 
@@ -209,41 +313,6 @@ public class UART {
                 RxBuffer_Cursor++;
             }
         }
-
-        if (SendBuffer.size() != 0 && SendCooling == 0) {
-            PACKAGE pkg = SendBuffer.get(0);
-            byte[] pkgByte = new byte[4];
-            pkgByte[0] = pkg.START_CODE;
-            pkgByte[1] = pkg.COMMAND_CODE;
-            pkgByte[2] = pkg.Data_0;
-            pkgByte[3] = pkg.Data_1;
-            m_port.write(pkgByte);
-
-            println("UART: SendBuffer, ");
-            print("sent: ");
-            print(to8BitBinary(pkgByte[0]) + " ");
-            print(to8BitBinary(pkgByte[1]) + " ");
-            print(to8BitBinary(pkgByte[2]) + " ");
-            print(to8BitBinary(pkgByte[3]) + "\n");
-        }
-
-        while (SendImmediate.size() != 0) {
-            PACKAGE pkg = SendImmediate.get(0);
-            byte[] pkgByte = new byte[4];
-            pkgByte[0] = pkg.START_CODE;
-            pkgByte[1] = pkg.COMMAND_CODE;
-            pkgByte[2] = pkg.Data_0;
-            pkgByte[3] = pkg.Data_1;
-            m_port.write(pkgByte);
-            SendImmediate.remove(0);
-
-            print("UART: SendImmediate, ");
-            print("sent: ");
-            print(to8BitBinary(pkgByte[0]) + " ");
-            print(to8BitBinary(pkgByte[1]) + " ");
-            print(to8BitBinary(pkgByte[2]) + " ");
-            print(to8BitBinary(pkgByte[3]) + "\n");
-        }
     }
 
     boolean isOdd(Byte t0, Byte t1, Byte t2, Byte t3) {
@@ -261,13 +330,13 @@ public class UART {
             if ((t3 & 1) == 1) {
                 t++;
             }
-            
+
             t0 = (byte) (t0 >> 1);
             t1 = (byte) (t1 >> 1);
             t2 = (byte) (t2 >> 1);
             t3 = (byte) (t3 >> 1);
         }
-        
+
         return (t % 2 == 1);
     }
 
@@ -297,6 +366,13 @@ public class UART {
 
         print("\nUART: Send_uint8_t, ");
         print("MailBox: " + MailBox + " Value is " + num + "\n");
+    }
+
+    void Send_bool(bool_MailBox MailBox, boolean num) {
+        SendWrapper(DATA_TYPE.UINT8_T, uint8_t_MailBox.BOOLEAN.ordinal(), (byte) MailBox.ordinal(), (byte)(num == true ? 1 : 0), false);
+
+        print("\nUART: Send_bool, ");
+        print("MailBox: " + MailBox + " Value is " + (num == true ? "True" : "False") + "\n");
     }
 
     void Send_double(double_MailBox MailBox, double num) {

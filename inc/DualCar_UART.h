@@ -159,6 +159,7 @@ public:
 
 	enum class UINT8_T {
 		// nah, max support for 32 terms so far, tell me if you want more la ^^
+		boolean,
 		u0,
 		u1,
 		u2,
@@ -189,7 +190,6 @@ public:
 		u27,
 		u28,
 		u29,
-		u30,
 		MaxTerm
 	// keep it as the last term
 	};
@@ -230,6 +230,43 @@ public:
 		MaxTerm
 	// keep it as the last term
 	};
+
+	enum class BOOLEAN {
+		// nah, max support for 32 terms so far, tell me bf you want more la ^^
+		b0,
+		b1,
+		b2,
+		b3,
+		b4,
+		b5,
+		b6,
+		b7,
+		b8,
+		b9,
+		b10,
+		b11,
+		b12,
+		b13,
+		b14,
+		b15,
+		b16,
+		b17,
+		b18,
+		b19,
+		b20,
+		b21,
+		b22,
+		b23,
+		b24,
+		b25,
+		b26,
+		b27,
+		b28,
+		b29,
+		b30,
+		MaxTerm
+	// keep it as the last term
+	};
 };
 
 class DualCar_UART: public DualCar_UART_Config {
@@ -267,6 +304,7 @@ public:
 		AutoSendWhenChanges_double.clear();
 		AutoSendWhenChanges_float.clear();
 		AutoSendWhenChanges_int.clear();
+		AutoSendWhenChanges_bool.clear();
 
 		for (uint8_t t = 0; t < LOCAL_BUFFER_MAX; t++) {
 #ifdef K60
@@ -305,6 +343,14 @@ public:
 			DataCaller_int.emplace_back(nullptr);
 #else
 			DataCaller_int.push_back(nullptr);
+#endif
+		}
+
+		for (uint8_t t = 0; t < static_cast<uint8_t>(BOOLEAN::MaxTerm); t++) {
+#ifdef K60
+			DataCaller_bool.emplace_back(nullptr);
+#else
+			DataCaller_bool.push_back(nullptr);
 #endif
 		}
 
@@ -396,6 +442,19 @@ public:
 				}
 			}
 
+			if (AutoSendWhenChanges_bool.size() != 0) {
+				for (auto &temp : AutoSendWhenChanges_bool) {
+					uint8_t id = (uint8_t) temp.first;
+					if ((DataCaller_bool[id] != nullptr
+							&& BUFFER_SENT < BUFFER_SENT_MAX)
+							&& (*DataCaller_bool[id]) != temp.second) {
+						Send_bool(temp.first, *DataCaller_bool[id]);
+						temp.second = *DataCaller_bool[id];
+						BUFFER_SENT += 4;
+					}
+				}
+			}
+
 			if (AutoSendWhenChanges_int.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_int) {
 					uint8_t id = (uint8_t) temp.first;
@@ -430,9 +489,15 @@ public:
 				} else if (DataType == DATA_TYPE::UINT8_T) {
 					// check if the mail box has been declared in the client side
 					if (DataCaller_uint8_t.size() > MailBox_
-							&& DataCaller_uint8_t[MailBox_] != nullptr) {
-						*DataCaller_uint8_t[MailBox_] =
-								static_cast<uint8_t>(RxBuffer[2]);
+							&& (DataCaller_uint8_t[MailBox_] != nullptr || MailBox_ == (uint8_t) UINT8_T::boolean)) {
+
+						if (MailBox_ == (uint8_t) UINT8_T::boolean) {
+							*DataCaller_bool[(uint8_t) RxBuffer[2]] = RxBuffer[3] == 1;
+
+						} else {
+							*DataCaller_uint8_t[MailBox_] =
+									static_cast<uint8_t>(RxBuffer[2]);
+						}
 					}
 				} else if (DataType == DATA_TYPE::DOUBLE) {
 					if (DataCaller_double.size() > MailBox_
@@ -491,25 +556,7 @@ public:
 //						}
 					} else if (MailBox_ == (uint8_t) SYSTEM_MSG::sayHi) {
 						// send all values to the request side
-						if (AutoSendWhenChanges_uint8_t.size() != 0) {
-							for (auto &temp : AutoSendWhenChanges_uint8_t) {
-								uint8_t id = (uint8_t) temp.first;
-								if (DataCaller_uint8_t[id] != nullptr) {
-									Send_uint8_t(temp.first,
-											*DataCaller_uint8_t[id]);
-								}
-							}
-						}
-
-						if (AutoSendWhenChanges_double.size() != 0) {
-							for (auto &temp : AutoSendWhenChanges_double) {
-								uint8_t id = (uint8_t) temp.first;
-								if (DataCaller_double[id] != nullptr) {
-									Send_double(temp.first,
-											*DataCaller_double[id]);
-								}
-							}
-						}
+						// to be completed
 					}
 				}
 
@@ -581,42 +628,6 @@ public:
 		// parse all values from the other side
 		// then send back my values
 		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::sayHi, 0, 0);
-
-		if (AutoSendWhenChanges_uint8_t.size() != 0) {
-			for (auto &temp : AutoSendWhenChanges_uint8_t) {
-				uint8_t id = (uint8_t) temp.first;
-				if (DataCaller_uint8_t[id] != nullptr) {
-					Send_uint8_t(temp.first, *DataCaller_uint8_t[id]);
-				}
-			}
-		}
-
-		if (AutoSendWhenChanges_double.size() != 0) {
-			for (auto &temp : AutoSendWhenChanges_double) {
-				uint8_t id = (uint8_t) temp.first;
-				if (DataCaller_double[id] != nullptr) {
-					Send_double(temp.first, *DataCaller_double[id]);
-				}
-			}
-		}
-
-		if (AutoSendWhenChanges_float.size() != 0) {
-			for (auto &temp : AutoSendWhenChanges_float) {
-				uint8_t id = (uint8_t) temp.first;
-				if (DataCaller_float[id] != nullptr) {
-					Send_float(temp.first, *DataCaller_float[id]);
-				}
-			}
-		}
-
-		if (AutoSendWhenChanges_int.size() != 0) {
-			for (auto &temp : AutoSendWhenChanges_int) {
-				uint8_t id = (uint8_t) temp.first;
-				if (DataCaller_int[id] != nullptr) {
-					Send_int(temp.first, *DataCaller_int[id]);
-				}
-			}
-		}
 	}
 
 	/*
@@ -636,6 +647,28 @@ public:
 			AutoSendWhenChanges_uint8_t.emplace_back(mailbox, 0);
 #else
 			AutoSendWhenChanges_uint8_t.push_back(std::pair<UINT8_T, uint8_t> {
+					mailbox, 0 });
+#endif
+		}
+	}
+
+	/*
+	 * init bool
+	 */
+
+	void add(BOOLEAN mailbox, bool * ref, bool isAutoSend,
+	bool defaultValue) {
+		add(mailbox, ref, isAutoSend);
+		Send_bool(mailbox, defaultValue);
+	}
+
+	void add(BOOLEAN mailbox, bool * ref, bool isAutoSend) {
+		DataCaller_bool[(uint8_t) mailbox] = ref;
+		if (isAutoSend) {
+#ifdef K60
+			AutoSendWhenChanges_bool.emplace_back(mailbox, 0);
+#else
+			AutoSendWhenChanges_bool.push_back(std::pair<BOOLEAN, bool> {
 					mailbox, 0 });
 #endif
 		}
@@ -706,19 +739,78 @@ public:
 		}
 	}
 
+	/*
+	 * send corners
+	 *
+	 * @para
+	 * vect: the corner vector to be sent
+	 *
+	 * @return
+	 *
+	 */
+
+	inline void Send_corners(
+			const std::vector<std::pair<uint8_t, uint8_t>> &vect) {
+
+		uint8_t vectorSize = vect.size();
+		vectorSize = vectorSize > 32 ? 32 : vectorSize;
+
+		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::vector_StartSend,
+				vect[0].first, vect[0].second);
+
+		for (uint8_t i = 1; i < vectorSize; i++) {
+			SendWrapper(DATA_TYPE::MORRIS_VECTOR, i - 1, vect[i].first,
+					vect[i].second);
+		}
+
+		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::vector_EndSend,
+				vectorSize, 0);
+	}
+
+#ifdef DEBUG_PHASE
+	inline void Send_camera(const Byte * b, const uint8_t &w, const uint8_t &h) {
+
+		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::camera_StartSend,
+				w, h);
+
+		int len = w * h / 8 / 2;
+		for (int i = 0; i < len; i += 2) {
+			SendWrapper(DATA_TYPE::CAMERA_IMG, (uint8_t) (i>>1), *(b + i), *(b + i + 1));
+		}
+
+		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::camera_EndSend, 0,
+				0);
+	}
+#endif
+
 //private:
 	struct PACKAGE {
 		Byte START_CODE;Byte COMMAND_CODE;Byte Data_0;Byte Data_1;
 	};
 
 	enum class DATA_TYPE {
-		BUFFER = 0, DOUBLE, UINT8_T, FLOAT, INT, DIUDIU, DIUDIUDIU, SYSTEM = 7
+		BUFFER = 0,
+		DOUBLE,
+		UINT8_T,
+		FLOAT,
+		INT,
+		MORRIS_VECTOR,
+		CAMERA_IMG,
+		SYSTEM = 7,
+		BOOLEAN
 	};
 
 	// the attribute sayHi is for the client side to inquire for values
 	// from the master side upon a new connection, e.g. restart
 	enum class SYSTEM_MSG {
-		ack = 0, sayHi, elpasedTime, lastTerm
+		ack = 0,
+		sayHi,
+		elpasedTime,
+		vector_StartSend,
+		vector_EndSend,
+		camera_StartSend,
+		camera_EndSend,
+		lastTerm
 	};
 
 #ifdef K60
@@ -740,11 +832,13 @@ public:
 	std::vector<double*> DataCaller_double;
 	std::vector<float*> DataCaller_float;
 	std::vector<int32_t*> DataCaller_int;
+	std::vector<bool*> DataCaller_bool;
 
 	std::vector<std::pair<UINT8_T, uint8_t>> AutoSendWhenChanges_uint8_t;
 	std::vector<std::pair<DOUBLE, double>> AutoSendWhenChanges_double;
 	std::vector<std::pair<FLOAT, float>> AutoSendWhenChanges_float;
 	std::vector<std::pair<INT, int32_t>> AutoSendWhenChanges_int;
+	std::vector<std::pair<DualCar_UART_Config::BOOLEAN, bool>> AutoSendWhenChanges_bool;
 
 	/*
 	 * send double
@@ -832,6 +926,23 @@ public:
 	inline void Send_uint8_t(const UINT8_T &MailBox, const uint8_t &num) {
 		SendWrapper(DATA_TYPE::UINT8_T, (uint8_t) MailBox,
 				static_cast<Byte>(num), 0);
+	}
+
+	/*
+	 * send bool
+	 *
+	 * @para
+	 * MailBox: which MailBox will be called
+	 * num: num to be sent
+	 *
+	 * @return
+	 *
+	 */
+
+	inline void Send_bool(const DualCar_UART_Config::BOOLEAN &MailBox,
+			const bool &num) {
+		SendWrapper(DATA_TYPE::UINT8_T, (uint8_t) UINT8_T::boolean,
+				(uint8_t) MailBox, static_cast<bool>(num));
 	}
 
 	/*

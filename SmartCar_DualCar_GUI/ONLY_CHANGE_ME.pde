@@ -56,25 +56,32 @@ void init() { // add tiles here
     //addOutputValueTile(Mailbox.f2, "middle slope");
     //addOutputValueTile(Mailbox.i2, "9ntt");
     //addOutputValueTile(Mailbox.u3, "echo 3");
+
+    addOutputValueTile(Mailbox.b0, "b0");
+    addOutputValueTile(Mailbox.b1, "b1");
+    //addCameraGraph();
     addElapsedTime();
-
-    addInputIncDecTile(Mailbox.u0, "u0", 1, 1, 0);
-    addInputIncDecTile(Mailbox.f0, "f0", 1, 1, 0);
-    addInputIncDecTile(Mailbox.d0, "d0", 1, 1, 0);
-    addInputIncDecTile(Mailbox.i0, "i0", 1, 1, 0);
-    addLineBreak(); // break into next column
-
-    addChart(100, 5, 600, -1, 255); // << start a new chart, i.e. chart 1
+    addOutputValueTile(Mailbox.u0, "u0");
     
-    //DataArray_double[Mailbox.d29.ordinal()] = 100;
-    //addLine(Mailbox.d29, "constant line", BLACK);
+    addButtonTile(Mailbox.b1, "b1");
     
-    addLine(Mailbox.u0, "trig", BLACK);
-    addLine(Mailbox.f0, "echo 0", RED); // >> put into chart 1
-    addLine(60, "echo 1", BLUE); // >> put into chart 1
-    //addLine(Mailbox.f2, "echo 2", GREEN); // >> put into chart 1
-    //addLine(Mailbox.f3, "echo 3", TEAL); // >> put into chart 1
-    addLine(Mailbox.i0, "echo 3", TEAL); // >> put into chart 1
+    //addInputIncDecTile(Mailbox.i0, "i0", 1, 1, 0);
+    //addInputIncDecTile(Mailbox.f0, "f0", 1, 1, 0);
+    //addInputIncDecTile(Mailbox.d0, "d0", 1, 1, 0);
+    //addInputIncDecTile(Mailbox.i0, "i0", 1, 1, 0);
+    //addLineBreak(); // break into next column
+
+    //addChart(100, 5, 600, -1, 255); // << start a new chart, i.e. chart 1
+
+    ////DataArray_double[Mailbox.d29.ordinal()] = 100;
+    ////addLine(Mailbox.d29, "constant line", BLACK);
+
+    //addLine(Mailbox.u0, "trig", BLACK);
+    //addLine(Mailbox.f0, "echo 0", RED); // >> put into chart 1
+    //addLine(60, "echo 1", BLUE); // >> put into chart 1
+    ////addLine(Mailbox.f2, "echo 2", GREEN); // >> put into chart 1
+    ////addLine(Mailbox.f3, "echo 3", TEAL); // >> put into chart 1
+    //addLine(Mailbox.i0, "echo 3", TEAL); // >> put into chart 1
 
     //addChart(100, 5, 600, -1, 255); // << start a new chart, i.e. chart 1
     //addLine(Mailbox.u0, "trig", BLACK);
@@ -84,5 +91,12 @@ void init() { // add tiles here
     //addLine(Mailbox.f3, "echo 3", TEAL); // >> put into chart 1
 }
 
+int tick = 0;
+boolean t = false;
 void cycle() {
+    tick++;
+    if (tick % 10 == 0) {
+        t = !t;
+        //uart.Send_bool(bool_MailBox.b1, t);
+    }
 }

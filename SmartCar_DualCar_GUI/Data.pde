@@ -1,13 +1,17 @@
 import java.util.*; 
 
 public enum DATA_TYPE {
-    BUFFER, DOUBLE, UINT8_T, FLOAT, INT, DIUDIU, DIUDIUDIU, SYSTEM;
+    BUFFER, DOUBLE, UINT8_T, FLOAT, INT, MORRIS_VECTOR, CAMERA_IMG, SYSTEM, BOOLEAN;
 }
 
 public enum SYSTEM_MSG {
     ack, 
         sayHi, 
         elpasedTime, 
+        vector_StartSend, 
+        vector_EndSend, 
+        camera_StartSend, 
+        camera_EndSend, 
         lastTerm;
 };
 
@@ -15,6 +19,7 @@ public int[] DataArray_uint8_t;
 public double[] DataArray_double;
 public float[] DataArray_float;
 public int[] DataArray_int;
+public boolean[] DataArray_bool;
 
 final int LOCAL_BUFFER_MAX = 10;
 
@@ -96,7 +101,8 @@ public enum float_MailBox {
 
 public enum uint8_t_MailBox {
     // nah, max support for 32 terms so far, tell me if you want more la ^^
-    u0, 
+    BOOLEAN, 
+        u0, 
         u1, 
         u2, 
         u3, 
@@ -126,7 +132,6 @@ public enum uint8_t_MailBox {
         u27, 
         u28, 
         u29, 
-        u30, 
         MaxTerm
 }
 
@@ -163,6 +168,42 @@ public enum int_MailBox {
         i28, 
         i29, 
         i30, 
+        MaxTerm
+}
+
+public enum bool_MailBox {
+    // nah, max support for 32 terms so far, tell me if you want more la ^^
+    b0, 
+        b1, 
+        b2, 
+        b3, 
+        b4, 
+        b5, 
+        b6, 
+        b7, 
+        b8, 
+        b9, 
+        b10, 
+        b11, 
+        b12, 
+        b13, 
+        b14, 
+        b15, 
+        b16, 
+        b17, 
+        b18, 
+        b19, 
+        b20, 
+        b21, 
+        b22, 
+        b23, 
+        b24, 
+        b25, 
+        b26, 
+        b27, 
+        b28, 
+        b29, 
+        b30, 
         MaxTerm
 }
 
@@ -233,6 +274,7 @@ public enum Mailbox {
         f30, 
         f_MaxTerm, 
 
+        BOOLEAN, 
         u0, 
         u1, 
         u2, 
@@ -263,10 +305,9 @@ public enum Mailbox {
         u27, 
         u28, 
         u29, 
-        u30, 
-        u_MaxTerm,
-        
-            i0, 
+        u_MaxTerm, 
+
+        i0, 
         i1, 
         i2, 
         i3, 
@@ -297,7 +338,40 @@ public enum Mailbox {
         i28, 
         i29, 
         i30, 
-        i_MaxTerm
+        i_MaxTerm, 
+
+        b0, 
+        b1, 
+        b2, 
+        b3, 
+        b4, 
+        b5, 
+        b6, 
+        b7, 
+        b8, 
+        b9, 
+        b10, 
+        b11, 
+        b12, 
+        b13, 
+        b14, 
+        b15, 
+        b16, 
+        b17, 
+        b18, 
+        b19, 
+        b20, 
+        b21, 
+        b22, 
+        b23, 
+        b24, 
+        b25, 
+        b26, 
+        b27, 
+        b28, 
+        b29, 
+        b30, 
+        b_MaxTerm
 }
 
 // addOutputValueTile
@@ -310,6 +384,8 @@ void addOutputValueTile(Mailbox mailbox, String name) {
         addOutputValueTile(uint8_t_MailBox.values()[mailbox.ordinal() - 64], name);
     } else if (mailbox.ordinal() < 128) {
         addOutputValueTile(int_MailBox.values()[mailbox.ordinal() - 96], name);
+    } else if (mailbox.ordinal() < 160) {
+        addOutputValueTile(bool_MailBox.values()[mailbox.ordinal() - 128], name);
     }
 }
 
@@ -337,6 +413,12 @@ void addOutputValueTile(int_MailBox mailbox, String name) {
     tiles.add(t);
 }
 
+void addOutputValueTile(bool_MailBox mailbox, String name) {
+    OutputValueTile t = new OutputValueTile(mailbox);
+    t.setValue(name);
+    tiles.add(t);
+}
+
 // addInputIncDecTile
 void addInputIncDecTile(Mailbox mailbox, String name, double small, double large, double initValue) {
     if (mailbox.ordinal() < 32) {
@@ -357,9 +439,9 @@ void addInputIncDecTile(int_MailBox mailbox, String name, int small, int large, 
 }
 
 void addInputIncDecTile(uint8_t_MailBox mailbox, String name, int small, int large, int initValue) {
-    
+
     // !!! missing range check here
-    
+
     InputIncDecTile t = new InputIncDecTile(mailbox, small, large, initValue);
     t.setValue(name);
     tiles.add(t);
@@ -435,4 +517,22 @@ void addLine(double value, String name, color c) {
 // addLineBreak
 void addLineBreak() {
     tiles.add(new BreakColumn(false));
+}
+
+void addCameraGraph() {
+    tiles.add(new CameraGraph());
+}
+
+void addButtonTile(Mailbox mailbox, String name) {
+    if (mailbox.ordinal() < 160 && mailbox.ordinal() >= 128) {
+        addButtonTile(bool_MailBox.values()[mailbox.ordinal() - 128], name);
+    } else {
+        println("GUI: Button Init Error!");
+    }
+}
+
+void addButtonTile(bool_MailBox mailbox, String name) {
+    ButtonTile t = new ButtonTile(mailbox);
+    t.setValue(name);
+    tiles.add(t);
 }

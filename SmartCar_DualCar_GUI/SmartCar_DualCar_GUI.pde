@@ -5,6 +5,8 @@ import java.util.Random;
 
 Random rand = new Random();
 ArrayList<ScanLineChart> charts;
+ArrayList<VectorGraphDot> VectorGraph_ArraryList = null;
+ArrayList<CameraDot> CameraGraph_ArraryList = null;
 int chartsNum = -1;
 InputBox InputBoxObj = null;
 int TotalTrashedByte = 0;
@@ -25,25 +27,38 @@ void setup() {
 
     // uart setup
     String target = null;
-    
-    target = ""; 
-        
+
+    target = "1421"; 
+
     int id = 0;
     while (((Serial.list().length > id) && (target != null)) && (!Serial.list()[id].contains(target))) {
         id++;
     }
-    
+
     if (!(Serial.list().length > id)) {
         println("UART: ERROR: Can't Connect BT");
-        while (true);
+        while (true) {
+            exit();
+        }
     }
-    
-    id = 0; // change the id value here!!!
-    
+
+    //id = 0; // change the id value here!!!
+
     println("UART port selected is " + Serial.list()[id]);
     uart = new UART(new Serial(this, Serial.list()[id], 38400));
 
     // init array
+
+    VectorGraph_ArraryList = new ArrayList<VectorGraphDot>();
+    for (int i = 0; i < 34; i++) {
+        VectorGraph_ArraryList.add(new VectorGraphDot());
+    }
+    
+    CameraGraph_ArraryList = new ArrayList<CameraDot>();
+    for (int i = 0; i < CAMERA_GRAPH_X * CAMERA_GRAPH_Y / 8; i++) {
+        CameraGraph_ArraryList.add(new CameraDot());
+    }
+
     DataArray_uint8_t = new int[uint8_t_MailBox.MaxTerm.ordinal()+1];
     for (int i = 0; i < uint8_t_MailBox.MaxTerm.ordinal(); i++) {
         DataArray_uint8_t[i] = (byte) 0;
@@ -64,12 +79,20 @@ void setup() {
         DataArray_int[i] = 0;
     }
 
+    DataArray_bool = new boolean[bool_MailBox.MaxTerm.ordinal()+1];
+    for (int i = 0; i < bool_MailBox.MaxTerm.ordinal(); i++) {
+        DataArray_bool[i] = false;
+    }
+
     charts = new ArrayList<ScanLineChart>();
     init();
     for (int i = 0; i < charts.size(); i++) {
         charts.get(i).init();
         tiles.add(charts.get(i));
     }
+    
+    uart.SendWrapper(DATA_TYPE.SYSTEM, SYSTEM_MSG.sayHi.ordinal(), (byte) 0, (byte) 0, false);
+
 }
 
 int pastWidth  = 0;
