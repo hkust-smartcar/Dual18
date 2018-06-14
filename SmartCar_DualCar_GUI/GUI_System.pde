@@ -47,10 +47,10 @@ class ElapsedTime extends GUI_Raw {
     @Override void setValue(String value_) {
         SYSTEM_MSG_elpasedTime = Integer.parseInt(value_);
     };
-   @Override  void setValue(double double_) {
+    @Override  void setValue(double double_) {
         SYSTEM_MSG_elpasedTime = (int) Math.round(double_);
     };
-   @Override  void setValue(float float_) {
+    @Override  void setValue(float float_) {
         SYSTEM_MSG_elpasedTime = (int) Math.round(float_);
     };
     @Override void setValue(int int_) {

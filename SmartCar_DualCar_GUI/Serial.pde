@@ -411,4 +411,8 @@ public class UART {
         //SendWrapper(DATA_TYPE.SYSTEM, SYSTEM_MSG.ack.ordinal(), code, (byte) 0, true);
         //print("\nAck sent.\n");
     }
+    
+    void close() {
+        m_port.stop();
+    }
 }

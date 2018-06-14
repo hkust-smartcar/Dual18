@@ -11,6 +11,52 @@ int chartsNum = -1;
 InputBox InputBoxObj = null;
 int TotalTrashedByte = 0;
 
+Button MoveLeft, MoveRight, MoveCenter, UARTstatus;
+
+void InitUART(int id_) {
+    int id = id_;
+
+    println("UART init: Start Trying at " + id_);
+    println("Available UART ports:");
+    for (int i = 0; i < Serial.list().length; i++) {
+        println(i + ". " + Serial.list()[i]);
+    }
+
+    while (((Serial.list().length > id) && (BTtarget != null)) 
+        && (!Serial.list()[id].contains(BTtarget))) {
+        id++;
+    }
+
+    if (!(Serial.list().length > id)) {
+        println("UART: ERROR: Can't Connect BT");
+        UARTstatus.setValue("Disconnected. Click to Init.");
+    } else {
+        println("ID " + id + ":" + Serial.list()[id] + " is selected, attempting to connect it");
+
+        Serial port = null;
+
+        try {
+            port = new Serial(this, Serial.list()[id], 115200);
+        } 
+        catch (Exception e) {
+            port = null;
+
+            println("UART connection FAILED!");
+            println();
+
+            UARTstatus.setValue("Disconnected. Click to Init.");
+
+            if (id+1 < Serial.list().length) 
+                InitUART(id+1);
+        }
+
+        if (port != null) {
+            UARTstatus.setValue("Connected. Click to ReInit.");
+            uart = new UART(port);
+        }
+    }
+}
+
 void setup() {
     // init windows
     size(400, 400);
@@ -21,40 +67,24 @@ void setup() {
     background(BACKGROUND_COLOR);
     noStroke();
 
+    MoveLeft = new Button(0, 0, 60, 30, "<<");
+    MoveCenter = new Button(0, 0, 90, 30, "Reset");
+    MoveRight = new Button(0, 0, 60, 30, ">>");
+    MoveLeft.setColor(WHITE, WHITE);
+    MoveCenter.setColor(WHITE, WHITE);
+    MoveRight.setColor(WHITE, WHITE);
+
+    UARTstatus = new Button(0, 0, 300, 30, "null");
+    UARTstatus.setColor(WHITE, WHITE);
+
     if (frame != null) {
         surface.setResizable(true);
     }
 
     // uart setup
-    
+    InitUART(0);
+
     // list UART
-    println("Available UART ports:");
-    for (int i = 0; i < Serial.list().length; i++) {
-        println(i + ". " + Serial.list()[i]);
-    }
-    
-    
-    String target = null;
-
-    target = "tty.MORRIS"; 
-
-    int id = 0;
-    while (((Serial.list().length > id) && (target != null)) && (!Serial.list()[id].contains(target))) {
-        id++;
-    }
-
-    id = 4; // change the id value here!!!
-    if (!(Serial.list().length > id)) {
-        println("UART: ERROR: Can't Connect BT");
-    } else {
-        println("ID " + id + ":" + Serial.list()[id] + " is selected");
-    }
-    
-    println();
-    println("To change the target, uncomment line 56 in the TAB SmartCar_DualCar_GUI");
-    println("and set the id to the desired one");
-
-    uart = new UART(new Serial(this, Serial.list()[id], 115200));
 
     // init array
 
@@ -62,7 +92,7 @@ void setup() {
     for (int i = 0; i < 34; i++) {
         VectorGraph_ArraryList.add(new VectorGraphDot());
     }
-    
+
     CameraGraph_ArraryList = new ArrayList<CameraDot>();
     for (int i = 0; i < CAMERA_GRAPH_X * CAMERA_GRAPH_Y / 8; i++) {
         CameraGraph_ArraryList.add(new CameraDot());
@@ -99,16 +129,17 @@ void setup() {
         charts.get(i).init();
         tiles.add(charts.get(i));
     }
-    
-    uart.SendWrapper(DATA_TYPE.SYSTEM, SYSTEM_MSG.sayHi.ordinal(), (byte) 0, (byte) 0, false);
 
+    if (uart != null)
+        uart.SendWrapper(DATA_TYPE.SYSTEM, SYSTEM_MSG.sayHi.ordinal(), (byte) 0, (byte) 0, false);
 }
 
 int pastWidth  = 0;
 int pastHeight = 0;
 
 void draw() {
-    uart.tSerialEvent();
+    if (uart != null)
+        uart.tSerialEvent();
     cycle();
 
     if (pastWidth != width || pastHeight != height) {
@@ -127,7 +158,28 @@ void draw() {
     if (InputBoxObj != null) {
         InputBoxObj.tDraw();
     }
+
     GLOBAL_RESTART = GLOBAL_RESTART > 0 ? GLOBAL_RESTART - 1 : 0;
+
+    MoveLeft.over();
+    MoveRight.over();
+    MoveCenter.over();
+    UARTstatus.over();
+
+    MoveLeft.tDraw();
+    MoveRight.tDraw();
+    MoveCenter.tDraw();
+    UARTstatus.tDraw();
+
+    if (UARTstatus.getValue().equals("Connecting")) {
+        UARTstatus.setValue("Connecting.");
+    } else if (UARTstatus.getValue().equals("Connecting.")) {
+        if (uart != null) {
+            uart.close();
+            uart = null;
+        }
+        InitUART(0);
+    }
 };
 
 void keyPressed() {
@@ -140,7 +192,35 @@ void keyPressed() {
 };
 
 void mousePressed() {
-    for (int i = 0; i < tiles.size(); i++) {
-        tiles.get(i).onClick();
+    if (MoveLeft.isHovering) {
+        borderX -= 200;
+
+        clear();
+        background(BACKGROUND_COLOR);
+        tileAllocator();
+
+        println("SYSTEM: MoveLeft pressed");
+    } else if (MoveCenter.isHovering) {
+        borderX = 40;
+
+        clear();
+        background(BACKGROUND_COLOR);
+        tileAllocator();
+
+        println("SYSTEM: MoveCenter pressed");
+    } else if (MoveRight.isHovering) {
+        borderX += 200;
+
+        clear();
+        background(BACKGROUND_COLOR);
+        tileAllocator();
+
+        println("SYSTEM: MoveRight pressed");
+    } else if (UARTstatus.isHovering) {
+        UARTstatus.setValue("Connecting");
+    } else {
+        for (int i = 0; i < tiles.size(); i++) {
+            tiles.get(i).onClick();
+        }
     }
-};w
+};

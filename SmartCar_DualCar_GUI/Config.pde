@@ -25,7 +25,7 @@ final color BUTTON_NORMAL_COLOR = SILVER;
 final color CHART_CURSOR_COLOR = GRAY;
 
 // below stuff is changeable for your personal color preference
-final float refreshRate = 10; // per ms, i can't the reason to change it
+final float refreshRate = 20; // per ms, i can't the reason to change it
 final int RECT_ANGLE_RADIUS = 0; // button corners radius
 final int CHART_HEIGHT = 600;
 final int fontSize = 20;

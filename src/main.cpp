@@ -380,8 +380,8 @@ int main() {
 //	uart0.add(DualCar_UART::FLOAT::f3, &echo3, true, 0);
 
 	uart0.add(DualCar_UART::UINT8_T::u0, &trig, true);
-	uart0.add(DualCar_UART::INT::i0, &i0, true);
-	uart0.add(DualCar_UART::INT::i1, &i1, true);
+//	uart0.add(DualCar_UART::INT::i0, &i0, true);
+//	uart0.add(DualCar_UART::INT::i1, &i1, true);
 
 	uart0.parseValues(); // << BT related
 

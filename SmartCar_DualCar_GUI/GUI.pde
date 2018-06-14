@@ -83,8 +83,9 @@ public class GUI_Raw implements GUI_interface {
 
 ArrayList<GUI_interface> tiles = new ArrayList<GUI_interface>();
 
-final int borderX = 40;
+int borderX = 40;
 final int borderY = 40;
+final int borderYLower = 40;
 final int hSpacing = 20;
 final int wSpacing = 20;
 
@@ -95,7 +96,7 @@ void tileAllocator() {
     int maxX = 0;
 
     for (int i = 0; i < tiles.size(); i++) {
-        if ((tiles.get(i).getHeight() + currentY) > (height - borderY)) {
+        if ((tiles.get(i).getHeight() + currentY) > (height - borderY - borderYLower)) {
             currentX += maxX + wSpacing;
             currentY = borderY;
             maxX = 0;
@@ -106,6 +107,12 @@ void tileAllocator() {
 
         maxX = (maxX < tiles.get(i).getWidth()) ? tiles.get(i).getWidth() : maxX;
     }
+
+    MoveLeft.setPos(40, height - borderY - borderYLower+40);
+    MoveCenter.setPos(40+60+20, height - borderY - borderYLower+40);
+    MoveRight.setPos(40+60+20+20+90, height - borderY - borderYLower+40);
+    
+    UARTstatus.setPos(40+60+20+20+90+60+40, height - borderY - borderYLower+40);
 
     print("\nGUI: tileAllocator \n");
 }

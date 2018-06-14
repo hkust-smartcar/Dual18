@@ -18,8 +18,8 @@
  DualCar_UART uart0;
  uart0.add(DualCar_UART::UINT8_T::u0, &test, false);
 
- *** run "uart0.parseValues();" once before in the while loop
- *** run "uart0.RunEveryMS();" once every ms
+ * run "uart0.parseValues();" once before in the while loop
+ * run "uart0.RunEveryMS();" once every ms
 
  suggest usage with Processing:
  set isAutoSend true when using OutputValueTile, Chart and Line
@@ -37,6 +37,7 @@
 #include <string>
 
 #define K60
+//#define MORRIS_USING
 
 #ifdef K60
 #include <libbase/k60/mcg.h>
@@ -50,6 +51,10 @@
 using libsc::System;
 using libsc::k60::JyMcuBt106;
 using libbase::k60::Uart;
+
+#ifdef MORRIS_USING
+#include "corner.h"
+#endif
 
 #else
 
@@ -283,7 +288,7 @@ public:
 	 */
 
 #ifdef K60
-	DualCar_UART(const uint8_t &BT_id = 0, const Uart::Config::BaudRate &_BaudRate = Uart::Config::BaudRate::k38400) :
+	DualCar_UART(const uint8_t &BT_id = 0, const Uart::Config::BaudRate &_BaudRate = Uart::Config::BaudRate::k115200) :
 	bt(GetBluetoothConfig(BT_id, _BaudRate, [&](const Byte *data, const size_t size) {
 						if (size == 1) {
 						} // it is put here to remve the warning
@@ -377,6 +382,7 @@ public:
 	 */
 	uint32_t xd = 0;
 	uint8_t BUFFER_SENT = 0;
+	uint8_t lastSent = 0;
 
 	void RunEveryMS() {
 		xd++;
@@ -389,12 +395,10 @@ public:
 #endif
 		SendCooling = SendCooling == 0 ? 0 : SendCooling - 1;
 
-		if (xd % 1000 == 0) {
-#ifdef K60
-			uint32_t timeNow = System::Time();
-#else
-			uint32_t timeNow = millis();
-#endif
+		if (RunEveryMS_StartTime - lastSent > 900) {
+			lastSent = RunEveryMS_StartTime;
+			uint32_t timeNow = RunEveryMS_StartTime;
+
 			timeNow /= 1000;
 			SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::elpasedTime,
 					static_cast<uint8_t>(timeNow >> 8),
@@ -489,10 +493,12 @@ public:
 				} else if (DataType == DATA_TYPE::UINT8_T) {
 					// check if the mail box has been declared in the client side
 					if (DataCaller_uint8_t.size() > MailBox_
-							&& (DataCaller_uint8_t[MailBox_] != nullptr || MailBox_ == (uint8_t) UINT8_T::boolean)) {
+							&& (DataCaller_uint8_t[MailBox_] != nullptr
+									|| MailBox_ == (uint8_t) UINT8_T::boolean)) {
 
 						if (MailBox_ == (uint8_t) UINT8_T::boolean) {
-							*DataCaller_bool[(uint8_t) RxBuffer[2]] = RxBuffer[3] == 1;
+							*DataCaller_bool[(uint8_t) RxBuffer[2]] =
+									RxBuffer[3] == 1;
 
 						} else {
 							*DataCaller_uint8_t[MailBox_] =
@@ -749,23 +755,61 @@ public:
 	 *
 	 */
 
+//#ifndef Corner
+//	class Corner {
+//	public:
+//		Corner() :
+//				percentage(0), x(0), y(0) {
+//		}
+//		Corner(int m_x, int m_y, float m_percentage) :
+//				percentage(m_percentage), x(m_x), y(m_y) {
+//		}
+//		void set_percentage(float m_percentage) {
+//			percentage = m_percentage;
+//		}
+//		void set_xcoord(int m_x) {
+//			x = m_x;
+//		}
+//		void set_ycoord(int m_y) {
+//			y = m_y;
+//		}
+//
+//		float get_percentage() {
+//			return percentage;
+//		}
+//		int get_xcoord() {
+//			return x;
+//		}
+//		int get_ycoord() {
+//			return y;
+//		}
+//
+//	private:
+//		float percentage;
+//		int x;
+//		int y;
+//	};
+//#endif
+
+#ifdef MORRIS_USING
 	inline void Send_corners(
-			const std::vector<std::pair<uint8_t, uint8_t>> &vect) {
+			 std::vector<Corner> &vect) {
 
 		uint8_t vectorSize = vect.size();
 		vectorSize = vectorSize > 32 ? 32 : vectorSize;
 
 		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::vector_StartSend,
-				vect[0].first, vect[0].second);
+				(uint8_t) vect[0].get_xcoord(), (uint8_t) vect[0].get_ycoord());
 
 		for (uint8_t i = 1; i < vectorSize; i++) {
-			SendWrapper(DATA_TYPE::MORRIS_VECTOR, i - 1, vect[i].first,
-					vect[i].second);
+			SendWrapper(DATA_TYPE::MORRIS_VECTOR, i-1, (uint8_t) vect[i].get_xcoord(),
+					(uint8_t) vect[i].get_ycoord());
 		}
 
 		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::vector_EndSend,
 				vectorSize, 0);
 	}
+#endif
 
 #ifdef DEBUG_PHASE
 	inline void Send_camera(const Byte * b, const uint8_t &w, const uint8_t &h) {
@@ -990,10 +1034,10 @@ public:
 				t++;
 			}
 
-			t0 = (byte) (t0 >> 1);
-			t1 = (byte) (t1 >> 1);
-			t2 = (byte) (t2 >> 1);
-			t3 = (byte) (t3 >> 1);
+			t0 = (Byte) (t0 >> 1);
+			t1 = (Byte) (t1 >> 1);
+			t2 = (Byte) (t2 >> 1);
+			t3 = (Byte) (t3 >> 1);
 		}
 
 		return (t % 2 == 1);

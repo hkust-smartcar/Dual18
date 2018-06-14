@@ -49,6 +49,9 @@ mailbox naming format:
 final String EnvPath = "/Users/JosephYim/Desktop/";
 final boolean SameFile = true;
 
+//final String BTtarget = "tty.MORRIS";
+final String BTtarget = "tty.COLUMN";
+
 void init() { // add tiles here 
 
     //addOutputValueTile(Mailbox.f0, "master slope");
@@ -59,11 +62,14 @@ void init() { // add tiles here
 
     addOutputValueTile(Mailbox.b0, "b0");
     addOutputValueTile(Mailbox.b1, "b1");
-    //addCameraGraph();
+    
     addElapsedTime();
     addOutputValueTile(Mailbox.u0, "u0");
-    
     addButtonTile(Mailbox.b1, "b1");
+    
+    addLineBreak(); // break into next column
+    
+    addCameraGraph();
     
     //addInputIncDecTile(Mailbox.i0, "i0", 1, 1, 0);
     //addInputIncDecTile(Mailbox.f0, "f0", 1, 1, 0);

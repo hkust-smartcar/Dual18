@@ -67,8 +67,8 @@ class InputBox extends GUI_Raw {
 
                     if (m_ValueDataType == DATA_TYPE.DOUBLE) {
                         DataArray_double[double_MailBox_id.ordinal()] = Double.parseDouble(m_Value);
-                        
-                        uart.Send_double(double_MailBox_id, DataArray_double[double_MailBox_id.ordinal()]);
+                        if (uart != null)
+                            uart.Send_double(double_MailBox_id, DataArray_double[double_MailBox_id.ordinal()]);
                     } else if (m_ValueDataType == DATA_TYPE.UINT8_T) {
                         while (((int) y) > 255) {
                             y -= 256;
@@ -78,15 +78,18 @@ class InputBox extends GUI_Raw {
                         };
                         DataArray_uint8_t[uint8_t_MailBox_id.ordinal()] = (int) y;
                         m_Value = Double.toString(y);
-                        
+
+                        if (uart != null)
                         uart.Send_uint8_t(uint8_t_MailBox_id, DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]);
                     } else if (m_ValueDataType == DATA_TYPE.FLOAT) {
                         DataArray_float[float_MailBox_id.ordinal()] = (float) y;
-                        
+
+                        if (uart != null)
                         uart.Send_float(float_MailBox_id, DataArray_float[float_MailBox_id.ordinal()]);
                     } else if (m_ValueDataType == DATA_TYPE.INT) {
                         DataArray_int[int_MailBox_id.ordinal()] = (int) y;
-                        
+
+                        if (uart != null)
                         uart.Send_int(int_MailBox_id, DataArray_int[int_MailBox_id.ordinal()]);
                     }
 
