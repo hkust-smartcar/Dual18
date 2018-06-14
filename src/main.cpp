@@ -78,7 +78,7 @@ bool IsOneLine(uint8_t maxVal, uint8_t leftVal, uint8_t rightVal, float multi = 
 }
 
 bool IsTwoLine(uint8_t midMax, uint8_t sideMax, uint8_t leftVal, uint8_t rightVal){
-	if (max(leftVal,rightVal) > sideMax*1.05 || min(leftVal,rightVal) > midMax*1.15){
+	if (leftVal+rightVal > sideMax+midMax || min(leftVal,rightVal) > midMax*1.15){
 		return true;
 	}
 	return false;
@@ -145,7 +145,7 @@ int main() {
 //    PID motorRPID(0.145,0.0,1.35, &REncoder,true);
 
     const uint8_t cycle = 8;
-    float loopSpeed = 4*cycle, highSpeed = 7*cycle, alignSpeed = 7*cycle;
+    float loopSpeed = 4*cycle, highSpeed = 5.5*cycle, alignSpeed = 7*cycle;
     float speed = highSpeed;
 	float frontLinear, midLinear, diffLinear;
 	float raw_frontLinear, raw_midLinear;
@@ -174,10 +174,10 @@ int main() {
 	carState state = normal;
 
 	float testLinear = 0;
-	bool start = false, cali = false, noCal = true;
+	bool start = false, cali = false, noCal = false;
 	uint8_t approaching = false;
-	bool onlyNormal = true, tuningPID = true;
-	bool leftLoop = true;
+	bool onlyNormal = false, tuningPID = false;
+	bool leftLoop = false;
 	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0, filterSum4 = 0, filterSum5 = 0;
 	uint8_t filterCounter = 0;
 	int32_t loopSum = 0;
@@ -279,7 +279,7 @@ int main() {
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
 
-    		uart0.RunEveryMS(); // << BT related
+//    		uart0.RunEveryMS(); // << BT related
 
     		if (lastTime % cycle == 0 && filterCounter != 0){
     			raw_mid_left = round(1.0*filterSum0/filterCounter);
@@ -347,7 +347,7 @@ int main() {
 				}
 
 				//nearLoop
-				else if (state == normal && IsTwoLine(equalMax, oneLineMax, raw_front_left, raw_front_right) && abs(top_left-top_right)>5){
+				else if (state == normal && IsTwoLine(equalMax, oneLineMax, raw_front_left, raw_front_right)){
 					state = nearLoop;
 					speed = loopSpeed;
 					stateTime = lastTime;
@@ -368,13 +368,13 @@ int main() {
 					stateTime = lastTime;
 				}
 				//turning
-				else if (state == straight2 && max(top_left,top_right)>15 && ((leftLoop && top_left>top_right) || (!leftLoop && top_right>top_left))){
+				else if (state == straight2 && max(top_left,top_right)>15 && ((leftLoop && top_left>=top_right) || (!leftLoop && top_right>=top_left))){
 					state = turning;
 					stateTime = lastTime;
 				}
 				//inLoop
 //				if (state == turning && (leftLoop && front_left>front_right*1.45 || !leftLoop && front_right>front_left*1.45) && abs(top_left-top_right)>15){
-				else if (state == turning && (leftLoop && raw_front_right<equalMin || !leftLoop && raw_front_left<equalMin)){
+				else if (state == turning && ((leftLoop && raw_front_right<equalMax) || (!leftLoop && raw_front_left<equalMax))){
 					state = inLoop;
 					speed = (loopSpeed+highSpeed)/2;
 					stateTime = lastTime;
@@ -382,12 +382,12 @@ int main() {
 					loopCounter = 0;
 				}
 				//junction
-				else if (state == inLoop && (top_left>70 || top_right>70)){
+				else if (state == inLoop && max(raw_front_left, raw_front_right)>oneLineMax && min(top_left, top_right)>30){
 					state = junction;
 					stateTime = lastTime;
 				}
 				//outLoop
-				else if (state == junction && (top_left<60 && top_right<60)){
+				else if (state == junction && raw_front_left+raw_front_right>oneLineMax*2){
 					state = outLoop;
 					stateTime = lastTime;
 				}
@@ -456,7 +456,6 @@ int main() {
 							angle = -servoPIDOneCurve.getPID((equalMax+equalMin)/2, raw_mid_right);
 						}
 					}
-					lastServo = angle;
 				}
 				else if (state == inLoop){
 					if (raw_front_left < oneLineMin*2.5 || raw_front_right < oneLineMin*2.5){
@@ -487,7 +486,7 @@ int main() {
 					led1.SetEnable(!1);
 				}
 				else if (state == leave){
-					angle = servoPIDAlignCurve.getPID(oneLineMin*2, raw_front_left);
+					angle = servoPIDAlignCurve.getPID(oneLineMin, raw_front_left);
 				}
 				else if (state == align){
 					angle = servoPIDAlignCurve.getPID(equalMin, raw_front_right);
@@ -575,7 +574,7 @@ int main() {
 //					state = normal;
 //					speed = highSpeed;
 //				}
-				if (approaching && state == side && lastTime-approachTime>=1000){
+				if (approaching && state == side && lastTime-approachTime>=3000){
 					approaching = false;
 				}
 			}
@@ -609,7 +608,7 @@ int main() {
 					sprintf(c,"%d %d %d",(int)top_left, (int)top_right, topMax);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,120,128,15));
-					sprintf(c,"M: %f",frontLinear*100);
+					sprintf(c,"M: %f",atan(1.0*(raw_top_right-oneLineMin)/(raw_top_left-oneLineMin))/3.1415926*180);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,135,128,15));
 					sprintf(c,"%d %d %d", servo.GetDegree()-middleServo, equalMin, (int)leftLoop);
