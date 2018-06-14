@@ -26,26 +26,35 @@ void setup() {
     }
 
     // uart setup
+    
+    // list UART
+    println("Available UART ports:");
+    for (int i = 0; i < Serial.list().length; i++) {
+        println(i + ". " + Serial.list()[i]);
+    }
+    
+    
     String target = null;
 
-    target = ""; 
+    target = "tty.MORRIS"; 
 
     int id = 0;
     while (((Serial.list().length > id) && (target != null)) && (!Serial.list()[id].contains(target))) {
         id++;
     }
 
+    id = 4; // change the id value here!!!
     if (!(Serial.list().length > id)) {
         println("UART: ERROR: Can't Connect BT");
-        while (true) {
-            exit();
-        }
+    } else {
+        println("ID " + id + ":" + Serial.list()[id] + " is selected");
     }
+    
+    println();
+    println("To change the target, uncomment line 56 in the TAB SmartCar_DualCar_GUI");
+    println("and set the id to the desired one");
 
-    id = 0; // change the id value here!!!
-
-    println("UART port selected is " + Serial.list()[id]);
-    uart = new UART(new Serial(this, Serial.list()[id], 38400));
+    uart = new UART(new Serial(this, Serial.list()[id], 115200));
 
     // init array
 
@@ -134,4 +143,4 @@ void mousePressed() {
     for (int i = 0; i < tiles.size(); i++) {
         tiles.get(i).onClick();
     }
-};
+};w

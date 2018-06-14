@@ -537,14 +537,38 @@ class ButtonTile extends GUI_Raw {
     private TextLabel m_var;
     private bool_MailBox bool_MailBox_id = null;
     private int deBounce;
+    private int AniSpeed = 20;
+    private int AniTarget = 0;
+    private int AniNowX = 0;
+    private boolean AniLastValue;
+
+    private int look;
 
     ButtonTile(bool_MailBox id) {
         bool_MailBox_id = id;
         m_Width = 200;
+        look = 2;
 
+        if (look == 0) {
+            m_but = new Button(0, 0, m_Width - 40, m_ButHeight, "");
+            m_var = new TextLabel(m_Width, "null");
+        } else if (look == 1) {
+            m_but = new Button(0, 0, (m_Width - 40)/2, m_ButHeight, "");
+            m_var = new TextLabel(m_Width, "null");
+        } else if (look == 2) {
+            AniLastValue = DataArray_bool[bool_MailBox_id.ordinal()];
 
-        m_but = new Button(0, 0, m_Width - 40, m_ButHeight, "null");
-        m_var = new TextLabel(m_Width, "null");
+            m_but = new Button(0, 0, (m_Width - 40), m_ButHeight, "");
+            m_var = new TextLabel(m_Width, "null");
+            
+            if (DataArray_bool[bool_MailBox_id.ordinal()]) {
+                AniNowX = m_TopLeftX + 20;
+                AniTarget = AniNowX;
+            } else {
+                AniNowX = m_TopLeftX + 20 + (m_Width - 40)/2;
+                AniTarget = AniNowX;
+            }
+        }
 
         m_Height = m_but.getHeight() + m_var.getHeight() + 10;
         deBounce = 0;
@@ -557,16 +581,66 @@ class ButtonTile extends GUI_Raw {
         fill(TILE_BACKGROUND_COLOR);
         rect(m_TopLeftX, m_TopLeftY, m_Width, m_Height, RECT_ANGLE_RADIUS);
 
-        if (DataArray_bool[bool_MailBox_id.ordinal()]) {
-            m_but.setValue("Now TRUE");
-            m_but.setColor(GREEN, GREEN);
-        } else {
-            m_but.setValue("Now FALSE");
-            m_but.setColor(RED, RED);
-        }
+        if (look == 0) {
+            if (DataArray_bool[bool_MailBox_id.ordinal()]) {
+                //m_but.setValue("Now TRUE");
+                m_but.setColor(GREEN, GREEN);
+            } else {
+                //m_but.setValue("Now FALSE");
+                m_but.setColor(RED, RED);
+            }
 
-        m_but.tDraw();
-        m_var.tDraw();
+            m_but.tDraw();
+            m_var.tDraw();
+        } else if (look == 1) {
+            m_but.setColor(WHITE, WHITE);
+
+            stroke(50);
+            fill(RED);
+            rect(m_TopLeftX + 20, m_TopLeftY+m_var.getHeight()+5, (m_Width - 40)/2, m_ButHeight, RECT_ANGLE_RADIUS);
+            fill(GREEN);
+            rect(m_TopLeftX + 20 + (m_Width - 40)/2, m_TopLeftY+m_var.getHeight()+5, (m_Width - 40)/2, m_ButHeight, RECT_ANGLE_RADIUS);
+
+            if (DataArray_bool[bool_MailBox_id.ordinal()]) {
+                m_but.setPos(m_TopLeftX + 20, m_TopLeftY+m_var.getHeight()+5);
+            } else {
+                m_but.setPos(m_TopLeftX + 20 + (m_Width - 40)/2, m_TopLeftY+m_var.getHeight()+5);
+            }
+
+            m_but.tDraw();
+            m_var.tDraw();
+        } else if (look == 2) {
+            if (AniLastValue != DataArray_bool[bool_MailBox_id.ordinal()]) {
+                if (DataArray_bool[bool_MailBox_id.ordinal()]) {
+                    AniTarget = m_TopLeftX + 20;
+                } else {
+                    AniTarget = m_TopLeftX + 20 + (m_Width - 40)/2;
+                }
+                AniLastValue = DataArray_bool[bool_MailBox_id.ordinal()];
+            }
+
+            if (AniNowX < AniTarget) {
+                AniNowX += AniSpeed;
+            } else if (AniNowX > AniTarget) {
+                AniNowX -= AniSpeed;
+            }
+
+            fill(BLACK);
+            rect(m_TopLeftX + 20-5, m_TopLeftY+m_var.getHeight()+5-5, (m_Width - 40)+10, m_ButHeight+10, RECT_ANGLE_RADIUS);
+
+            if (DataArray_bool[bool_MailBox_id.ordinal()]) {
+                m_but.setColor(BLUE, BLUE);
+            } else {
+                m_but.setColor(GRAY, GRAY);
+            }
+
+            m_but.tDraw();
+
+            fill(WHITE);
+            rect(AniNowX, m_TopLeftY+m_var.getHeight()+5, (m_Width - 40)/2, m_ButHeight, RECT_ANGLE_RADIUS);
+
+            m_var.tDraw();
+        }
     }
 
     @Override
@@ -594,8 +668,23 @@ class ButtonTile extends GUI_Raw {
         m_TopLeftX = topLeftX_;
         m_TopLeftY = topLeftY_;
 
-        m_var.setPos(m_TopLeftX, m_TopLeftY);
-        m_but.setPos(m_TopLeftX + 20, m_TopLeftY+m_var.getHeight()+5);
+        if (look == 0) {
+            m_var.setPos(m_TopLeftX, m_TopLeftY);
+            m_but.setPos(m_TopLeftX + 20, m_TopLeftY+m_var.getHeight()+5);
+        } else if (look == 1) {
+            m_var.setPos(m_TopLeftX, m_TopLeftY);
+        } else if (look == 2) {
+            m_var.setPos(m_TopLeftX, m_TopLeftY);
+            m_but.setPos(m_TopLeftX + 20, m_TopLeftY+m_var.getHeight()+5);
+
+            if (DataArray_bool[bool_MailBox_id.ordinal()]) {
+                AniNowX = m_TopLeftX + 20;
+                AniTarget = AniNowX;
+            } else {
+                AniNowX = m_TopLeftX + 20 + (m_Width - 40)/2;
+                AniTarget = AniNowX;
+            }
+        }
     }
 
     @Override
