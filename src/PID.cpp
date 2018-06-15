@@ -14,10 +14,17 @@ float PID::getPID(){
 	 if(dTime ==0){
 	  dTime +=1;
 	 }
+
 	 encoder->Update();
-	 currentVelocity = std::abs(encoder->GetCount()) + 0.0;
+
+	 if(encoder->GetCount()<500){
+		 if(encoder->GetCount()<0)
+			 currentVelocity =-1*(encoder->GetCount());
+		 else
+			 currentVelocity =encoder->GetCount();
+	 }
 	 currentError = desireVelocity - currentVelocity ;
-//	 output +=(kP*(currentError - lastError) + kP*dTime * currentError/kI +(kP*kD/dTime)*((currentError - lastError)-(lastError - lastlastError)));
+	 //	 output +=(kP*(currentError - lastError) + kP*dTime * currentError/kI +(kP*kD/dTime)*((currentError - lastError)-(lastError - lastlastError)));
 	 output += kP*(currentError) + kD*(currentError - lastError);
 	 lastTime = currentTime;
 	 lastlastError = lastError;
@@ -34,6 +41,7 @@ float PID::getPID(){
 		 output = 0;
 	 }
 	 return output;
+
 }
 
 float PID::getPID(float setPoint, float measuredValue){

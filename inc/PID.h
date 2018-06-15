@@ -15,7 +15,7 @@ using libsc::System;
 class PID {
 public:
 	PID(float KP, float KD):kP(KP),kD(KD){};
-	PID(float KP, float KI, float KD, DirEncoder* Encoder):kP(KP),kI(KI),kD(KD),encoder(Encoder){};
+	PID(float KP, float KI, float KD, DirEncoder* Encoder, bool direction):kP(KP),kI(KI),kD(KD),encoder(Encoder), Direction(direction){};
 	float getPID();
 	float getPID(float setPoint, float measuredValue);
 	float getkP(){return kP;}
@@ -33,6 +33,7 @@ private:
 	float kP = 0.0;
 	float kI = 0.0;
 	float kD = 0.0;
+	bool Direction = false;
 	uint32_t lastTime = 0, dTime = 0;
 	float currentVelocity = 0;
 	float desireVelocity = 0;
