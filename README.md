@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Pong
 
 > Author: ~~Leslie Lee([LeeChunHei](https://github.com/LeeChunHei))~~ 
@@ -56,3 +57,11 @@ git commit -a -m "initial commit"
 git push --set-upstream origin master
 ```
 
+=======
+<<<<<<< HEAD
+# Smart-Car-Internal
+=======
+# Dual18
+2018 Dual Car Group
+>>>>>>> f717e60cb3bb53fa54abacd1b676ebb61f135aa7
+>>>>>>> morris_branch

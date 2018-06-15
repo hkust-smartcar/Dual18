@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 bin/
 obj/
 .settings/
@@ -9,3 +10,6 @@ CMakeConfig.cmake
 codealike.json
 CMakeLists.txt
 toolchain_arm_none_eabi_gcc.cmake
+=======
+/Debug/
+>>>>>>> morris_branch

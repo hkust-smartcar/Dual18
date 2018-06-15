@@ -68,7 +68,11 @@ CCFLAGS+=-Wall -Wextra
 ifeq ($(SCCC_BUILD),DEBUG)
 BIN_SUFFIX:=$(BIN_SUFFIX)-d
 CPPFLAGS+=-DDEBUG=1
+<<<<<<< HEAD
 CCFLAGS+=-O2 -g3
+=======
+CCFLAGS+=-O0 -g3
+>>>>>>> morris_branch
 $(info Build = DEBUG)
 
 else ifeq ($(SCCC_BUILD),RELEASE)
