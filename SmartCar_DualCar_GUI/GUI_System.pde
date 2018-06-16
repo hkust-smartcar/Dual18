@@ -44,18 +44,6 @@ class ElapsedTime extends GUI_Raw {
         m_AttributeLable.tDraw();
         m_ValueLabel.tDraw();
     };
-    @Override void setValue(String value_) {
-        SYSTEM_MSG_elpasedTime = Integer.parseInt(value_);
-    };
-    @Override  void setValue(double double_) {
-        SYSTEM_MSG_elpasedTime = (int) Math.round(double_);
-    };
-    @Override  void setValue(float float_) {
-        SYSTEM_MSG_elpasedTime = (int) Math.round(float_);
-    };
-    @Override void setValue(int int_) {
-        SYSTEM_MSG_elpasedTime = int_;
-    };
     @Override void setPos(int topLeftX_, int topLeftY_) {
         m_TopLeftX = topLeftX_;
         m_TopLeftY = topLeftY_;

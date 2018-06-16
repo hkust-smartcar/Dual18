@@ -7,6 +7,9 @@ class InputBox extends GUI_Raw {
     private double_MailBox double_MailBox_id = null;
     private float_MailBox float_MailBox_id = null;
     private int_MailBox int_MailBox_id = null;
+    private bool_MailBox bool_MailBox_id = null;
+
+    GeneralVariableTile current = null;
 
     InputBox() {
         super();
@@ -28,11 +31,14 @@ class InputBox extends GUI_Raw {
         } else if (int_ < 128) {
             m_ValueDataType = DATA_TYPE.INT;
             int_MailBox_id = int_MailBox.values()[int_-96];
+        } else if (int_ < 160) {
+            m_ValueDataType = DATA_TYPE.BOOLEAN;
+            bool_MailBox_id = bool_MailBox.values()[int_-128];
         }
         m_Value = "";
     };
     @Override void setValue(String value_) {
-        setPos(Integer.parseInt(value_.split(",")[0]), Integer.parseInt(value_.split(",")[1]));
+        this.setPos(Integer.parseInt(value_.split(",")[0]), Integer.parseInt(value_.split(",")[1]));
     };
     @Override void tDraw() {
         if (!isHide) {
@@ -80,17 +86,22 @@ class InputBox extends GUI_Raw {
                         m_Value = Double.toString(y);
 
                         if (uart != null)
-                        uart.Send_uint8_t(uint8_t_MailBox_id, DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]);
+                            uart.Send_uint8_t(uint8_t_MailBox_id, DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]);
                     } else if (m_ValueDataType == DATA_TYPE.FLOAT) {
                         DataArray_float[float_MailBox_id.ordinal()] = (float) y;
 
                         if (uart != null)
-                        uart.Send_float(float_MailBox_id, DataArray_float[float_MailBox_id.ordinal()]);
+                            uart.Send_float(float_MailBox_id, DataArray_float[float_MailBox_id.ordinal()]);
                     } else if (m_ValueDataType == DATA_TYPE.INT) {
                         DataArray_int[int_MailBox_id.ordinal()] = (int) y;
 
                         if (uart != null)
-                        uart.Send_int(int_MailBox_id, DataArray_int[int_MailBox_id.ordinal()]);
+                            uart.Send_int(int_MailBox_id, DataArray_int[int_MailBox_id.ordinal()]);
+                    } else if (m_ValueDataType == DATA_TYPE.BOOLEAN) {
+                        DataArray_bool[bool_MailBox_id.ordinal()] = y != 0 ? true : false;
+
+                        if (uart != null)
+                            uart.Send_bool(bool_MailBox_id, DataArray_bool[bool_MailBox_id.ordinal()]);
                     }
 
                     print("GUI: InputBox-ENTER:" + m_Value + "\n\n");
@@ -136,4 +147,19 @@ class InputBox extends GUI_Raw {
 
         tDraw();
     };
+
+    @Override
+        void setPos(int topLeftX_, int topLeftY_) {
+        if (topLeftX_ == 0 && topLeftY_ == 0) {
+            if (current != null) 
+                this.setValue(current.m_ValueLabel.getPos());
+        } else {
+            m_TopLeftX = topLeftX_;
+            m_TopLeftY = topLeftY_;
+        }
+    }
+
+    void reg(GeneralVariableTile current_) {
+        current = current_;
+    }
 }

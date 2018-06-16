@@ -346,7 +346,7 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
     }
 
     void tDraw() {
-        println("GUI: LINE-tDraw");
+        //println("GUI: LINE-tDraw");
 
         fill(m_LineColor);
         if (needRedraw == true) {
@@ -502,7 +502,7 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
         }
     };
     void drawClean() {
-        println("GUI: LINE-drawClean");
+        //println("GUI: LINE-drawClean");
 
         if (m_isPause == false) {
             double BoundHeight = m_UpperBound - m_LowerBound;
@@ -536,7 +536,7 @@ class ScanLineChart_Line implements ScanLineChart_Interface {
         }
     };
     void drawNew() {
-        println("GUI: LINE-drawNew");
+        //println("GUI: LINE-drawNew");
 
         if (m_isPause == false) {
             double BoundHeight = m_UpperBound - m_LowerBound;

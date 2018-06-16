@@ -62,9 +62,9 @@ St7735r::Config GetLcdConfig() {
 
 Adc::Config getADCConfig(uint8_t id) {
 	Adc::Config config;
-	config.speed = Adc::Config::SpeedMode::kExFast;
+	config.speed = Adc::Config::SpeedMode::kExSlow;
 	config.is_continuous_mode = true;
-	config.avg_pass = Adc::Config::AveragePass::k16;
+	config.avg_pass = Adc::Config::AveragePass::k32;
 	config.resolution = Adc::Config::Resolution::k8Bit;
 	switch (id) {
 		case 0:
@@ -212,7 +212,6 @@ public:
 
 	musicPlayer() :
 			buzzzer(getBuzzerConfig()) {
-		playSong(NokiaSound);
 	}
 
 	PassiveBuzzer buzzzer;
@@ -371,15 +370,18 @@ int main() {
 
 	uint8_t trig = 0, pTrig = 0;
 	int i0 = 0, i1 = 0;
+	bool playBuzzer = false;
 
-	DualCar_UART uart0(1); // << BT related
+	DualCar_UART uart0(0); // << BT related
+
+	uart0.add(DualCar_UART::BOOLEAN::b0, &playBuzzer, true);
 
 //	uart0.add(DualCar_UART::FLOAT::f0, &echo0, true, 0);
 //	uart0.add(DualCar_UART::FLOAT::f1, &echo1, true, 0);
 //	uart0.add(DualCar_UART::FLOAT::f2, &echo2, true, 0);
 //	uart0.add(DualCar_UART::FLOAT::f3, &echo3, true, 0);
 
-	uart0.add(DualCar_UART::UINT8_T::u0, &trig, true);
+//	uart0.add(DualCar_UART::UINT8_T::u0, &trig, true);
 //	uart0.add(DualCar_UART::INT::i0, &i0, true);
 //	uart0.add(DualCar_UART::INT::i1, &i1, true);
 
@@ -394,7 +396,7 @@ int main() {
 //	PassiveBuzzer buzzzerrrrrrrr(config);
 //	buzzzerrrrrrrr.SetBeep(true);
 
-//	musicPlayer player;
+	musicPlayer player;
 
 //	while (true);
 
@@ -474,48 +476,59 @@ int main() {
 //				lcd.FillColor(Lcd::kBlack);
 //				writer.WriteBuffer(str1, 10);
 
+				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u0, adc0.GetResult());
+				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u1, adc1.GetResult());
+				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u2, adc2.GetResult());
+				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u3, adc3.GetResult());
+				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u4, adc4.GetResult());
+				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u5, adc5.GetResult());
+				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u6, adc6.GetResult());
+				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u7, adc7.GetResult());
+
+				uart0.Send_bool(DualCar_UART::BOOLEAN::b0, playBuzzer);
+
 				int t = adc0.GetResult();
-				sprintf(str1, "0: %d", t);
-				lcd.SetRegion(Lcd::Rect(0, 0, 80, 15));
-				lcd.FillColor(Lcd::kBlack);
-				writer.WriteBuffer(str1, 10);
-
-				t = adc1.GetResult();
-				sprintf(str1, "1: %d", t);
-				lcd.SetRegion(Lcd::Rect(0, 15, 80, 15));
-				lcd.FillColor(Lcd::kBlack);
-				writer.WriteBuffer(str1, 10);
-
-				t = adc2.GetResult();
-				sprintf(str1, "2: %d", t);
-				lcd.SetRegion(Lcd::Rect(0, 30, 80, 15));
-				lcd.FillColor(Lcd::kBlack);
-				writer.WriteBuffer(str1, 10);
-
-				t = adc3.GetResult();
-				sprintf(str1, "3: %d", t);
-				lcd.SetRegion(Lcd::Rect(0, 45, 80, 15));
-				lcd.FillColor(Lcd::kBlack);
-				writer.WriteBuffer(str1, 10);
-
-				t = adc4.GetResult();
-				sprintf(str1, "4: %d", t);
-				lcd.SetRegion(Lcd::Rect(0, 60, 80, 15));
-				lcd.FillColor(Lcd::kBlack);
-				writer.WriteBuffer(str1, 10);
-
-				t = adc5.GetResult();
-				sprintf(str1, "5: %d", t);
-				lcd.SetRegion(Lcd::Rect(0, 75, 80, 15));
-				lcd.FillColor(Lcd::kBlack);
-				writer.WriteBuffer(str1, 10);
-
-				t = adc6.GetResult();
-				sprintf(str1, "6: %d", t);
-				lcd.SetRegion(Lcd::Rect(0, 90, 80, 15));
-				lcd.FillColor(Lcd::kBlack);
-				writer.WriteBuffer(str1, 10);
-
+//				sprintf(str1, "0: %d", t);
+//				lcd.SetRegion(Lcd::Rect(0, 0, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str1, 10);
+//
+//				t = adc1.GetResult();
+//				sprintf(str1, "1: %d", t);
+//				lcd.SetRegion(Lcd::Rect(0, 15, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str1, 10);
+//
+//				t = adc2.GetResult();
+//				sprintf(str1, "2: %d", t);
+//				lcd.SetRegion(Lcd::Rect(0, 30, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str1, 10);
+//
+//				t = adc3.GetResult();
+//				sprintf(str1, "3: %d", t);
+//				lcd.SetRegion(Lcd::Rect(0, 45, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str1, 10);
+//
+//				t = adc4.GetResult();
+//				sprintf(str1, "4: %d", t);
+//				lcd.SetRegion(Lcd::Rect(0, 60, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str1, 10);
+//
+//				t = adc5.GetResult();
+//				sprintf(str1, "5: %d", t);
+//				lcd.SetRegion(Lcd::Rect(0, 75, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str1, 10);
+//
+//				t = adc6.GetResult();
+//				sprintf(str1, "6: %d", t);
+//				lcd.SetRegion(Lcd::Rect(0, 90, 80, 15));
+//				lcd.FillColor(Lcd::kBlack);
+//				writer.WriteBuffer(str1, 10);
+//
 				t = adc7.GetResult();
 				sprintf(str1, "7: %d", t);
 				lcd.SetRegion(Lcd::Rect(0, 105, 80, 15));
@@ -544,6 +557,11 @@ int main() {
 			if (lastTime % 1000 == 0) {
 				trig++;
 				i0++;
+			}
+
+			if (playBuzzer) {
+//				player.playSong(player.NokiaSound);
+				playBuzzer = false;
 			}
 
 			uart0.RunEveryMS(); // << BT related

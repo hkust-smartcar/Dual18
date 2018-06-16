@@ -34,8 +34,8 @@ public class GUI_Raw implements GUI_interface {
     void tDraw() {
     };
     void over() {
-        if (mouseX >= m_TopLeftX && mouseX <= m_TopLeftX+m_Width && 
-            mouseY >= m_TopLeftY && mouseY <= m_TopLeftY+m_Height) {
+        if (mouseX >= m_TopLeftX && mouseX <= (m_TopLeftX+m_Width) && 
+            mouseY >= m_TopLeftY && mouseY <= (m_TopLeftY+m_Height)) {
             isHovering = true;
         } else {
             isHovering = false;
@@ -111,8 +111,10 @@ void tileAllocator() {
     MoveLeft.setPos(40, height - borderY - borderYLower+40);
     MoveCenter.setPos(40+60+20, height - borderY - borderYLower+40);
     MoveRight.setPos(40+60+20+20+90, height - borderY - borderYLower+40);
-    
+
     UARTstatus.setPos(40+60+20+20+90+60+40, height - borderY - borderYLower+40);
+    if (InputBoxObj != null)
+        InputBoxObj.setPos(0, 0);
 
     print("\nGUI: tileAllocator \n");
 }

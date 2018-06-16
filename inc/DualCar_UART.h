@@ -66,7 +66,7 @@ using std::vector;
 
 #define REPEAT_SEND_MS 100
 #define LOCAL_BUFFER_MAX 8
-#define BUFFER_SENT_MAX 100
+#define BUFFER_SENT_MAX 200
 #define CHECK_VALUE_PER 10
 // buffer size will determine the max len of the string
 // keep it between 8 to 64
@@ -449,8 +449,7 @@ public:
 			if (AutoSendWhenChanges_bool.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_bool) {
 					uint8_t id = (uint8_t) temp.first;
-					if ((DataCaller_bool[id] != nullptr
-							&& BUFFER_SENT < BUFFER_SENT_MAX)
+					if ((DataCaller_bool[id] != nullptr)
 							&& (*DataCaller_bool[id]) != temp.second) {
 						Send_bool(temp.first, *DataCaller_bool[id]);
 						temp.second = *DataCaller_bool[id];

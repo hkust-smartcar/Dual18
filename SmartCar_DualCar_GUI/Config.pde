@@ -29,7 +29,6 @@ final float refreshRate = 20; // per ms, i can't the reason to change it
 final int RECT_ANGLE_RADIUS = 0; // button corners radius
 final int CHART_HEIGHT = 600;
 final int fontSize = 20;
-final boolean serialNeedAck = false; // dont enable it cause I haven't tested it!!!
 final int LINE_STROKE_WEIGHT = 2;
 
 final int CAMERA_GRAPH_X = 80;

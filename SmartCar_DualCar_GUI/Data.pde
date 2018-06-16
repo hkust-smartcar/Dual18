@@ -375,86 +375,59 @@ public enum Mailbox {
 }
 
 // addOutputValueTile
+
 void addOutputValueTile(Mailbox mailbox, String name) {
+    addGeneralVariableTile(mailbox, name, 0);
+}
+
+void addInputIncDecTile(Mailbox mailbox, String name, double initValue) {
+    addGeneralVariableTile(mailbox, name, 0);
+}
+
+// GeneralVariableTile
+void addGeneralVariableTile(Mailbox mailbox, String name, double initValue) {
     if (mailbox.ordinal() < 32) {
-        addOutputValueTile(double_MailBox.values()[mailbox.ordinal()], name);
+        addGeneralVariableTile(double_MailBox.values()[mailbox.ordinal()], name, (double) initValue);
     } else if (mailbox.ordinal() < 64) {
-        addOutputValueTile(float_MailBox.values()[mailbox.ordinal() - 32], name);
+        addGeneralVariableTile(float_MailBox.values()[mailbox.ordinal() - 32], name, (float) initValue);
     } else if (mailbox.ordinal() < 96) {
-        addOutputValueTile(uint8_t_MailBox.values()[mailbox.ordinal() - 64], name);
+        addGeneralVariableTile(uint8_t_MailBox.values()[mailbox.ordinal() - 64], name, (int) initValue);
     } else if (mailbox.ordinal() < 128) {
-        addOutputValueTile(int_MailBox.values()[mailbox.ordinal() - 96], name);
+        addGeneralVariableTile(int_MailBox.values()[mailbox.ordinal() - 96], name, (int) initValue);
     } else if (mailbox.ordinal() < 160) {
-        addOutputValueTile(bool_MailBox.values()[mailbox.ordinal() - 128], name);
+        addGeneralVariableTile(bool_MailBox.values()[mailbox.ordinal() - 128], name, !(initValue == 0));
     }
 }
 
-void addOutputValueTile(uint8_t_MailBox mailbox, String name) {
-    OutputValueTile t = new OutputValueTile(mailbox);
+void addGeneralVariableTile(int_MailBox mailbox, String name, int initValue) {
+    GeneralVariableTile t = new GeneralVariableTile(mailbox, initValue);
     t.setValue(name);
     tiles.add(t);
 }
 
-void addOutputValueTile(double_MailBox mailbox, String name) {
-    OutputValueTile t = new OutputValueTile(mailbox);
-    t.setValue(name);
-    tiles.add(t);
-}
-
-void addOutputValueTile(float_MailBox mailbox, String name) {
-    OutputValueTile t = new OutputValueTile(mailbox);
-    t.setValue(name);
-    tiles.add(t);
-}
-
-void addOutputValueTile(int_MailBox mailbox, String name) {
-    OutputValueTile t = new OutputValueTile(mailbox);
-    t.setValue(name);
-    tiles.add(t);
-}
-
-void addOutputValueTile(bool_MailBox mailbox, String name) {
-    OutputValueTile t = new OutputValueTile(mailbox);
-    t.setValue(name);
-    tiles.add(t);
-}
-
-// addInputIncDecTile
-void addInputIncDecTile(Mailbox mailbox, String name, double small, double large, double initValue) {
-    if (mailbox.ordinal() < 32) {
-        addInputIncDecTile(double_MailBox.values()[mailbox.ordinal()], name, (double) small, (double) large, (double) initValue);
-    } else if (mailbox.ordinal() < 64) {
-        addInputIncDecTile(float_MailBox.values()[mailbox.ordinal() - 32], name, (float) small, (float) large, (float) initValue);
-    } else if (mailbox.ordinal() < 96) {
-        addInputIncDecTile(uint8_t_MailBox.values()[mailbox.ordinal() - 64], name, (int) small, (int) large, (int) initValue);
-    } else if (mailbox.ordinal() < 128) {
-        addInputIncDecTile(int_MailBox.values()[mailbox.ordinal() - 96], name, (int) small, (int) large, (int) initValue);
-    }
-}
-
-void addInputIncDecTile(int_MailBox mailbox, String name, int small, int large, int initValue) {
-    InputIncDecTile t = new InputIncDecTile(mailbox, small, large, initValue);
-    t.setValue(name);
-    tiles.add(t);
-}
-
-void addInputIncDecTile(uint8_t_MailBox mailbox, String name, int small, int large, int initValue) {
+void addGeneralVariableTile(uint8_t_MailBox mailbox, String name, int initValue) {
 
     // !!! missing range check here
 
-    InputIncDecTile t = new InputIncDecTile(mailbox, small, large, initValue);
+    GeneralVariableTile t = new GeneralVariableTile(mailbox, initValue);
     t.setValue(name);
     tiles.add(t);
 }
 
-void addInputIncDecTile(double_MailBox mailbox, String name, double small, double large, double initValue) {
-    InputIncDecTile t = new InputIncDecTile(mailbox, small, large, initValue);
+void addGeneralVariableTile(double_MailBox mailbox, String name, double initValue) {
+    GeneralVariableTile t = new GeneralVariableTile(mailbox, initValue);
     t.setValue(name);
     tiles.add(t);
 }
 
-void addInputIncDecTile(float_MailBox mailbox, String name, float small, float large, float initValue) {
-    InputIncDecTile t = new InputIncDecTile(mailbox, small, large, initValue);
+void addGeneralVariableTile(float_MailBox mailbox, String name, float initValue) {
+    GeneralVariableTile t = new GeneralVariableTile(mailbox, initValue);
+    t.setValue(name);
+    tiles.add(t);
+}
+
+void addGeneralVariableTile(bool_MailBox mailbox, String name, boolean initValue) {
+    GeneralVariableTile t = new GeneralVariableTile(mailbox, initValue);
     t.setValue(name);
     tiles.add(t);
 }
@@ -466,9 +439,10 @@ void addElapsedTime() {
 
 // addChart
 void addChart(int SampleSize_, int HorizontalSpacing, int chart_height, double LowerBound, double UpperBound) {
-    ScanLineChart chart = new ScanLineChart(SampleSize_, HorizontalSpacing, chart_height, LowerBound, UpperBound);
-    charts.add(chart);
-    chartsNum++;
+    if (currentChart != null) 
+        currentChart.init();
+    currentChart = new ScanLineChart(SampleSize_, HorizontalSpacing, chart_height, LowerBound, UpperBound);
+    tiles.add(currentChart);
 }
 
 // addLine
@@ -485,33 +459,43 @@ void addLine(Mailbox mailbox, String name, color c) {
 }
 
 void addLine(float_MailBox mailbox, String name, color c) {
-    ScanLineChart_Line t = new ScanLineChart_Line(mailbox, c);
-    t.setValue(name);
-    charts.get(chartsNum).lines.add(t);
+    if (currentChart != null) {
+        ScanLineChart_Line t = new ScanLineChart_Line(mailbox, c);
+        t.setValue(name);
+        currentChart.lines.add(t);
+    }
 }
 
 void addLine(uint8_t_MailBox mailbox, String name, color c) {
-    ScanLineChart_Line t = new ScanLineChart_Line(mailbox, c);
-    t.setValue(name);
-    charts.get(chartsNum).lines.add(t);
+    if (currentChart != null) {
+        ScanLineChart_Line t = new ScanLineChart_Line(mailbox, c);
+        t.setValue(name);
+        currentChart.lines.add(t);
+    }
 }
 
 void addLine(int_MailBox mailbox, String name, color c) {
-    ScanLineChart_Line t = new ScanLineChart_Line(mailbox, c);
-    t.setValue(name);
-    charts.get(chartsNum).lines.add(t);
+    if (currentChart != null) {
+        ScanLineChart_Line t = new ScanLineChart_Line(mailbox, c);
+        t.setValue(name);
+        currentChart.lines.add(t);
+    }
 }
 
 void addLine(double_MailBox mailbox, String name, color c) {
-    ScanLineChart_Line t = new ScanLineChart_Line(mailbox, c);
-    t.setValue(name);
-    charts.get(chartsNum).lines.add(t);
+    if (currentChart != null) {
+        ScanLineChart_Line t = new ScanLineChart_Line(mailbox, c);
+        t.setValue(name);
+        currentChart.lines.add(t);
+    }
 }
 
 void addLine(double value, String name, color c) {
-    ScanLineChart_Line t = new ScanLineChart_Line(value, c);
-    t.setValue(name);
-    charts.get(chartsNum).lines.add(t);
+    if (currentChart != null) {
+        ScanLineChart_Line t = new ScanLineChart_Line(value, c);
+        t.setValue(name);
+        currentChart.lines.add(t);
+    }
 }
 
 // addLineBreak

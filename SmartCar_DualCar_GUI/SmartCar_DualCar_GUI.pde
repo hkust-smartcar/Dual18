@@ -4,58 +4,13 @@ import processing.serial.*;
 import java.util.Random;
 
 Random rand = new Random();
-ArrayList<ScanLineChart> charts;
 ArrayList<VectorGraphDot> VectorGraph_ArraryList = null;
 ArrayList<CameraDot> CameraGraph_ArraryList = null;
-int chartsNum = -1;
 InputBox InputBoxObj = null;
 int TotalTrashedByte = 0;
+ScanLineChart currentChart = null;
 
 Button MoveLeft, MoveRight, MoveCenter, UARTstatus;
-
-void InitUART(int id_) {
-    int id = id_;
-
-    println("UART init: Start Trying at " + id_);
-    println("Available UART ports:");
-    for (int i = 0; i < Serial.list().length; i++) {
-        println(i + ". " + Serial.list()[i]);
-    }
-
-    while (((Serial.list().length > id) && (BTtarget != null)) 
-        && (!Serial.list()[id].contains(BTtarget))) {
-        id++;
-    }
-
-    if (!(Serial.list().length > id)) {
-        println("UART: ERROR: Can't Connect BT");
-        UARTstatus.setValue("Disconnected. Click to Init.");
-    } else {
-        println("ID " + id + ":" + Serial.list()[id] + " is selected, attempting to connect it");
-
-        Serial port = null;
-
-        try {
-            port = new Serial(this, Serial.list()[id], 115200);
-        } 
-        catch (Exception e) {
-            port = null;
-
-            println("UART connection FAILED!");
-            println();
-
-            UARTstatus.setValue("Disconnected. Click to Init.");
-
-            if (id+1 < Serial.list().length) 
-                InitUART(id+1);
-        }
-
-        if (port != null) {
-            UARTstatus.setValue("Connected. Click to ReInit.");
-            uart = new UART(port);
-        }
-    }
-}
 
 void setup() {
     // init windows
@@ -68,7 +23,7 @@ void setup() {
     noStroke();
 
     MoveLeft = new Button(0, 0, 60, 30, "<<");
-    MoveCenter = new Button(0, 0, 90, 30, "Reset");
+    MoveCenter = new Button(0, 0, 90, 30, "HOME");
     MoveRight = new Button(0, 0, 60, 30, ">>");
     MoveLeft.setColor(WHITE, WHITE);
     MoveCenter.setColor(WHITE, WHITE);
@@ -83,10 +38,6 @@ void setup() {
 
     // uart setup
     InitUART(0);
-
-    // list UART
-
-    // init array
 
     VectorGraph_ArraryList = new ArrayList<VectorGraphDot>();
     for (int i = 0; i < 34; i++) {
@@ -123,12 +74,9 @@ void setup() {
         DataArray_bool[i] = false;
     }
 
-    charts = new ArrayList<ScanLineChart>();
     init();
-    for (int i = 0; i < charts.size(); i++) {
-        charts.get(i).init();
-        tiles.add(charts.get(i));
-    }
+    if (currentChart != null) 
+        currentChart.init();
 
     if (uart != null)
         uart.SendWrapper(DATA_TYPE.SYSTEM, SYSTEM_MSG.sayHi.ordinal(), (byte) 0, (byte) 0, false);
