@@ -6,38 +6,55 @@
  */
 
 #include "../inc/PID.h"
-
-float PID::getPID(int32_t encoderCount){
-	this->desireVelocity = desireVelocity;
-	dTime = System::Time() - lastTime;
-	if (dTime == 0){
-		dTime += 1;
-	}
-	encoder->Update();
-	currentVelocity = encoderCount;
-	currentError = desireVelocity + encoderCount;
-	float output = ((currentError) * kP) + ((accumlateError) * kI * (dTime)) + (((currentError - lastError) * kD) / (dTime)); //prevent division by 0 error
-	lastTime = System::Time();
-	accumlateError += currentError;
-	lastError = currentError;
-	if(output >= 200){
-		output = 200;
-	}
-	else if(output <= 0){
-		output = 0;
-	}
-	return output;
+#include <cmath>
+int PID::counter = 0;
+float PID::getPID(){
+	 uint32_t currentTime = System::Time();
+	 dTime = currentTime - lastTime;
+	 if(dTime == 0){
+	  dTime +=1;
+	 }
+	 encoder->Update();
+	 if (dir){
+		 currentVelocity = -(encoder->GetCount());
+	 }else{
+		 currentVelocity = encoder->GetCount();
+	 }
+	 if (currentVelocity > 1000 || currentVelocity < -1000){
+		 currentVelocity = lastVelocity;
+	 }
+	 currentError = desireVelocity - currentVelocity ;
+//	 output +=(kP*(currentError - lastError) + kP*dTime * currentError/kI +(kP*kD/dTime)*((currentError - lastError)-(lastError - lastlastError)));
+	 output += kP*(currentError) + kD*(currentError - lastError);
+	 lastTime = currentTime;
+//	 lastlastError = lastError;
+	 lastError = currentError;
+	 lastVelocity = currentVelocity;
+	 if(output < -1000){
+	  output = -1000;
+	 }else if(output >= 1000){
+		 output = 1000;
+	 }
+//	 if (output > 200){
+//		 output = 200;
+//	 }
+//	 if (output<-200){
+//		 output = -200;
+//	 }
+	 return output;
 }
 
 float PID::getPID(float setPoint, float measuredValue){
 	dTime = System::Time() - lastTime;
+	lastTime = System::Time();
 	if (dTime == 0){
 		dTime += 1;
 	}
 	currentVelocity = measuredValue;
 	currentError = setPoint - measuredValue;
-	float output = ((currentError) * kP) + ((currentError - lastError) * kD) / (dTime);
-	lastTime = System::Time();
+	float output = 0;
+	dTerm = ((currentError - lastError) * kD) / (dTime);
+	output = ((currentError) * kP) + dTerm;
 	lastError = currentError;
 	if(output >= 900){
 		output = 900;
@@ -50,4 +67,3 @@ float PID::getPID(float setPoint, float measuredValue){
 PID::~PID() {
 	// TODO Auto-generated destructor stub
 }
-

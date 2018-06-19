@@ -7,8 +7,6 @@
 
 #include "bt.h"
 
-
-
 bt::~bt() {
 	// TODO Auto-generated destructor stub
 }
@@ -24,33 +22,32 @@ void bt::setValue(){
 	Byte type = buffer[4];
 	switch(type){
 	case 0x00:
-		servoPID->setkP(value);
+		servoPIDCurve->setkP(value);
 		break;
 	case 0x01:
-		servoPID->setkD(value);
+		servoPIDCurve->setkD(value);
 		break;
 	case 0x02:
-		motorLPID->setDesiredVelocity(value);
+		servoPIDStraight->setkP(value);
 		break;
 	case 0x03:
-		motorLPID->setkP(value);
+		servoPIDStraight->setkD(value);
 		break;
 	case 0x04:
-		motorLPID->setkI(value);
+		*speed = value;
+		motorLPID->setDesiredVelocity(value);
+		motorRPID->setDesiredVelocity(value);
 		break;
 	case 0x05:
-		motorLPID->setkD(value);
+		motorLPID->setkP(value);
 		break;
 	case 0x06:
-		motorRPID->setDesiredVelocity(value);
+		motorLPID->setkD(value);
 		break;
 	case 0x07:
 		motorRPID->setkP(value);
 		break;
 	case 0x08:
-		motorRPID->setkI(value);
-		break;
-	case 0x09:
 		motorRPID->setkD(value);
 		break;
 	}
@@ -58,17 +55,26 @@ void bt::setValue(){
 }
 void bt::sendVelocity(){
 	float temp;
-	Byte buff[8];
-	temp = motorLPID->getcurrentVelocity();
+	Byte buff[13];
+	temp = *frontLinear;
+//	temp = 0.4;
 	buff[0] = ((Byte*)&temp)[0];
 	buff[1] = ((Byte*)&temp)[1];
 	buff[2] = ((Byte*)&temp)[2];
 	buff[3] = ((Byte*)&temp)[3];
-	temp = motorRPID->getcurrentVelocity();
+	temp = motorLPID->getcurrentVelocity();
+//	temp = 0.5;
 	buff[4] = ((Byte*)&temp)[0];
 	buff[5] = ((Byte*)&temp)[1];
 	buff[6] = ((Byte*)&temp)[2];
 	buff[7] = ((Byte*)&temp)[3];
-	m_bt.SendBuffer(buff, 8);
+	temp = motorRPID->getcurrentVelocity();
+//	temp = 0.6;
+	buff[8] = ((Byte*)&temp)[0];
+	buff[9] = ((Byte*)&temp)[1];
+	buff[10] = ((Byte*)&temp)[2];
+	buff[11] = ((Byte*)&temp)[3];
+	buff[12] = (Byte)'\n';
+	m_bt.SendBuffer(buff, 13);
 }
 
