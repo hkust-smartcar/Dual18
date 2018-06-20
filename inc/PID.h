@@ -1,7 +1,7 @@
 /*
  * motorPID.h
  *
- *  Created on: 2018ï¿½~1ï¿½ï¿½19ï¿½ï¿½
+ *  Created on: 2018¦~1¤ë19¤é
  *      Author: Jake
  */
 
@@ -15,7 +15,7 @@ using libsc::System;
 class PID {
 public:
 	PID(float KP, float KD):kP(KP),kD(KD){};
-	PID(float KP, float KI, float KD, DirEncoder* Encoder):kP(KP),kI(KI),kD(KD),encoder(Encoder){};
+	PID(float KP, float KI, float KD, DirEncoder* Encoder, bool direction):kP(KP),kI(KI),kD(KD),encoder(Encoder),dir(direction){};
 	float getPID();
 	float getPID(float setPoint, float measuredValue);
 	float getkP(){return kP;}
@@ -33,12 +33,13 @@ private:
 	float kP = 0.0;
 	float kI = 0.0;
 	float kD = 0.0;
+	bool dir = false;
 	uint32_t lastTime = 0, dTime = 0;
+	float lastVelocity = 0;
 	float currentVelocity = 0;
 	float desireVelocity = 0;
-	float accumlateError = 0;
+	float accumulateError = 0;
 	float lastError = 0;
-	float lastlastError = 0;
 	float currentError = 0;
 	float output = 0;
 	static int counter;

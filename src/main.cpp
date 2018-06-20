@@ -70,19 +70,8 @@ enum RoadType{
 char *str = "";
 
 //magnetic
-float inv_sqrt(float x){
-	float xhalf = 0.5f*x;
-	int i = *(int*)&x;
-	i = 0x5f3759df - (i >> 1);
-	x = *(float*)&i;
-	x = x*(1.5f - xhalf*x*x);
-	x = x*(1.5f - xhalf*x*x);
-	return x;
-}
-
-float _sqrt(float x){
-	return x*inv_sqrt(x);
-}
+int max(int a, int b){return a>b?a:b;}
+int min(int a, int b){return a<b?a:b;}
 
 //camera
 #define Width 80
@@ -233,8 +222,8 @@ int main() {
     PID servoPIDStraight(2200,0.03);
     PID servoPIDCurve(5500,1);//4825,0.5
     PID servoPIDAlignCurve(-10,0);
-    PID left_motorPID(0.32,0.0,8, &LEncoder);
-    PID right_motorPID(0.32,0.0,8, &REncoder);
+    PID left_motorPID(14,1,0, &LEncoder,false);
+    PID right_motorPID(14,1,0, &REncoder,true);
 //    bt mBT(&servoPID, &left_motorPID, &right_motorPID);
 	typedef enum {
 		normal = 0,
@@ -279,7 +268,7 @@ int main() {
 	float angle = middleServo;
 	float lastServo = 0;
 
-
+	volatile uint8_t cycleTime = 0;
     const uint8_t cycle = 10;
     float loopSpeed = 4*cycle, highSpeed = 6*cycle, alignSpeed = 6*cycle;
     float speed = highSpeed;
@@ -640,6 +629,10 @@ int main() {
 					led3.Switch();
 				}
 
+				angle += middleServo;
+				angle = max(rightServo,min(leftServo,angle));
+				servo.SetDegree(angle);
+
 				if (angle>middleServo){
 					float angleRatio = 0.0013*(angle-middleServo);
 					float differential = angleRatio/(2-angleRatio);
@@ -658,10 +651,9 @@ int main() {
 				if (turn_on_motor){
 					powerR = right_motorPID.getPID();
 					powerL = left_motorPID.getPID();
-					if (abs(powerL)>200 || abs(powerR)>200){
-						buzz.SetBeep(true);
-						powerL = 200;
-						powerR = 200;
+					if (abs(powerL)>400 || abs(powerR)>400){
+						powerL = 400;
+						powerR = 400;
 					}
 					if (powerR > 0){
 						right_motor.SetClockwise(false);
@@ -856,7 +848,7 @@ int main() {
 				m_slave_vector.clear();
 				m_master_vector.clear();
 
-
+				cycleTime = System::Time()-lastTime;
 			}
 		}
     }
