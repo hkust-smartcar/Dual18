@@ -222,8 +222,6 @@ int main() {
 	FutabaS3010 servo(myConfig::GetServoConfig());
 	AlternateMotor right_motor(myConfig::GetMotorConfig(0));
 	AlternateMotor left_motor(myConfig::GetMotorConfig(1));
-	right_motor.SetClockwise(false);
-	left_motor.SetClockwise(true);
     St7735r lcd(myConfig::GetLcdConfig());
     LcdTypewriter writer(myConfig::GetWriterConfig(&lcd));
     LcdConsole console(myConfig::GetConsoleConfig(&lcd));
@@ -282,7 +280,7 @@ int main() {
 	float lastServo = 0;
 
 
-    const uint8_t cycle = 8;
+    const uint8_t cycle = 10;
     float loopSpeed = 4*cycle, highSpeed = 6*cycle, alignSpeed = 6*cycle;
     float speed = highSpeed;
 	float frontLinear, midLinear, diffLinear;
@@ -290,7 +288,7 @@ int main() {
 	float multiplier = 0.0, top_multiplier = 0.0;
 	float front_left = 1, front_right = 1, mid_left = 1, mid_right = 1, back_left = 1, back_right = 1, top_left = 1, top_right = 1;
 	uint8_t raw_front_left, raw_front_right, raw_mid_left, raw_mid_right, raw_top_left, raw_top_right;
-	float encoderLval, encoderRval;
+	volatile float encoderLval, encoderRval;
 	int32_t powerL, powerR;
 	float pCurve, dCurve, pStraight, dStraight, pleft_motor, ileft_motor, dleft_motor, pright_motor, iright_motor, dright_motor;
 	float setAngle = 0;
@@ -443,11 +441,7 @@ int main() {
 			filterSum3 += mag3.GetResult();
 			filterSum4 += mag4.GetResult();
 			filterSum5 += mag5.GetResult();
-			if (lastTime % 10 == 0 && filterCounter != 0){
-//				led0.Switch();
-//				led1.Switch();
-//				led2.Switch();
-//				led3.Switch();
+			if (lastTime % cycle == 0 && filterCounter != 0){
 				const Byte* camBuffer = camera.LockBuffer();
                 camera.UnlockBuffer();
                 raw_mid_left = round(1.0*filterSum0/filterCounter);
@@ -664,6 +658,11 @@ int main() {
 				if (turn_on_motor){
 					powerR = right_motorPID.getPID();
 					powerL = left_motorPID.getPID();
+					if (abs(powerL)>200 || abs(powerR)>200){
+						buzz.SetBeep(true);
+						powerL = 200;
+						powerR = 200;
+					}
 					if (powerR > 0){
 						right_motor.SetClockwise(false);
 						right_motor.SetPower(powerR);
@@ -672,10 +671,10 @@ int main() {
 						right_motor.SetPower(-powerR);
 					}
 					if (powerL > 0){
-						left_motor.SetClockwise(false);
+						left_motor.SetClockwise(true);
 						left_motor.SetPower(powerL);
 					}else{
-						left_motor.SetClockwise(true);
+						left_motor.SetClockwise(false);
 						left_motor.SetPower(-powerL);
 					}
 
@@ -832,13 +831,13 @@ int main() {
 						c[i] = ' ';
 					}
 					lcd.SetRegion(Lcd::Rect(0,120,88,15));
-					sprintf(c,"l_en:%d ", left_encoder_velocity);
+					sprintf(c,"l_en:%d ", (int)encoderLval);
 					writer.WriteBuffer(c,10);
 					for(int i=0; i<10; i++){
 						c[i] = ' ';
 					}
 					lcd.SetRegion(Lcd::Rect(0,135,88,15));
-					sprintf(c,"r_en:%d ", right_encoder_velocity);
+					sprintf(c,"r_en:%d ", (int)encoderRval);
 					writer.WriteBuffer(c,10);
 					for(int i=0; i<10; i++){
 						c[i] = ' ';
