@@ -646,7 +646,22 @@ int main() {
 					led3.Switch();
 				}
 
-				if (start){
+				if (angle>middleServo){
+					float angleRatio = 0.0013*(angle-middleServo);
+					float differential = angleRatio/(2-angleRatio);
+					left_motorPID.setDesiredVelocity(speed*(1-differential));
+					right_motorPID.setDesiredVelocity(speed*(1+differential));
+				}else{
+					float angleRatio = 0.0013*(middleServo-angle);
+					float differential = angleRatio/(2-angleRatio);
+					left_motorPID.setDesiredVelocity(speed*(1+differential));
+					right_motorPID.setDesiredVelocity(speed*(1-differential));
+				}
+
+				encoderLval = LEncoder.GetCount();
+				encoderRval = -REncoder.GetCount();
+
+				if (turn_on_motor){
 					powerR = right_motorPID.getPID();
 					powerL = left_motorPID.getPID();
 					if (powerR > 0){
@@ -681,213 +696,10 @@ int main() {
 
 #endif
 
-
-
-
-//facing program start here
-				if(facing == true){
-					if(do_not_enter == false){
-						if(park==false){
-							slope = find_slope(m_vector,min_xy, max_xy);
-							if(slope==0){
-								park = false;
-							}
-							else if(slope>0.3){
-								inner_turn = true;
-								turn = false;
-								park = true;
-								led0.Switch();
-							}
-							else if(slope < 0.18){
-								turn = true;
-								park = true;
-								right_motor_speed = 150;
-								left_motor_speed = 150;
-								led1.Switch();
-							}
-							else{
-								park = true;
-							}
-						}
-
-
-
-						if(park == true){
-							m_slope = find_slope(m_vector,min_xy, max_xy);
-
-							if((ret_cam_bit(30, 55,camBuffer)==0)&&(turn == false)&&(inner_turn == false)){
-								servo.SetDegree(1000+m_slope*350);
-								if(first_time){
-									degree = m_slope*350;
-									first_time = false;
-								}
-							}
-							else if((ret_cam_bit(40, 55,camBuffer)==0)&&(turn == true)&&(inner_turn == false)){
-
-								servo.SetDegree(1000+m_slope*1000);
-								if(first_time){
-									turn_degree = m_slope*1500;
-									first_time = false;
-								}
-							}
-							else if((ret_cam_bit(45, 55,camBuffer)==0)&&(turn == false)&&(inner_turn == true)){
-	//							led0.Switch();
-								led2.Switch();
-								if(m_slope>0.65){
-									m_slope = 0.65;
-								}
-								servo.SetDegree(1000+m_slope*400);
-								if(first_time){
-									degree = m_slope*400;
-									first_time = false;
-								}
-							}
-
-							else{
-								if((turn == true)){
-	//								led0.Switch();
-	//								servo.SetDegree(710);//need to be change
-	//								right_motor.SetPower(motor_speed);
-	//								left_motor.SetPower(motor_speed);
-									double alpha = 0;
-									double difference = 0;
-									alpha = ((turn_degree/10.0)*pi)/180;
-									difference = 0.13*alpha;//0.13 == the width of the car
-	//								right_motor.SetPower(right_motor_speed);
-									left_motor_speed = right_motor_speed+50+(200*difference);
-									servo.SetDegree(1000 - turn_degree);//need to be change
-								}
-								else if ((turn==false)&&(inner_turn == false)){
-									double alpha = 0;
-									double difference = 0;
-									alpha = ((degree/10.0)*pi)/180;
-									difference = 0.13*alpha;//0.13 == the width of the car
-									left_motor_speed = right_motor_speed+(200*difference);
-									servo.SetDegree(1000-degree);
-								}
-
-								else if ((turn==false)&&(inner_turn == true)){
-									led3.Switch();
-									double alpha = 0;
-									double difference = 0;
-									alpha = ((degree/10.0)*pi)/180;
-									difference = 0.13*alpha;//0.13 == the width of the car
-									left_motor_speed = right_motor_speed+(200*difference);
-									servo.SetDegree(1000);
-								}
-	//							right_motor.SetPower(0);
-	//							left_motor.SetPower(0);
-								first_time = true;
-								degree = 0;
-								exit = true;
-								turn_exit = true;
-								inner_turn_exit = true;
-								park = false;
-								do_not_enter = true;
-							}
-						}
-					}
-					bool is_black = false;
-					if((turn==false)&&(exit==true)){
-						for(int i=0; i<70; i++){
-							if(ret_cam_bit(5+i, 55,camBuffer) == 1){
-								is_black = true;
-							}
-						}
-						if((is_black==false)){
-							exit = false;
-							servo.SetDegree(1000);
-							right_motor.SetPower(0);
-							left_motor.SetPower(0);
-							do_not_enter = false;
-							facing = false;
-						}
-					}
-
-					bool is_inner_black = false;
-					if((turn==false)&&(inner_turn==true)&&(inner_turn_exit == true)){
-						for(int i=0; i<70; i++){
-							if(ret_cam_bit(5+i, 52,camBuffer) == 1){
-								is_inner_black = true;
-							}
-						}
-						if((is_inner_black==false)){
-							inner_turn_exit = false;
-							facing = false;
-							do_not_enter = false;
-							servo.SetDegree(1000);
-							right_motor.SetPower(0);
-							left_motor.SetPower(0);
-						}
-					}
-
-
-					bool is_turn_black = false;
-					if((turn==true)&&(turn_exit==true)){
-						has_enter_turn_loop = false;
-						if(has_enter_turn_loop == false){
-							for(int j=0;j<10; j++){
-								for(int i=0; i<70; i++){
-									if(ret_cam_bit(5+i, 50+j,camBuffer) == 1){
-	//									is_turn_black = true;
-										has_enter_turn_loop = true;
-									}
-								}
-							}
-						}
-
-						if(has_enter_turn_loop){
-	//						led1.Switch();
-							bool no_black = true;
-							for(int j=0;j<20; j++){
-								for(int i=0; i<70; i++){
-									if(ret_cam_bit(5+i, 40+j,camBuffer) == 1){
-										no_black = false;
-	//									led2.Switch();
-									}
-								}
-							}
-							if(no_black == false){//having a bug here do something to adjust it tmr
-	//							led1.Switch();
-								for(int j=0;j<20; j++){
-									for(int i=0; i<5; i++){
-										if(ret_cam_bit(74+i, 40+j,camBuffer) == 1){
-											is_turn_black = true;
-											has_enter_turn_loop = true;
-										}
-									}
-								}
-							}
-							else{
-								is_turn_black = true;
-							}
-						}
-						else{
-							is_turn_black = true;
-						}
-						if((is_turn_black==false)){
-	//						led3.Switch();
-							turn_exit = false;
-							facing = false;
-							do_not_enter = false;
-							servo.SetDegree(1000);
-							right_motor.SetPower(0);
-							left_motor.SetPower(0);
-							turn = false;
-							has_enter_turn_loop = false;
-						}
-					}
-				}
-
-
-//facing program ends here
-
-
-
-				if(mode == 0){
-					if(changed == 1){
-						lcd.Clear();
-						changed = 0;
+					if(mode == 0){
+						if(changed == 1){
+							lcd.Clear();
+							changed = 0;
 					}
 					char c[10];
 					for(int i=0; i<10; i++){
@@ -944,7 +756,7 @@ int main() {
 						c[i] = ' ';
 					}
 					lcd.SetRegion(Lcd::Rect(0,105,88,15));
-					sprintf(c,"Sv:%d ", servo_degree);
+					sprintf(c,"Sv:%d ", servo.GetDegree());\
 					writer.WriteBuffer(c,10);
 					for(int i=0; i<10; i++){
 						c[i] = ' ';
