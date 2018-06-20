@@ -38,9 +38,8 @@ private:
 	float lastVelocity = 0;
 	float currentVelocity = 0;
 	float desireVelocity = 0;
-	float accumlateError = 0;
+	float accumulateError = 0;
 	float lastError = 0;
-	float lastlastError = 0;
 	float currentError = 0;
 	float output = 0;
 	static int counter;

@@ -31,19 +31,20 @@ obj/main-d-2017-inno.o: src/main.cpp \
  C:\Users\pwc02\git\libsccc\inc/libsc/battery_meter.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/adc.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/pit.h \
- C:\Users\pwc02\git\libsccc\inc/libsc/lcd_typewriter.h inc/config.h \
+ C:\Users\pwc02\git\libsccc\inc/libsc/lcd_typewriter.h \
+ C:\Users\pwc02\git\libsccc\inc/libsc/passive_buzzer.h \
+ C:\Users\pwc02\git\libsccc\inc/libbase/pinout_macros.h \
+ C:\Users\pwc02\git\libsccc\inc/libbase/k60/soft_pwm.h \
+ C:\Users\pwc02\git\libsccc\inc/libbase/k60/pwm.h inc/config.h \
  C:\Users\pwc02\git\libsccc\inc/libsc/lcd_console.h \
  C:\Users\pwc02\git\libsccc\inc/libutil/misc.h \
  C:\Users\pwc02\git\libsccc\inc/libsc/dir_encoder.h \
  C:\Users\pwc02\git\libsccc\inc/libsc/encoder.h \
- C:\Users\pwc02\git\libsccc\inc/libbase/pinout_macros.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/soft_quad_decoder.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/quad_decoder_interface.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/ftm_quad_decoder.h \
  C:\Users\pwc02\git\libsccc\inc/libsc/servo.h \
- C:\Users\pwc02\git\libsccc\inc/libbase/k60/soft_pwm.h \
- C:\Users\pwc02\git\libsccc\inc/libbase/k60/pwm.h \
  C:\Users\pwc02\git\libsccc\inc/libbase/k60/ftm_pwm.h \
  C:\Users\pwc02\git\libsccc\inc/libsc/alternate_motor.h \
  C:\Users\pwc02\git\libsccc\inc/libsc/motor.h inc/PID.h \
- inc/DualCar_UART.h C:\Users\pwc02\git\libsccc\inc/libsc/passive_buzzer.h
+ inc/DualCar_UART.h

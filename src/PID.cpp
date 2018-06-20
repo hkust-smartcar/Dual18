@@ -12,7 +12,7 @@ float PID::getPID(){
 	 uint32_t currentTime = System::Time();
 	 dTime = currentTime - lastTime;
 	 if(dTime == 0){
-	  dTime +=1;
+	  dTime =1;
 	 }
 	 encoder->Update();
 	 if (dir){
@@ -24,10 +24,12 @@ float PID::getPID(){
 		 currentVelocity = lastVelocity;
 	 }
 	 currentError = desireVelocity - currentVelocity ;
-//	 output +=(kP*(currentError - lastError) + kP*dTime * currentError/kI +(kP*kD/dTime)*((currentError - lastError)-(lastError - lastlastError)));
-	 output += kP*(currentError) + kD*(currentError - lastError);
+	 accumulateError += currentError;
+	 if (accumulateError > 100){
+		 accumulateError = 100;
+	 }
+	 output = kP*currentError + kI*accumulateError + kD*(currentError - lastError);
 	 lastTime = currentTime;
-//	 lastlastError = lastError;
 	 lastError = currentError;
 	 lastVelocity = currentVelocity;
 	 if(output < -1000){
@@ -35,12 +37,6 @@ float PID::getPID(){
 	 }else if(output >= 1000){
 		 output = 1000;
 	 }
-//	 if (output > 200){
-//		 output = 200;
-//	 }
-//	 if (output<-200){
-//		 output = -200;
-//	 }
 	 return output;
 }
 

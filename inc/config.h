@@ -26,6 +26,7 @@
 #include "libbase/k60/pin.h"
 #include "libsc/servo.h"
 #include <libsc/alternate_motor.h>
+#include "libsc/battery_meter.h"
 
 using libsc::Led;
 using libsc::Lcd;
@@ -159,6 +160,12 @@ public:
     		config.id = id;
     		config.multiplier = 100;
     		return config;
+    }
+
+    static BatteryMeter::Config GetBatteryMeterConfig(){
+    	BatteryMeter::Config config;
+    	config.voltage_ratio = 0.39;
+    	return config;
     }
 };
 

@@ -1,19 +1,11 @@
-/*
- * main.cpp
- *
- * Author: 
- * Copyright (c) 2014-2015 HKUST SmartCar Team
- * Refer to LICENSE for details
- */
-
 #include <cmath>
 #include <vector>
 #include <cassert>
 #include <cstring>
 #include <string>
+
 #include <libbase/k60/mcg.h>
 #include <libsc/system.h>
-
 #include <libsc/led.h>
 #include <libsc/k60/jy_mcu_bt_106.h>
 #include "libsc/led.h"
@@ -25,11 +17,12 @@
 #include "libsc/lcd_typewriter.h"
 #include "libbase/k60/adc.h"
 #include "libbase/k60/pin.h"
+#include "libsc/passive_buzzer.h"
+#include "libsc/battery_meter.h"
+
 #include "config.h"
 #include "PID.h"
 #include "DualCar_UART.h"
-
-#include "libsc/passive_buzzer.h"
 
 namespace libbase
 {
@@ -116,10 +109,12 @@ int main() {
 	mag2.StartConvert();
 	mag3.StartConvert();
 
+	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig());
+	float batteryVoltage = batteryMeter.GetVoltage();
 	PassiveBuzzer::Config config;
 	PassiveBuzzer buzz(config);
 	buzz.SetNote(523);
-	buzz.SetBeep(false);
+	buzz.SetBeep(batteryVoltage<7);
 
 	Servo servo(myConfig::GetServoConfig());
 	AlternateMotor motorL(myConfig::GetMotorConfig(0));
@@ -134,18 +129,16 @@ int main() {
     DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
     DirEncoder REncoder(myConfig::GetEncoderConfig(0));
     PID servoPIDStraight(2200,0.03);
-    PID servoPIDCurve(4825,0.5);//18825,0.5
+    PID servoPIDCurve(5500,1);//4825,0.5
     PID servoPIDOneStraight(4,100);//10
     PID servoPIDOneCurve(-18,240);//-24,240 turning
-    PID servoPIDAlignStraight(-6,1);
+    PID servoPIDAlignStraight(-4,10);
     PID servoPIDAlignCurve(-10,0);
-    PID motorLPID(0.2,0.0,10, &LEncoder,false);
-    PID motorRPID(0.2,0.0,10, &REncoder,true);
-//    PID motorLPID(0.145,0.0,1.35, &LEncoder,false);
-//    PID motorRPID(0.145,0.0,1.35, &REncoder,true);
+    PID motorLPID(14,1,0, &LEncoder,false);
+    PID motorRPID(14,1,0, &REncoder,true);
 
     const uint8_t cycle = 8;
-    float loopSpeed = 4*cycle, highSpeed = 5.5*cycle, alignSpeed = 7*cycle;
+    float loopSpeed = 4*cycle, highSpeed = 6*cycle, alignSpeed = 6*cycle;
     float speed = highSpeed;
 	float frontLinear, midLinear, diffLinear;
 	float raw_frontLinear, raw_midLinear;
@@ -153,7 +146,7 @@ int main() {
 	float front_left = 1, front_right = 1, mid_left = 1, mid_right = 1, back_left = 1, back_right = 1, top_left = 1, top_right = 1;
 	uint8_t raw_front_left, raw_front_right, raw_mid_left, raw_mid_right, raw_top_left, raw_top_right;
 	float encoderLval, encoderRval;
-	float powerL, powerR;
+	int32_t powerL, powerR;
 	float pCurve, dCurve, pStraight, dStraight, pMotorL, iMotorL, dMotorL, pMotorR, iMotorR, dMotorR;
 	float setAngle = 0;
 
@@ -174,9 +167,8 @@ int main() {
 	carState state = normal;
 
 	float testLinear = 0;
-	bool start = false, cali = false, noCal = false;
-	uint8_t approaching = false;
-	bool onlyNormal = false, tuningPID = false;
+	bool start = false, cali = false, noCal = true, approaching = false;
+	bool onlyNormal = true, tuningPID = false;
 	bool leftLoop = false;
 	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0, filterSum4 = 0, filterSum5 = 0;
 	uint8_t filterCounter = 0;
@@ -184,13 +176,45 @@ int main() {
 	uint16_t loopCounter = 0;
 	uint32_t lastTime = 0, stateTime = 0, approachTime = 0;
 
-	const uint16_t middleServo = 845, leftServo = 1180, rightServo = 550;
-	volatile float angle = middleServo;
+	const uint16_t middleServo = 850, leftServo = 1150, rightServo = 550;
+	float angle = middleServo;
 	float lastServo = 0;
 
 	uint8_t oneLineMax = 0, oneLineMin = 250, equalMin = 250, equalMax = 0, topMax = 0;
 	uint8_t maxLeft = 0,minLeft = 100, maxRight = 0,minRight = 100;
 	uint8_t count1, count4;
+
+	DualCar_UART uart0; // << BT related
+
+	int32_t servoAngle = middleServo;
+	uart0.add(DualCar_UART::FLOAT::f0, &batteryVoltage, true);
+	uart0.add(DualCar_UART::INT::i0, &servoAngle, false);
+
+//	uart0.add(DualCar_UART::FLOAT::f5, &frontLinear, true);
+//
+	uart0.add(DualCar_UART::FLOAT::f4, &speed, false);
+	uart0.add(DualCar_UART::FLOAT::f20, &pCurve, false);
+	uart0.add(DualCar_UART::FLOAT::f21, &dCurve, false);
+	uart0.add(DualCar_UART::FLOAT::f22, &pStraight, false);
+	uart0.add(DualCar_UART::FLOAT::f23, &dStraight, false);
+	uart0.add(DualCar_UART::FLOAT::f24, &pMotorL, false);
+	uart0.add(DualCar_UART::FLOAT::f25, &iMotorL, false);
+	uart0.add(DualCar_UART::FLOAT::f26, &dMotorL, false);
+	uart0.add(DualCar_UART::FLOAT::f27, &pMotorR, false);
+	uart0.add(DualCar_UART::FLOAT::f28, &iMotorR, false);
+	uart0.add(DualCar_UART::FLOAT::f29, &dMotorR, false);
+//
+//	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, false);
+//	uart0.add(DualCar_UART::BOOLEAN::b1, &start, false);
+//
+//	uart0.add(DualCar_UART::INT::i0, &encoderLval, true);
+//	uart0.add(DualCar_UART::INT::i1, &encoderRval, true);
+	uart0.add(DualCar_UART::FLOAT::f1, &encoderLval, true);
+	uart0.add(DualCar_UART::FLOAT::f2, &encoderRval, true);
+//	uart0.add(DualCar_UART::INT::i2, &powerL, true);
+//	uart0.add(DualCar_UART::INT::i3, &powerR, true);
+
+	uart0.parseValues(); // << BT related
 
     Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&](const uint8_t id, const Joystick::State State){
     	if (State == Joystick::State::kSelect){
@@ -198,8 +222,6 @@ int main() {
     			start = false;
     			motorLPID.setDesiredVelocity(0);
     			motorRPID.setDesiredVelocity(0);
-				motorL.SetPower(0);
-				motorR.SetPower(0);
     		}
     		else{
 				start = true;
@@ -223,54 +245,14 @@ int main() {
     	}
     })));
 
-	DualCar_UART uart0; // << BT related
-
-//	uart0.add(DualCar_UART::FLOAT::f5, &frontLinear, true);
-//	uart0.add(DualCar_UART::FLOAT::f1, &midLinear, true);
-//	uart0.add(DualCar_UART::FLOAT::f2, &diffLinear, true);
-
-//	uart0.add(DualCar_UART::UINT8_T::u4, &approaching, false);
-	uart0.add(DualCar_UART::FLOAT::f4, &speed, true);
-//	uart0.add(DualCar_UART::FLOAT::f20, &pCurve, false);
-//	uart0.add(DualCar_UART::FLOAT::f21, &dCurve, false);
-//	uart0.add(DualCar_UART::FLOAT::f22, &pStraight, false);
-//	uart0.add(DualCar_UART::FLOAT::f23, &dStraight, false);
-//	uart0.add(DualCar_UART::FLOAT::f24, &pMotorL, false);
-//	uart0.add(DualCar_UART::FLOAT::f25, &iMotorL, false);
-//	uart0.add(DualCar_UART::FLOAT::f26, &dMotorL, false);
-//	uart0.add(DualCar_UART::FLOAT::f27, &pMotorR, false);
-//	uart0.add(DualCar_UART::FLOAT::f28, &iMotorR, false);
-//	uart0.add(DualCar_UART::FLOAT::f29, &dMotorR, false);
-
-	uart0.add(DualCar_UART::UINT8_T::u0, &approaching, false);
-//	uart0.add(DualCar_UART::FLOAT::f4, &multiplier, true);
-
-	uart0.add(DualCar_UART::FLOAT::f0, &encoderLval, true);
-	uart0.add(DualCar_UART::FLOAT::f1, &encoderRval, true);
-//	uart0.add(DualCar_UART::FLOAT::f2, &powerL, true);
-//	uart0.add(DualCar_UART::FLOAT::f3, &powerR, true);
-//	uart0.add(DualCar_UART::INT::i0, &encoderLval, true);
-//	uart0.add(DualCar_UART::INT::i1, &encoderRval, true);
-//	uart0.add(DualCar_UART::INT::i2, &powerL, true);
-//	uart0.add(DualCar_UART::INT::i3, &powerR, true);
-
-//	uart0.add(DualCar_UART::FLOAT::f10, &front_left, true); // << BT false:changed by computer
-//	uart0.add(DualCar_UART::FLOAT::f11, &front_right, true); // << BT true:changing variable
-//	uart0.add(DualCar_UART::FLOAT::f12, &mid_left, true);
-//	uart0.add(DualCar_UART::FLOAT::f13, &mid_right, true);
-	uart0.add(DualCar_UART::UINT8_T::u13, &equalMin, true);
-	uart0.add(DualCar_UART::UINT8_T::u14, &raw_front_left, true);
-	uart0.add(DualCar_UART::UINT8_T::u15, &raw_front_right, true);
-	uart0.parseValues(); // << BT related
-
 	servo.SetDegree(middleServo);
 
 	if (noCal){
-		equalMin = 39;
-		equalMax = 39;
-		oneLineMin = 6;
-		oneLineMax = 80;
-		topMax = 70;
+		equalMin = 34;
+		equalMax = 35;
+		oneLineMin = 5;
+		oneLineMax = 73;
+		topMax = 48;
 		multiplier = 50.0/(equalMin+equalMax)*2;
 		top_multiplier = 70.0/topMax;
 	}
@@ -279,9 +261,11 @@ int main() {
     	if(System::Time() != lastTime){
     		lastTime = System::Time();
 
-//    		uart0.RunEveryMS(); // << BT related
+    		uart0.RunEveryMS(); // << BT related
 
     		if (lastTime % cycle == 0 && filterCounter != 0){
+//    			buzz.SetNote(523);
+//    			buzz.SetBeep((raw_front_left+raw_front_right)>50 && (raw_top_left+raw_top_right)>50);
     			raw_mid_left = round(1.0*filterSum0/filterCounter);
     			raw_mid_right = round(1.0*filterSum1/filterCounter);
     			raw_front_left = round(1.0*filterSum2/filterCounter);
@@ -318,10 +302,8 @@ int main() {
 					}
     			}
 
-				if (start && (int)state < 8 && max(max(max(raw_front_left,raw_front_right),raw_mid_left),raw_mid_right) < oneLineMin*2){
+				if (start && max(max(max(raw_front_left,raw_front_right),raw_mid_left),raw_mid_right) < oneLineMin*2){
 					start = false;
-					motorL.SetPower(0);
-					motorR.SetPower(0);
 	    			motorLPID.setDesiredVelocity(0);
 	    			motorRPID.setDesiredVelocity(0);
 				}
@@ -343,18 +325,24 @@ int main() {
 				}
 				else if (state == back && raw_front_left>equalMin){
 					state = normal;
-					speed = highSpeed;
+					speed = 0;
+//					speed = highSpeed;
 				}
 
 				//nearLoop
 				else if (state == normal && IsTwoLine(equalMax, oneLineMax, raw_front_left, raw_front_right)){
-					state = nearLoop;
-					speed = loopSpeed;
-					stateTime = lastTime;
-					if (top_left>top_right){
-						leftLoop = true;
+					if (onlyNormal){
+//						buzz.SetNote(444);
+//						buzz.SetBeep(true);
 					}else{
-						leftLoop = false;
+						state = nearLoop;
+						speed = loopSpeed;
+						stateTime = lastTime;
+						if (top_left>top_right){
+							leftLoop = true;
+						}else{
+							leftLoop = false;
+						}
 					}
 				}
 				//straight1
@@ -416,11 +404,14 @@ int main() {
 						angle = lastServo*1.05;//compare with which side and angle sign
 					}
 					else{
-						if(IsCurve(frontLinear, midLinear)){
-							angle = servoPIDCurve.getPID(0.0,frontLinear);
-						}else{
-							angle = servoPIDStraight.getPID(0.0,frontLinear);
-						}
+						angle = servoPIDCurve.getPID(0.0,frontLinear);
+//						if(IsCurve(frontLinear, midLinear)){
+//							angle = servoPIDCurve.getPID(0.0,frontLinear);
+//							buzz.SetBeep(true);
+//						}else{
+//							angle = servoPIDStraight.getPID(0.0,frontLinear);
+//							buzz.SetBeep(false);
+//						}
 					}
 					lastServo = angle;
 				}
@@ -487,33 +478,39 @@ int main() {
 				}
 				else if (state == leave){
 					angle = servoPIDAlignCurve.getPID(oneLineMin, raw_front_left);
+//					angle = servoPIDCurve.getPID(0.08,frontLinear);
 				}
 				else if (state == align){
 					angle = servoPIDAlignCurve.getPID(equalMin, raw_front_right);
+//					angle = servoPIDCurve.getPID(0.08,frontLinear);
 					if (raw_front_left>oneLineMin*3 && angle<0){
 						angle = -angle;
 					}
 				}
 				else if (state == side){
 					angle = servoPIDAlignStraight.getPID(equalMin, raw_front_right);
+//					angle = servoPIDStraight.getPID(0.08,frontLinear);
 				}
 				else if (state == back){
-//					angle = servoPIDAlignCurve.getPID(equalMax, raw_front_left);
-					angle = servoPIDAlignStraight.getPID(equalMax, raw_front_left);
+					angle = servoPIDAlignCurve.getPID(equalMax, raw_front_left);
+//					angle = servoPIDAlignStraight.getPID(equalMax, raw_front_left);
 				}
 
 				angle += middleServo;
 				angle = max(rightServo,min(leftServo,angle));
 				servo.SetDegree(angle);
 
-				if (angle>middleServo){
-					motorLPID.setDesiredVelocity(speed*((angle-middleServo)/-7.5+90)/90);
-					motorRPID.setDesiredVelocity(speed*((angle-middleServo)/8.5+90)/90);
-				}
-				else{
-					motorRPID.setDesiredVelocity(speed*((middleServo-angle)/-7.5+90)/90);
-					motorLPID.setDesiredVelocity(speed*((middleServo-angle)/8.5+90)/90);
-				}
+			if (angle>middleServo){
+				float angleRatio = 0.0013*(angle-middleServo);
+				float differential = angleRatio/(2-angleRatio);
+				motorLPID.setDesiredVelocity(speed*(1-differential));
+				motorRPID.setDesiredVelocity(speed*(1+differential));
+			}else{
+				float angleRatio = 0.0013*(middleServo-angle);
+				float differential = angleRatio/(2-angleRatio);
+				motorLPID.setDesiredVelocity(speed*(1+differential));
+				motorRPID.setDesiredVelocity(speed*(1-differential));
+			}
 //				motorRPID.setDesiredVelocity(speed);
 //				motorLPID.setDesiredVelocity(speed);
 
@@ -539,6 +536,10 @@ int main() {
 					}
 
 				}else{
+	    			motorLPID.setDesiredVelocity(0);
+	    			motorRPID.setDesiredVelocity(0);
+					motorL.SetPower(0);
+					motorR.SetPower(0);
 					if (encoderLval != 0){
 						LEncoder.Update();
 					}
@@ -548,10 +549,10 @@ int main() {
 				}
 
 				if (tuningPID){
-//					servoPIDAlignStraight.setkD(dStraight);
-//					servoPIDAlignStraight.setkP(pStraight);
-//					servoPIDAlignCurve.setkD(dCurve);
-//					servoPIDAlignCurve.setkP(pCurve);
+					servoPIDStraight.setkD(dStraight);
+					servoPIDStraight.setkP(pStraight);
+					servoPIDCurve.setkD(dCurve);
+					servoPIDCurve.setkP(pCurve);
 //					motorLPID.setkP(pMotorL);
 //					motorLPID.setkI(iMotorL);
 //					motorLPID.setkD(dMotorL);
@@ -574,15 +575,15 @@ int main() {
 //					state = normal;
 //					speed = highSpeed;
 //				}
-				if (approaching && state == side && lastTime-approachTime>=3000){
-					approaching = false;
-				}
+//				if (approaching && state == side && lastTime-approachTime>=3000){
+//					approaching = false;
+//				}
 			}
 
 			if (lastTime % 100 == 0){
 				led0.Switch();
 				if(!start){
-					char c[10];
+					char c[20];
 					lcd.SetRegion(Lcd::Rect(0,0,128,15));
 					sprintf(c,"rFL: %d", raw_front_left);
 					writer.WriteBuffer(c,10);
@@ -608,15 +609,17 @@ int main() {
 					sprintf(c,"%d %d %d",(int)top_left, (int)top_right, topMax);
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,120,128,15));
-					sprintf(c,"M: %f",atan(1.0*(raw_top_right-oneLineMin)/(raw_top_left-oneLineMin))/3.1415926*180);
+					sprintf(c,"PD: %d %d %d",(int)approaching, (int)servoPIDAlignStraight.getkP(), (int)servoPIDAlignStraight.getkD());
 					writer.WriteBuffer(c,10);
 					lcd.SetRegion(Lcd::Rect(0,135,128,15));
-					sprintf(c,"%d %d %d", servo.GetDegree()-middleServo, equalMin, (int)leftLoop);
+					sprintf(c,"%f %d %d %d", frontLinear*100, servo.GetDegree()-middleServo, equalMin, (int)leftLoop);
 					writer.WriteBuffer(c, 10);
 				}
 			}
+
     	}
     }
+
     return 0;
 }
 
