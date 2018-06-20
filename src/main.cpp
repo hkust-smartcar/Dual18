@@ -321,7 +321,7 @@ int main() {
 			}
 
 		}
-		else if(state == Joystick::State::kRight ){
+		else if(state == Joystick::State::kRight){
 			changed = 1;
 			if(mode == 2){
 				mode = 2;
