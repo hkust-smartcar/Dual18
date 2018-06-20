@@ -48,4 +48,5 @@ obj/corner-d-2017-inno.o: src/corner.cpp inc/corner.h inc/config.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/k60/ov7725_configurator.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_sccb_master.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/soft_i2c_master.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/i2c_master_interface.h
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/i2c_master_interface.h \
+ inc/edge.h

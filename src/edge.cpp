@@ -10,34 +10,7 @@ inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
     return ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1);//return 1 if black
 }
 
-vector<pair<int,int>>check_edge(const Byte* camBuffer){
-	vector<std::pair<int,int>> edge_coord{};;
-	int top_line = 40;
-	int bottom_line = 60;//height==60
-	bool stop = false;
-	for(int i=bottom_line-2; i>top_line; i--){
-		for(int p=78; p>2; p--){
-			if((ret_cam_bit(p,i,camBuffer) != ret_cam_bit(p-1,i,camBuffer))&&(ret_cam_bit(p,i,camBuffer)==0)){
-				edge_coord.push_back(std::make_pair(p,i));
-				if(p>=76){
-					stop = true;
-				}
-				break;
-			}
-			else if (ret_cam_bit(p,i,camBuffer) != (ret_cam_bit(p,i-1,camBuffer))&&(ret_cam_bit(p,i,camBuffer)==0)){
-				edge_coord.push_back(std::make_pair(p,i));
-				if(p>=76){
-					stop = true;
-				}
-				break;
-			}
-		}
-		if(stop==true){
-			break;
-		}
-	}
-	return edge_coord;
-}
+
 
 bool check_left_edge(int topline, int bottomline,const Byte* camBuffer, vector<pair<int,int>> &edge_coord){
 	int top_line = topline;//20
@@ -52,14 +25,18 @@ bool check_left_edge(int topline, int bottomline,const Byte* camBuffer, vector<p
 	}
 	if(amount>3){
 		for(int i=bottom_line-2; i>top_line; i--){
-			for(int p=78; p>2; p--){
-				if((ret_cam_bit(p,i,camBuffer) != ret_cam_bit(p-1,i,camBuffer))&&(ret_cam_bit(p,i,camBuffer)==0)){
-					edge_coord.emplace_back(std::make_pair(p,i));
-					if(p>=77){
-						stop = true;
+			for(int p=79; p>2; p--){
+				if(ret_cam_bit(79,i,camBuffer)==0){
+					if((ret_cam_bit(p,i,camBuffer) != ret_cam_bit(p-1,i,camBuffer))&&(ret_cam_bit(p,i,camBuffer)==0)){
+						edge_coord.emplace_back(std::make_pair(p,i));
+						if(p>77){
+							stop = true;
+						}
+						break;
 					}
-					break;
 				}
+				else
+					break;
 			}
 			if(stop==true){
 				break;
@@ -114,14 +91,18 @@ bool check_right_edge(int topline, int bottomline, const Byte* camBuffer, vector
 	}
 	if(amount>3){
 		for(int i=bottom_line-2; i>top_line; i--){
-			for(int p=2; p<78; p++){
-				if((ret_cam_bit(p,i,camBuffer) != ret_cam_bit(p-1,i,camBuffer))&&(ret_cam_bit(p,i,camBuffer)==1)){
-					edge_coord.push_back(std::make_pair(p,i));
-					if(p<2){
-						stop = true;
+			for(int p=1; p<78; p++){
+				if(ret_cam_bit(0,i,camBuffer)==0){
+					if((ret_cam_bit(p,i,camBuffer) != ret_cam_bit(p-1,i,camBuffer))&&(ret_cam_bit(p,i,camBuffer)==1)){
+						edge_coord.push_back(make_pair(p,i));
+						if(p<2){
+							stop = true;
+						}
+						break;
 					}
-					break;
 				}
+				else
+					break;
 			}
 			if(stop==true){
 				break;
@@ -130,19 +111,19 @@ bool check_right_edge(int topline, int bottomline, const Byte* camBuffer, vector
 	}
 
 	if(edge_coord.size()<3){
-			int num_black=0;
-			for(int i=0; i<3;i++){
-				for(int j=56; j<60; j++){
-					num_black += ret_cam_bit(i,j,camBuffer);
-				}
-			}
-			if(num_black<2){
-				return false;
-			}
-			else{
-				return true;
+		int num_black=0;
+		for(int i=0; i<3;i++){
+			for(int j=56; j<60; j++){
+				num_black += ret_cam_bit(i,j,camBuffer);
 			}
 		}
+		if(num_black<2){
+			return false;
+		}
+		else{
+			return true;
+		}
+	}
 
 	std::vector<float> temp;
 	temp = linear_regression(edge_coord);

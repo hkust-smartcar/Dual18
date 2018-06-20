@@ -18,6 +18,7 @@
 #include "libsc/st7735r.h"
 #include "libsc/lcd_typewriter.h"
 #include "cstring"
+#include "corner.h"
 
 using libsc::k60::JyMcuBt106;
 using libbase::k60::Pit;
@@ -27,7 +28,7 @@ using libsc::System;
 using namespace std;
 
 enum Informations {
-	edge = 100, fail_on_turn, end, unclear
+	edge = 100, fail_on_turn, corner, end, unclear
 };
 
 class Package {
@@ -46,6 +47,7 @@ class Package {
 private:
 	Informations type;
 	vector<uint8_t> data;
+
 };
 
 //class Bluetooth{
@@ -75,20 +77,29 @@ public:
 										if(((*buff)==Informations::edge)&&(buffer.size()==0)) {
 											buffer.clear();
 											information_types = Informations::edge;
-
 										}
 										if((*buff==Informations::fail_on_turn)&&(buffer.size()==0)) {
 											buffer.clear();
 											information_types = Informations::fail_on_turn;
+										}
+										if((*buff==Informations::corner)&&(buffer.size()==0)) {
+											buffer.clear();
+											information_types = Informations::corner;
 										}
 
 										if(information_types == Informations::edge) {
 											this->buffer.push_back(*buff);
 											if(((*buff)==Informations::end)) {
 												int size = buffer[1];
-												how_many_lines = buffer[2];
-												if(buffer.size() == size) {
-													set_y_coord();
+												if(size!=0){
+													how_many_lines = buffer[2];
+													if(buffer.size() == size) {
+														set_y_coord();
+														buffer.clear();
+													}
+												}
+												else{
+													reset_m_edge();
 													buffer.clear();
 												}
 											}
@@ -101,6 +112,26 @@ public:
 												buffer.clear();
 											}
 										}
+
+										else if(information_types == Informations::corner){
+											this->buffer.push_back(*buff);
+											reset_slave_corner();
+											if(((*buff)==Informations::end)){
+												int size = 3*buffer[1]+3;
+												if(size!=3){
+													if(buffer.size() == size) {
+														set_corner();
+														buffer.clear();
+													}
+												}
+												else{
+													reset_slave_corner();
+													buffer.clear();
+												}
+											}
+
+										}
+
 										else {
 											buffer.clear();
 										}
@@ -108,15 +139,17 @@ public:
 										return true;}))) {
 	}
 	;
-	std::vector<Byte> buffer;
+
 
 	void set_y_coord();
+
+	void set_corner();
 
 	int get_how_many_line() {
 		return how_many_lines;
 	}
 
-	std::vector<std::pair<int, int>> get_m_edge() {
+	vector<pair<int, int>> get_m_edge() {
 		return m_edge;
 	}
 
@@ -124,17 +157,27 @@ public:
 		return fail_on_turn;
 	}
 
+	vector<Corner> get_slave_corner(){
+		return slave_corner;
+	}
+
 	void reset_m_edge() {
 		m_edge.clear();
 	}
 
+	void reset_slave_corner(){
+		slave_corner.clear();
+	}
+
 private:
 	JyMcuBt106 m_bt;
+	vector<Byte> buffer;
 	int information_types = Informations::unclear;
 	int how_many_lines = 0;
 	bool fail_on_turn = 0;
 	std::vector<int> y_coord();
 	std::vector<std::pair<int, int>> m_edge;
+	vector<Corner> slave_corner;
 };
 
 class S_Bluetooth {
@@ -146,7 +189,7 @@ public:
 
 	void send_edge(std::vector<std::pair<int, int>> input_vector);
 	void send_info(bool fail_or_not);
-
+	void send_corner(vector<Corner> slave_corner);
 private:
 	JyMcuBt106 m_bt;
 

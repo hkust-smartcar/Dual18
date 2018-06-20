@@ -53,4 +53,5 @@ obj/bluetooth-d-2017-inno.o: src/bluetooth.cpp inc/bluetooth.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/mcg.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libbase/k60/mcg_c.h \
  /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/system.h \
- /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/timer.h
+ /Users/morristseng/Desktop/smart_car/libsccc/inc/libsc/timer.h \
+ inc/corner.h inc/corner.h
