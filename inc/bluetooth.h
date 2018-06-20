@@ -17,61 +17,182 @@
 #include "libbase/k60/pit.h"
 #include "libsc/st7735r.h"
 #include "libsc/lcd_typewriter.h"
-
+#include "cstring"
+#include "corner.h"
 
 using libsc::k60::JyMcuBt106;
 using libbase::k60::Pit;
 using std::vector;
 using std::function;
 using libsc::System;
+using namespace std;
 
-class M_Bluetooth{
-public:
-	M_Bluetooth():m_bt(myConfig::GetBluetoothConfig(std::function<bool(const Byte *data, const size_t size)>([this](const Byte* buff, const size_t size)-> bool{
-		this->buffer.push_back(*buff);
-		how_many_lines = buffer[0];
-		if(buffer.size() == 2*how_many_lines+1){
-			reset_m_edge();
-			this->set_y_coord();
-//			buffer.clear();
+enum Informations {
+	edge = 100, fail_on_turn, corner, end, unclear
+};
+
+class Package {
+	Package(Informations type, vector<uint8_t> data) {
+		this->type = type;
+		this->data = data;
+	}
+	Package(Informations type, vector<pair<uint8_t, uint8_t>> coordinate) {
+		this->type = type;
+		for (int i = 0; i < coordinate.size(); i++) {
+			this->data.push_back(coordinate[i].first);
+			this->data.push_back(coordinate[i].second);
 		}
+	}
 
-    	return true;})))
-{};
+private:
+	Informations type;
+	vector<uint8_t> data;
+
+};
+
+//class Bluetooth{
+//	 Bluetooth(): m_bt(myConfig::GetBluetoothConfig([this](const Byte* data, const size_t size){return handle_package(data, size);})) {}
+//
+//	 void build_package();
+//
+////	 void send_package(Package m_package) = 0;
+//
+//	 bool handle_package(const Byte* data, const size_t size){
+//		 return true;
+//	 }
+//
+//private:
+//    JyMcuBt106 m_bt;
+//
+//};
+
+class M_Bluetooth {
+public:
+	M_Bluetooth() :
+			m_bt(
+					myConfig::GetBluetoothConfig(
+							std::function<
+									bool(const Byte *data, const size_t size)>(
+									[this](const Byte* buff, const size_t size)-> bool {
+										if(((*buff)==Informations::edge)&&(buffer.size()==0)) {
+											buffer.clear();
+											information_types = Informations::edge;
+										}
+										if((*buff==Informations::fail_on_turn)&&(buffer.size()==0)) {
+											buffer.clear();
+											information_types = Informations::fail_on_turn;
+										}
+										if((*buff==Informations::corner)&&(buffer.size()==0)) {
+											buffer.clear();
+											information_types = Informations::corner;
+										}
+
+										if(information_types == Informations::edge) {
+											this->buffer.push_back(*buff);
+											if(((*buff)==Informations::end)) {
+												int size = buffer[1];
+												if(size!=0){
+													how_many_lines = buffer[2];
+													if(buffer.size() == size) {
+														set_y_coord();
+														buffer.clear();
+													}
+												}
+												else{
+													reset_m_edge();
+													buffer.clear();
+												}
+											}
+										}
+
+										else if((information_types == Informations::fail_on_turn)) {
+											this->buffer.push_back(*buff);
+											if(((*buff)==Informations::end)) {
+												fail_on_turn = buffer[2];
+												buffer.clear();
+											}
+										}
+
+										else if(information_types == Informations::corner){
+											this->buffer.push_back(*buff);
+											reset_slave_corner();
+											if(((*buff)==Informations::end)){
+												int size = 3*buffer[1]+3;
+												if(size!=3){
+													if(buffer.size() == size) {
+														set_corner();
+														buffer.clear();
+													}
+												}
+												else{
+													reset_slave_corner();
+													buffer.clear();
+												}
+											}
+
+										}
+
+										else {
+											buffer.clear();
+										}
+
+										return true;}))) {
+	}
+	;
+
 
 	void set_y_coord();
 
-	std::vector<std::pair<int,int>> get_m_edge(){ return m_edge;}
+	void set_corner();
 
-	void reset_m_edge(){ m_edge.clear();}
-
-	std::vector<Byte> buffer;
-
-private:
-	JyMcuBt106 m_bt;
-	int how_many_lines;
-	std::vector<int> y_coord();
-	std::vector<std::pair<int,int>> m_edge;
-};
-
-class S_Bluetooth{
-public:
-	S_Bluetooth():
-	m_bt(myConfig::GetSlaveBluetoothConfig())
-{};
-
-	void send_edge(std::vector<std::pair<int,int>> input_vector);
-	int get_how_many_lines(){
-		return m_line;
+	int get_how_many_line() {
+		return how_many_lines;
 	}
 
+	vector<pair<int, int>> get_m_edge() {
+		return m_edge;
+	}
+
+	bool get_fail_on_turn() {
+		return fail_on_turn;
+	}
+
+	vector<Corner> get_slave_corner(){
+		return slave_corner;
+	}
+
+	void reset_m_edge() {
+		m_edge.clear();
+	}
+
+	void reset_slave_corner(){
+		slave_corner.clear();
+	}
 
 private:
 	JyMcuBt106 m_bt;
-	int m_line;
-
+	vector<Byte> buffer;
+	int information_types = Informations::unclear;
+	int how_many_lines = 0;
+	bool fail_on_turn = 0;
+	std::vector<int> y_coord();
+	std::vector<std::pair<int, int>> m_edge;
+	vector<Corner> slave_corner;
 };
 
+class S_Bluetooth {
+public:
+	S_Bluetooth() :
+			m_bt(myConfig::GetSlaveBluetoothConfig()) {
+	}
+	;
 
+	void send_edge(std::vector<std::pair<int, int>> input_vector);
+	void send_info(bool fail_or_not);
+	void send_corner(vector<Corner> slave_corner);
+private:
+	JyMcuBt106 m_bt;
+
+};
 
 #endif /* INC_BLUETOOTH_H_ */

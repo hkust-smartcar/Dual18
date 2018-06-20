@@ -19,11 +19,26 @@
 #include <vector>
 using namespace std;
 
+class Edge{
+public:
+
+	vector<pair<int,int>> check_left_edge(const Byte* camBuffer);
+
+	vector<pair<int,int>> check_right_edge(const Byte* camBuffer);
+
+	vector<pair<int,int>> check_edge(const Byte* camBuffer);
+
+private:
+	vector<pair<int,int>> m_edge;
+};
+
+
+
 vector<pair<int,int>>check_edge(const Byte* camBuffer);
 
-void check_left_edge(const Byte* camBuffer, vector<pair<int,int>> &edge_coord);
+bool check_left_edge(int topline, int bottomline, const Byte* camBuffer, vector<pair<int,int>> &edge_coord);
 
-void check_right_edge(const Byte* camBuffer, vector<pair<int,int>> &edge_coord);
+bool check_right_edge(int topline, int bottomline, const Byte* camBuffer, vector<pair<int,int>> &edge_coord);
 
 
 

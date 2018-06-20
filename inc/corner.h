@@ -19,7 +19,29 @@
 
 using namespace std;
 
-vector<pair<int,int>>check_corner(const Byte* camBuffer);
+class Corner{
+public:
+	Corner():percentage(0), x(0),y(0){}
+	Corner(int m_x, int m_y, float m_percentage):percentage(m_percentage), x(m_x),y(m_y){}
+	void set_percentage(float m_percentage){percentage = m_percentage;}
+	void set_xcoord(int m_x){x = m_x;}
+	void set_ycoord(int m_y){y = m_y;}
+
+	float get_percentage(){return percentage;}
+	int get_xcoord(){return x;}
+	int get_ycoord(){return y;}
+
+private:
+	float percentage;
+	int x;
+	int y;
+};
+
+vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int bottomline);
+
+Corner find_min(vector<Corner>);
+
+vector<Corner>check_corner(const Byte* camBuffer, int topline, int bottomline, bool type);
 
 
 
