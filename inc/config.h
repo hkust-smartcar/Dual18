@@ -126,23 +126,41 @@ public:
 
     static Adc::Config GetAdcConfig(int id){
     	Adc::Config config;
-    	if (id == 0){
-    		config.pin = Pin::Name::kPtc11;
-    	}
-    	else if (id == 1){
-    		config.pin = Pin::Name::kPtc10;
-    	}
-    	else if (id == 2){
-    		config.pin = Pin::Name::kPtb1;
-    	}
-    	else if (id == 3) {
-    		config.pin = Pin::Name::kPtb0;
-    	}
-    	else if (id == 4) {
-    		config.pin = Pin::Name::kPtb11;
-    	}
-    	else if (id == 5) {
-    		config.pin = Pin::Name::kPtc0;
+    	switch (id) {
+    			case 0:
+    				config.adc = Adc::Name::kAdc0Ad4B;
+    	//			config.pin = libbase::k60::Pin::Name::kPtc2;
+    				break;
+    			case 1:
+    				config.adc = Adc::Name::kAdc1Ad4B;
+    	//			config.pin = libbase::k60::Pin::Name::kPtc8;
+    				break;
+    			case 2:
+    				config.adc = Adc::Name::kAdc1Ad5B;
+    	//			config.pin = libbase::k60::Pin::Name::kPtc9;
+    				break;
+    			case 3:
+    				config.adc = Adc::Name::kAdc1Ad6B;
+    	//			config.pin = libbase::k60::Pin::Name::kPtc10;
+    				break;
+    			case 4:
+    				config.adc = Adc::Name::kAdc1Ad7B;
+    	//			config.pin = libbase::k60::Pin::Name::kPtc11;
+    				break;
+    			case 5:
+    				config.adc = Adc::Name::kAdc0Ad5B;
+    	//			config.pin = libbase::k60::Pin::Name::kPtd1;
+    				break;
+    			case 6:
+    				config.adc = Adc::Name::kAdc0Ad6B;
+    	//			config.pin = libbase::k60::Pin::Name::kPtd5;
+    				break;
+    	//		case 7:
+    	//			config.adc = Adc::Name::kAdc0Ad7B;
+    	//			config.pin = libbase::k60::Pin::Name::kPtd6;
+    	//			break;
+    			default:
+    				break;
     	}
     	config.resolution = Adc::Config::Resolution::k8Bit;
     	config.speed = Adc::Config::SpeedMode::kExSlow;

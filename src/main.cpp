@@ -209,6 +209,8 @@ int main() {
 	mag1.StartConvert();
 	mag2.StartConvert();
 	mag3.StartConvert();
+	mag4.StartConvert();
+	mag5.StartConvert();
 
 	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig());
 	float batteryVoltage = batteryMeter.GetVoltage();
@@ -296,7 +298,7 @@ int main() {
 	uint8_t oneLineMax = 0, oneLineMin = 250, equalMin = 250, equalMax = 0, topMax = 0;
 	uint8_t maxLeft = 0,minLeft = 100, maxRight = 0,minRight = 100;
 	uint8_t count1, count4;
-	DualCar_UART uart0; // << BT related
+	//\DualCar_UART uart0; // << BT related
 #ifdef Master
 	int right_motor_speed = 180;
 	int left_motor_speed = 180;
@@ -433,7 +435,14 @@ int main() {
 
 			lastTime = System::Time();
 
-			uart0.RunEveryMS(); // << BT related
+			//uart0.RunEveryMS(); // << BT related
+			filterCounter++;
+			filterSum0 += mag0.GetResult();
+			filterSum1 += mag1.GetResult();
+			filterSum2 += mag2.GetResult();
+			filterSum3 += mag3.GetResult();
+			filterSum4 += mag4.GetResult();
+			filterSum5 += mag5.GetResult();
 			if (lastTime % 10 == 0 && filterCounter != 0){
 //				led0.Switch();
 //				led1.Switch();
@@ -1036,13 +1045,7 @@ int main() {
 				m_slave_vector.clear();
 				m_master_vector.clear();
 
-				filterCounter++;
-				filterSum0 += mag0.GetResult();
-				filterSum1 += mag1.GetResult();
-				filterSum2 += mag2.GetResult();
-				filterSum3 += mag3.GetResult();
-				filterSum4 += mag4.GetResult();
-				filterSum5 += mag5.GetResult();
+
 			}
 		}
     }
