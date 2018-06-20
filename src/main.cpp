@@ -208,8 +208,8 @@ int main() {
 	buzz.SetBeep(batteryVoltage < 7);
 
 	FutabaS3010 servo(myConfig::GetServoConfig());
-	AlternateMotor right_motor(myConfig::GetMotorConfig(0));
-	AlternateMotor left_motor(myConfig::GetMotorConfig(1));
+	AlternateMotor right_motor(myConfig::GetMotorConfig(1));
+	AlternateMotor left_motor(myConfig::GetMotorConfig(0));
 	St7735r lcd(myConfig::GetLcdConfig());
 	LcdTypewriter writer(myConfig::GetWriterConfig(&lcd));
 	LcdConsole console(myConfig::GetConsoleConfig(&lcd));
@@ -295,8 +295,8 @@ int main() {
 	bool turn_on_motor = false;
 
 	//pid value
-	float left_motor_pid[3] = { 1.00, 0.00, 0.00 };
-	float right_motor_pid[3] = { 1.00, 0.00, 0.00 };
+	float left_motor_pid[3] = { 10.00, 0.00, 0.00 };
+	float right_motor_pid[3] = { 10.00, 0.00, 0.00 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
 	//
@@ -818,24 +818,26 @@ int main() {
 				if (turn_on_motor) {
 					powerR = right_motorPID.getPID();
 					powerL = left_motorPID.getPID();
+
 					if (abs(powerL) > 400 || abs(powerR) > 400) {
 						powerL = 400;
 						powerR = 400;
 					}
 					if (powerR > 0) {
-						right_motor.SetClockwise(true);
-						right_motor.SetPower(220);
+						right_motor.SetClockwise(true);//right_motor_true == forward
+						right_motor.SetPower(powerR);
 					} else {
 						right_motor.SetClockwise(false);
-						right_motor.SetPower(220);
+						right_motor.SetPower(powerR);
 					}
-					if (powerL > 0) {
-						left_motor.SetClockwise(true);
-						left_motor.SetPower(220);
-					} else {
-						left_motor.SetClockwise(false);
-						left_motor.SetPower(220);
-					}
+
+//					if (powerL > 0) {
+//						left_motor.SetClockwise(true);//
+//						left_motor.SetPower(220);
+//					} else {
+//						left_motor.SetClockwise(false);
+//						left_motor.SetPower(220);
+//					}
 
 				} else {
 					left_motorPID.setDesiredVelocity(0);
