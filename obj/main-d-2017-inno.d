@@ -55,4 +55,5 @@ obj/main-d-2017-inno.o: src/main.cpp \
  C:\Users\Jake\workspace\libsccc\inc/libbase/k60/i2c_master_interface.h \
  inc/PID.h inc/bt.h inc/PID.h inc/config.h inc/corner.h inc/edge.h \
  inc/facing.h inc/edge.h inc/bluetooth.h inc/find_midline.h \
- inc/morris_pid.h
+ inc/morris_pid.h inc/DualCar_UART.h \
+ C:\Users\Jake\workspace\libsccc\inc/libsc/passive_buzzer.h

@@ -23,6 +23,7 @@
 #include "libbase/k60/uart.h"
 #include "libsc/dir_encoder.h"
 #include "libbase/k60/adc.h"
+#include "libbase/k60/pin.h"
 #include <libsc/futaba_s3010.h>
 #include <libsc/alternate_motor.h>
 #include <libsc/k60/ov7725.h>
@@ -40,7 +41,9 @@ using libbase::k60::Pit;
 using libbase::k60::Uart;
 using libsc::DirEncoder;
 using libbase::k60::Adc;
+using libbase::k60::Pin;
 using libsc::FutabaS3010;
+using libsc::BatteryMeter;
 using libsc::AlternateMotor;
 using libsc::k60::Ov7725;
 using libsc::k60::Ov7725Configurator;
@@ -124,16 +127,22 @@ public:
     static Adc::Config GetAdcConfig(int id){
     	Adc::Config config;
     	if (id == 0){
-    		config.adc = Adc::Name::kAdc0Ad8;
+    		config.pin = Pin::Name::kPtc11;
     	}
     	else if (id == 1){
-    		config.adc = Adc::Name::kAdc0Ad9;
+    		config.pin = Pin::Name::kPtc10;
     	}
     	else if (id == 2){
-    		config.adc = Adc::Name::kAdc1Ad7B;
+    		config.pin = Pin::Name::kPtb1;
     	}
-    	else {
-    		config.adc = Adc::Name::kAdc1Ad6B;
+    	else if (id == 3) {
+    		config.pin = Pin::Name::kPtb0;
+    	}
+    	else if (id == 4) {
+    		config.pin = Pin::Name::kPtb11;
+    	}
+    	else if (id == 5) {
+    		config.pin = Pin::Name::kPtc0;
     	}
     	config.resolution = Adc::Config::Resolution::k8Bit;
     	config.speed = Adc::Config::SpeedMode::kExSlow;
@@ -162,6 +171,12 @@ public:
     		config.h = height;
     		config.fps = Ov7725Configurator::Config::Fps::kHigh;
     		return config;
+    }
+
+    static BatteryMeter::Config GetBatteryMeterConfig(){
+    	BatteryMeter::Config config;
+    	config.voltage_ratio = 0.39;
+    	return config;
     }
 };
 

@@ -34,6 +34,9 @@
 #include "bluetooth.h"
 #include "find_midline.h"
 #include "morris_pid.h"
+#include "DualCar_UART.h"
+#include "libsc/passive_buzzer.h"
+#include "libsc/battery_meter.h"
 #define pi 3.1415926
 
 #define Master
@@ -199,11 +202,20 @@ int main() {
 	Adc mag1(myConfig::GetAdcConfig(1));
 	Adc mag2(myConfig::GetAdcConfig(2));
 	Adc mag3(myConfig::GetAdcConfig(3));
+	Adc mag4(myConfig::GetAdcConfig(4));
+	Adc mag5(myConfig::GetAdcConfig(5));
 
 	mag0.StartConvert();
 	mag1.StartConvert();
 	mag2.StartConvert();
 	mag3.StartConvert();
+
+	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig());
+	float batteryVoltage = batteryMeter.GetVoltage();
+	PassiveBuzzer::Config config;
+	PassiveBuzzer buzz(config);
+	buzz.SetNote(523);
+	buzz.SetBeep(batteryVoltage<7);
 
 	FutabaS3010 servo(myConfig::GetServoConfig());
 	AlternateMotor right_motor(myConfig::GetMotorConfig(0));
@@ -216,27 +228,32 @@ int main() {
 //    lcd.SetRegion(Lcd::Rect(0,0,128,160));
 //    lcd.FillColor(lcd.kWhite);
 
-    DirEncoder dirEncoder0(myConfig::GetEncoderConfig(0));
-    DirEncoder dirEncoder1(myConfig::GetEncoderConfig(1));
-//    PID servoPID(2500,40000);
-    PID motorLPID(0.32,0.0,8, &dirEncoder1);
-    PID motorRPID(0.32,0.0,8, &dirEncoder0);
-//    bt mBT(&servoPID, &motorLPID, &motorRPID);
-    typedef enum {
+    DirEncoder REncoder(myConfig::GetEncoderConfig(0));
+    DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
+    PID servoPIDStraight(2200,0.03);
+    PID servoPIDCurve(5500,1);//4825,0.5
+    PID servoPIDAlignCurve(-10,0);
+    PID left_motorPID(0.32,0.0,8, &LEncoder);
+    PID right_motorPID(0.32,0.0,8, &REncoder);
+//    bt mBT(&servoPID, &left_motorPID, &right_motorPID);
+	typedef enum {
 		normal = 0,
 		nearLoop,
-		straight,
+		straight1,
+		straight2,
 		turning,
-		trigger,
-		inside
+		inLoop,
+		junction,
+		outLoop,
+		leave,
+		align,
+		side,
+		back
 	}carState;
 	carState state = normal;
-	bool start = false;
-    uint32_t lastTime = 0;
     uint32_t greenTime = 0;
 	bool dir = 0;
 	uint8_t left_mag, right_mag, mid_l_mag, mid_r_mag;
-	float angle = 0;
 	float left_x, right_x;
 	const float left_k = 767.2497;
 	const float right_k = 854.7614;
@@ -247,6 +264,39 @@ int main() {
 	bool waitTrigger = 1;
 	int motor_speed = 200;
 	bool control = false;
+
+	float testLinear = 0;
+	bool start = false, cali = false, noCal = true, approaching = false;
+	bool onlyNormal = true, tuningPID = false;
+	bool leftLoop = false;
+	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0, filterSum4 = 0, filterSum5 = 0;
+	uint8_t filterCounter = 0;
+	int32_t loopSum = 0;
+	uint16_t loopCounter = 0;
+	uint32_t lastTime = 0, stateTime = 0, approachTime = 0;
+
+	const uint16_t middleServo = 850, leftServo = 1150, rightServo = 550;
+	float angle = middleServo;
+	float lastServo = 0;
+
+
+    const uint8_t cycle = 8;
+    float loopSpeed = 4*cycle, highSpeed = 6*cycle, alignSpeed = 6*cycle;
+    float speed = highSpeed;
+	float frontLinear, midLinear, diffLinear;
+	float raw_frontLinear, raw_midLinear;
+	float multiplier = 0.0, top_multiplier = 0.0;
+	float front_left = 1, front_right = 1, mid_left = 1, mid_right = 1, back_left = 1, back_right = 1, top_left = 1, top_right = 1;
+	uint8_t raw_front_left, raw_front_right, raw_mid_left, raw_mid_right, raw_top_left, raw_top_right;
+	float encoderLval, encoderRval;
+	int32_t powerL, powerR;
+	float pCurve, dCurve, pStraight, dStraight, pleft_motor, ileft_motor, dleft_motor, pright_motor, iright_motor, dright_motor;
+	float setAngle = 0;
+
+	uint8_t oneLineMax = 0, oneLineMin = 250, equalMin = 250, equalMax = 0, topMax = 0;
+	uint8_t maxLeft = 0,minLeft = 100, maxRight = 0,minRight = 100;
+	uint8_t count1, count4;
+	DualCar_UART uart0; // << BT related
 #ifdef Master
 	int right_motor_speed = 180;
 	int left_motor_speed = 180;
@@ -382,22 +432,76 @@ int main() {
 		if(System::Time() != lastTime){
 
 			lastTime = System::Time();
-			if(lastTime % 100 == 0){
-//				mBT.sendVelocity();
-			}
 
-			if(lastTime % 16 == 0){
-
-			}
-
-			if (lastTime % 10 == 0){
+			uart0.RunEveryMS(); // << BT related
+			if (lastTime % 10 == 0 && filterCounter != 0){
 //				led0.Switch();
 //				led1.Switch();
 //				led2.Switch();
 //				led3.Switch();
 				const Byte* camBuffer = camera.LockBuffer();
                 camera.UnlockBuffer();
+                raw_mid_left = round(1.0*filterSum0/filterCounter);
+                raw_mid_right = round(1.0*filterSum1/filterCounter);
+                raw_front_left = round(1.0*filterSum2/filterCounter);
+                raw_front_right = round(1.0*filterSum3/filterCounter);
+                raw_top_left = round(1.0*filterSum4/filterCounter);
+                raw_top_right = round(1.0*filterSum5/filterCounter);
+                if (multiplier != 0){
+                	mid_left = raw_mid_left*multiplier;
+                	mid_right = raw_mid_right*multiplier;
+                	front_left = raw_front_left*multiplier;
+                	front_right = raw_front_right*multiplier;
+                	top_left = raw_top_left*top_multiplier;
+                	top_right = raw_top_right*top_multiplier;
+                }
+                filterSum0 = 0;
+                filterSum1 = 0;
+                filterSum2 = 0;
+                filterSum3 = 0;
+                filterSum4 = 0;
+                filterSum5 = 0;
+                filterCounter = 0;
+                if (cali){
+                	oneLineMin  = min(raw_front_left, min(raw_front_right, min(raw_mid_left, min(raw_mid_right, oneLineMin))));
+                	oneLineMax  = max(raw_front_left, max(raw_front_right, max(raw_mid_left, max(raw_mid_right, oneLineMax))));
+                	topMax = max(raw_top_left, max(raw_top_right, topMax));
+                	if (raw_front_left == raw_front_right){
+                		if (equalMin > 100 || (equalMin>raw_front_left && equalMin-raw_front_left < 5)){
+                			equalMin = raw_front_left;
 
+                		}
+                		if (equalMax < 10 || (equalMax<raw_front_left && raw_front_left-equalMax < 5)){
+                			equalMax = raw_front_left;
+                		}
+                	}
+                }
+                if (start && max(max(max(raw_front_left,raw_front_right),raw_mid_left),raw_mid_right) < oneLineMin*2){
+                	start = false;
+                	left_motorPID.setDesiredVelocity(0);
+                	right_motorPID.setDesiredVelocity(0);
+                }
+                //for alignment
+                if (state == normal && approaching){
+                	state = leave;
+                	speed = alignSpeed;
+                }
+                else if (state == leave && raw_front_right < equalMin*1.2 && raw_front_left < equalMin*0.5){
+                	state = align;
+                }
+                else if (state == align && (raw_front_right-raw_mid_right)<10 && abs((int)angle-middleServo) < 50){
+                	state = side;
+                	approachTime = System::Time();
+                }
+                else if (state == side && !approaching){
+                	state = back;
+                	lastServo = -300;
+                }
+                else if (state == back && raw_front_left>equalMin){
+                	state = normal;
+                	speed = 0;
+                //	speed = highSpeed;
+                }
 //                Facing m_facing(&servo, &led0, &led1, &led2, &led3, camBuffer, &right_motor, &left_motor);
 
                 for (int i=0; i<min_xy.size(); i++){
@@ -447,10 +551,10 @@ int main() {
 #endif
 
 #ifdef Master
-//				dirEncoder0.Update();
-				int left_encoder_velocity = dirEncoder0.GetCount();
-//				dirEncoder1.Update();
-				int right_encoder_velocity = dirEncoder1.GetCount();
+//				REncoder.Update();
+				int left_encoder_velocity = REncoder.GetCount();
+//				LEncoder.Update();
+				int right_encoder_velocity = LEncoder.GetCount();
 				left_encoder_velocity = -left_encoder_velocity;
 
 
@@ -475,7 +579,30 @@ int main() {
 				midline_slope = find_slope(midline, midline_min_xy, midline_max_xy);
 
 
-
+				if (cali){
+					angle = setAngle;
+				}else if (state == normal){
+					if (raw_front_left < oneLineMin*2.5 || raw_front_right < oneLineMin*2.5){
+						angle = lastServo*1.05;//compare with which side and angle sign
+					}
+					else{
+						angle = servoPIDCurve.getPID(0.0,frontLinear);
+//						if(IsCurve(frontLinear, midLinear)){
+//							angle = servoPIDCurve.getPID(0.0,frontLinear);
+//							buzz.SetBeep(true);
+//						}else{
+//							angle = servoPIDStraight.getPID(0.0,frontLinear);
+//							buzz.SetBeep(false);
+//						}
+					}
+					lastServo = angle;
+				}else if (state == align){
+					angle = servoPIDAlignCurve.getPID(equalMin, raw_front_right);
+//					angle = servoPIDCurve.getPID(0.08,frontLinear);
+					if (raw_front_left>oneLineMin*3 && angle<0){
+						angle = -angle;
+					}
+				}
 				if(midline.size()>5){
 					servo_degree = servo_control(midline, m_master_vector, temp, roadtype);
 				}
@@ -510,16 +637,35 @@ int main() {
 					led3.Switch();
 				}
 
-				if(turn_on_motor){
-					right_motor.SetPower(motorRPID.getPID());
-					left_motor.SetPower(motorLPID.getPID());
-					motorLPID.setDesiredVelocity(60);
-					motorRPID.setDesiredVelocity(60);
-				}
-				else{
-					right_motor.SetPower(0);
+				if (start){
+					powerR = right_motorPID.getPID();
+					powerL = left_motorPID.getPID();
+					if (powerR > 0){
+						right_motor.SetClockwise(false);
+						right_motor.SetPower(powerR);
+					}else{
+						right_motor.SetClockwise(true);
+						right_motor.SetPower(-powerR);
+					}
+					if (powerL > 0){
+						left_motor.SetClockwise(false);
+						left_motor.SetPower(powerL);
+					}else{
+						left_motor.SetClockwise(true);
+						left_motor.SetPower(-powerL);
+					}
+
+				}else{
+					left_motorPID.setDesiredVelocity(0);
+					right_motorPID.setDesiredVelocity(0);
 					left_motor.SetPower(0);
-					my_motor_pid.set_integral(0.0);
+					right_motor.SetPower(0);
+					if (encoderLval != 0){
+						LEncoder.Update();
+					}
+					if (encoderRval != 0){
+						REncoder.Update();
+					}
 				}
 
 
@@ -889,11 +1035,14 @@ int main() {
 				m_vector.clear();
 				m_slave_vector.clear();
 				m_master_vector.clear();
-			}
 
-			if (lastTime % 100 == 0){
-
-
+				filterCounter++;
+				filterSum0 += mag0.GetResult();
+				filterSum1 += mag1.GetResult();
+				filterSum2 += mag2.GetResult();
+				filterSum3 += mag3.GetResult();
+				filterSum4 += mag4.GetResult();
+				filterSum5 += mag5.GetResult();
 			}
 		}
     }
