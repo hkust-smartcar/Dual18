@@ -1,11 +1,14 @@
 /*
- * main.cpp
+ * master_main.cpp
  *
- * Author: 
- * Copyright (c) 2014-2015 HKUST SmartCar Team
- * Refer to LICENSE for details
+ *  Created on: Jun 21, 2018
+ *      Author: morristseng
  */
-//dllm
+
+#define Master
+
+#ifdef Master
+
 #include <cmath>
 #include <vector>
 #include <cassert>
@@ -25,7 +28,6 @@
 #include "libbase/k60/adc.h"
 #include "config.h"
 #include "PID.h"
-#include "bt.h"
 #include <libsc/k60/ov7725.h>
 #include <libsc/k60/ov7725_configurator.h>
 #include "corner.h"
@@ -33,16 +35,13 @@
 #include "facing.h"
 #include "bluetooth.h"
 #include "find_midline.h"
-#include "morris_pid.h"
 #include "DualCar_UART.h"
 #include "libsc/passive_buzzer.h"
 #include "libsc/battery_meter.h"
 #include "libbase/k60/vectors.h"
 #include "mag_func.h"
+#include "useful_functions.h"
 #define pi 3.1415926
-
-//#define Slave
-#define Master
 
 namespace libbase {
 namespace k60 {
@@ -60,9 +59,7 @@ using namespace libsc;
 using namespace libbase::k60;
 using libsc::k60::JyMcuBt106;
 
-enum RoadType {
-	straight, right_turn, left_turn
-};
+
 
 char *str = "";
 
@@ -85,91 +82,6 @@ int mode = 0;
 inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
 	return ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1); //return 1 if black
 }
-
-double find_slope(vector<pair<int, int>> m_vector,
-		vector<pair<int, int>> &min_xy, vector<pair<int, int>> &max_xy) {
-	bool min_find = false;
-	bool max_find = false;
-	double slope;
-	for (int i = (m_vector.size() / 2); i < m_vector.size(); i++) {
-
-		if ((m_vector[i].first <= 78) && (min_find == false)) {
-			min_xy.push_back(make_pair(m_vector[i].first, m_vector[i].second));
-			min_find = true;
-		}
-		if ((m_vector[i].first <= 78)) {
-			if (i == (m_vector.size() / 2)) {
-				max_xy.push_back(
-						make_pair(m_vector[0].first, m_vector[0].second));
-			} else if (m_vector[i].second >= m_vector[i - 1].second) {
-				max_xy.erase(max_xy.begin());
-				max_xy.push_back(
-						make_pair(m_vector[i].first, m_vector[i].second));
-			}
-			max_find = true;
-		}
-	}
-	if (min_find == false) {
-		min_xy.push_back(make_pair(0, 0));
-	}
-	if (max_find == false) {
-		max_xy.push_back(make_pair(0, 0));
-	}
-	if ((min_find == true) && (max_find == true)) {
-		if (min_xy[0].second == max_xy[0].second) {
-			slope = 0.0;
-		} else {
-			slope = ((max_xy[0].second - min_xy[0].second)
-					/ (1.0 * min_xy[0].first - max_xy[0].first));
-		}
-	}
-	return slope;
-}
-
-int servo_control(vector<pair<int, int>> midline,
-		vector<pair<int, int>> m_master_vector, vector<pair<int, int>> temp,
-		int &roadtype) {
-	int servo_degree = 1000;
-	int x_coord = 0;
-	double percent = 0;
-	for (int i = 0; i < midline.size(); i++) {
-		x_coord += midline[i].first;
-	}
-	if (midline.size() != 0) {
-		x_coord /= midline.size();
-	} else {
-		x_coord = 40;
-	}
-
-	percent = (x_coord - 40.0) / 80;
-
-	if ((temp.size() == 0)) {
-		roadtype = RoadType::right_turn;
-		percent *= 1.5;
-		servo_degree = servo_degree - percent * 710;
-	} else if ((m_master_vector.size() == 0)) {
-		roadtype = RoadType::left_turn;
-		percent *= 1.5;
-		servo_degree = servo_degree - percent * 710;
-	}
-//	if(percent<0.3){
-//		servo_degree = servo_degree - percent*500;
-//	}
-	else {
-		roadtype = RoadType::straight;
-		servo_degree = servo_degree - percent * 400;
-
-	}
-	if (servo_degree < 700) {
-		servo_degree = 700;
-	} else if (servo_degree > 1300) {
-		servo_degree = 1300;
-	}
-	return servo_degree;
-}
-
-morris_pid my_motor_pid(true);
-morris_pid my_servo_pid(false);
 
 //main
 int main() {
@@ -496,54 +408,15 @@ int main() {
 			}
 		}
 	})));
-	vector<pair<int, int>> min_xy;
-	vector<pair<int, int>> max_xy;
-	vector<pair<int, int>> mid_xy;
 
 	servo.SetDegree(1000);
 
-	//The variables for facing
-
-	bool facing = false;
-	bool first_time = true;
-	int degree = 0;
-	int turn_degree = 0;
-	bool turn_exit = false;
-	bool inner_turn_exit = false;
-	bool turn = false;
-	bool inner_turn = false;
-	bool exit = false;
-	bool park = false;
-	double slope = 0;
-	double m_slope = 0;
-	bool has_enter_turn_loop = false;
-	bool do_not_enter = false;
-
 	//bluetooth communicate
-#ifdef Master
-	const bool is_slave = false; //different MCU, different value
+
 	vector<pair<int, int>> temp;
 	vector<pair<int, int>> midline;
 	M_Bluetooth m_master_bluetooth;
 //	NVIC_SetPriority();
-	vector<pair<int, int>> master_min_xy;
-	vector<pair<int, int>> master_max_xy;
-	vector<pair<int, int>> slave_min_xy;
-	vector<pair<int, int>> slave_max_xy;
-	vector<pair<int, int>> midline_min_xy;
-	vector<pair<int, int>> midline_max_xy;
-
-#endif
-
-#ifdef Slave
-	const bool is_slave = true;
-	S_Bluetooth m_slave_bluetooth;
-	vector<pair<int,int>> slave_min_xy;
-	vector<pair<int,int>> slave_max_xy;
-	//for bluetooth slave interval
-	uint32_t send_ms = 0;
-
-#endif
 
 	bool work = false;
 	bool do_not_change_m = false;
@@ -563,7 +436,7 @@ int main() {
 
 			//uart0.RunEveryMS(); // << BT related
 			mag.TakeSample();
-			if (lastTime % cycle == 0 && filterCounter != 0) {
+			if (lastTime % cycle == 0) {
 				const Byte* camBuffer = camera.LockBuffer();
 				camera.UnlockBuffer();
 				mag.Update();
@@ -592,7 +465,7 @@ int main() {
 //						}
 //					}
 				}
-				if (start && mag.noMagField()){
+				if (start && mag.noMagField()) {
 					start = false;
 					left_motorPID.setDesiredVelocity(0);
 					right_motorPID.setDesiredVelocity(0);
@@ -601,9 +474,11 @@ int main() {
 				if (state == normal && approaching) {
 					state = leave;
 					speed = alignSpeed;
-				} else if (state == leave && mag.SmallerThanE(0, 0.5) && mag.SmallerThanE(1, 1.2)){
+				} else if (state == leave && mag.SmallerThanE(0, 0.5)
+						&& mag.SmallerThanE(1, 1.2)) {
 					state = align;
-				} else if (state == align && mag.Difference(0, 1) < 10 && abs((int) angle - middleServo) < 50) {
+				} else if (state == align && mag.Difference(0, 1) < 10
+						&& abs((int) angle - middleServo) < 50) {
 					state = side;
 					approachTime = System::Time();
 				} else if (state == side && !approaching) {
@@ -614,61 +489,7 @@ int main() {
 					speed = 0;
 					//	speed = highSpeed;
 				}
-//                Facing m_facing(&servo, &led0, &led1, &led2, &led3, camBuffer, &right_motor, &left_motor);
 
-				for (int i = 0; i < min_xy.size(); i++) {
-					min_xy.erase(min_xy.begin());
-				}
-				for (int i = 0; i < max_xy.size(); i++) {
-					max_xy.erase(max_xy.begin());
-				}
-#ifdef Master
-				for (int i = 0; i < master_min_xy.size(); i++) {
-					master_min_xy.erase(master_min_xy.begin());
-				}
-				for (int i = 0; i < master_max_xy.size(); i++) {
-					master_max_xy.erase(master_max_xy.begin());
-				}
-				for (int i = 0; i < slave_min_xy.size(); i++) {
-					slave_min_xy.erase(slave_min_xy.begin());
-				}
-				for (int i = 0; i < slave_max_xy.size(); i++) {
-					slave_max_xy.erase(slave_max_xy.begin());
-				}
-				for (int i = 0; i < midline_min_xy.size(); i++) {
-					midline_min_xy.erase(midline_min_xy.begin());
-				}
-				for (int i = 0; i < midline_max_xy.size(); i++) {
-					midline_max_xy.erase(midline_max_xy.begin());
-				}
-#endif
-
-#ifdef Slave
-				for (int i=0; i<slave_min_xy.size(); i++) {
-					slave_min_xy.erase(slave_min_xy.begin());
-				}
-				for (int i=0; i<slave_max_xy.size(); i++) {
-					slave_max_xy.erase(slave_max_xy.begin());
-				}
-#endif
-
-// bluetooth send image
-#ifdef Slave
-				double slave_slope;
-				bool right_fail;
-				vector<Corner> m_corner;
-				right_fail = check_right_edge(20, 60, camBuffer, m_slave_vector);
-				m_corner = check_corner(camBuffer, 20, 50, false);
-//				send_ms++;
-//				if(send_ms%5==0) {
-//					send_ms = 0;
-					m_slave_bluetooth.send_edge(m_slave_vector);
-					m_slave_bluetooth.send_info(right_fail);
-					m_slave_bluetooth.send_corner(m_corner);
-//				}
-#endif
-
-#ifdef Master
 //				REncoder.Update();
 				int left_encoder_velocity = REncoder.GetCount();
 //				LEncoder.Update();
@@ -679,7 +500,7 @@ int main() {
 				double slave_slope;
 				double midline_slope;
 				bool is_turn = false;
-				int roadtype = RoadType::straight;
+
 
 				servoPIDStraight.setkP(straight_servo_pd[0]);
 				servoPIDStraight.setkD(straight_servo_pd[1]);
@@ -698,19 +519,18 @@ int main() {
 
 				left_fail = check_left_edge(20, 60, camBuffer, m_master_vector);
 				right_fail = m_master_bluetooth.get_fail_on_turn();
-				master_slope = find_slope(m_master_vector, master_min_xy,
-						master_max_xy);
-				slave_slope = find_slope(temp, slave_min_xy, slave_max_xy);
+				master_slope = find_slope(m_master_vector);
+				slave_slope = find_slope(temp);
 
 				find_midline(m_master_vector, temp, midline);
 
-				midline_slope = find_slope(midline, midline_min_xy,
-						midline_max_xy);
+				midline_slope = find_slope(midline);
 
 				if (cali) {
 					angle = setAngle;
 				} else if (state == normal) {
-					if (mag.SmallerThanMin(0, 2.5) || mag.SmallerThanMin(1, 2.5)){
+					if (mag.SmallerThanMin(0, 2.5)
+							|| mag.SmallerThanMin(1, 2.5)) {
 						angle = lastServo * 1.05; //compare with which side and angle sign
 					} else {
 						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
@@ -723,21 +543,17 @@ int main() {
 //						}
 					}
 					lastServo = angle;
-				} else if (state == align){
-					angle = servoPIDAlignCurve.getPID(mag.GetEMin(1),mag.GetMag(1));
+				} else if (state == align) {
+					angle = servoPIDAlignCurve.getPID(mag.GetEMin(1),
+							mag.GetMag(1));
 //					angle = servoPIDCurve.getPID(0.08,frontLinear);
-					if (!mag.SmallerThanMin(0,3) && angle < 0) {
+					if (!mag.SmallerThanMin(0, 3) && angle < 0) {
 						angle = -angle;
 					}
 				}
 
 				m_master_bluetooth.reset_m_edge();
 
-				if (roadtype == left_turn) {
-					led2.Switch();
-				} else if (roadtype == right_turn) {
-					led3.Switch();
-				}
 
 				angle += middleServo;
 				angle = max(rightServo, min(leftServo, angle));
@@ -759,11 +575,7 @@ int main() {
 							speed * (1 - differential));
 				}
 
-
-
-
-
-				if(mode!=3){
+				if (mode != 3) {
 					LEncoder.Update();
 					REncoder.Update();
 				}
@@ -779,7 +591,7 @@ int main() {
 						powerR = 400;
 					}
 					if (powerR > 0) {
-						right_motor.SetClockwise(true);//right_motor_true == forward
+						right_motor.SetClockwise(true); //right_motor_true == forward
 						right_motor.SetPower(powerR);
 					} else {
 						right_motor.SetClockwise(false);
@@ -807,48 +619,6 @@ int main() {
 					}
 				}
 
-#endif
-
-
-#ifdef Slave
-				if (mode == 0) {
-					if (changed == 1) {
-						lcd.Clear();
-						changed = 0;
-					}
-					char c[10];
-					for (int i = 0; i < 10; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 0, Width, Height));
-					lcd.FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
-					for(int i=0; i<m_slave_vector.size(); i++) {
-						lcd.SetRegion(Lcd::Rect(m_slave_vector[i].first, m_slave_vector[i].second, 2, 2));
-						lcd.FillColor(Lcd::kBlue);
-					}
-					lcd.SetRegion(Lcd::Rect(0,60,88,15));
-					sprintf(c,"Slave");
-					writer.WriteBuffer(c,10);
-					lcd.SetRegion(Lcd::Rect(0,75,88,15));
-					sprintf(c,"Sl:%.2f ", slave_slope);
-					writer.WriteBuffer(c,10);
-					for(int i=0; i<10; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0,90,88,15));
-					sprintf(c,"Ve:%d ", left_motor_speed);
-					writer.WriteBuffer(c,10);
-				}
-				if (mode == 1) {
-					if (changed == 1) {
-						lcd.Clear();
-						changed = 0;
-					}
-				}
-
-#endif
-
-#ifdef Master
 				if (mode == 0) {
 					if (changed == 1) {
 						lcd.Clear();
@@ -909,7 +679,6 @@ int main() {
 					sprintf(c, "L:%d ", left_motor_speed);
 					writer.WriteBuffer(c, 10);
 
-
 				}
 
 				if (mode == 1) {
@@ -950,14 +719,14 @@ int main() {
 						c[i] = ' ';
 					}
 					lcd.SetRegion(Lcd::Rect(0, 90, 88, 15));
-					sprintf(c, "r_en:%f",  encoderRval);
+					sprintf(c, "r_en:%f", encoderRval);
 					writer.WriteBuffer(c, 15);
 
 					for (int i = 0; i < 15; i++) {
 						c[i] = ' ';
 					}
 					lcd.SetRegion(Lcd::Rect(0, 105, 88, 15));
-					sprintf(c, "l_en:%f",  encoderLval);
+					sprintf(c, "l_en:%f", encoderLval);
 					writer.WriteBuffer(c, 15);
 					for (int i = 0; i < 15; i++) {
 						c[i] = ' ';
@@ -1065,12 +834,10 @@ int main() {
 				}
 				midline.clear();
 				temp.clear();
-#endif
 
 				m_vector.clear();
 				m_slave_vector.clear();
 				m_master_vector.clear();
-
 
 				cycleTime = System::Time() - lastTime;
 			}
@@ -1078,3 +845,6 @@ int main() {
 	}
 	return 0;
 }
+
+#endif
+

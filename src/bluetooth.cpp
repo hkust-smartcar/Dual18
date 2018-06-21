@@ -52,7 +52,7 @@ void S_Bluetooth::send_edge(std::vector<std::pair<int,int>> slave_edge){
 		}
 
 		m_bt.SendBuffer(buffer, size);
-		delete buffer;
+		delete []buffer;
 	}
 }
 
@@ -65,7 +65,7 @@ void S_Bluetooth::send_info(bool fail_or_not){
 	buffer[3] = Informations::end;
 
 	m_bt.SendBuffer(buffer,size);
-	delete buffer;
+	delete []buffer;
 }
 
 void S_Bluetooth::send_corner(vector<Corner> slave_corner){
@@ -75,7 +75,7 @@ void S_Bluetooth::send_corner(vector<Corner> slave_corner){
 		buffer[1] = 0;
 		buffer[2] = Informations::end;
 		m_bt.SendBuffer(buffer,3);
-		delete buffer;
+		delete []buffer;
 	}
 	if(slave_corner.size()>0){
 		int size = 3*slave_corner.size()+3;
@@ -92,6 +92,6 @@ void S_Bluetooth::send_corner(vector<Corner> slave_corner){
 		}
 
 		m_bt.SendBuffer(buffer,size);
-		delete buffer;
+		delete []buffer;
 	}
 }
