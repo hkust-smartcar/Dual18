@@ -15,30 +15,29 @@
 #include <cstring>
 #include <string>
 #include <libbase/k60/mcg.h>
+#include "libbase/k60/vectors.h"
+#include "libbase/k60/pit.h"
+#include "libbase/k60/adc.h"
+#include "libsc/k60/jy_mcu_bt_106.h"
+#include <libsc/k60/ov7725.h>
+#include <libsc/k60/ov7725_configurator.h>
 #include <libsc/system.h>
 #include <libsc/led.h>
-#include <libsc/k60/jy_mcu_bt_106.h>
 #include "libsc/led.h"
 #include "libsc/joystick.h"
 #include "libsc/st7735r.h"
 #include "libsc/battery_meter.h"
-#include "libsc/k60/jy_mcu_bt_106.h"
-#include "libbase/k60/pit.h"
 #include "libsc/lcd_typewriter.h"
-#include "libbase/k60/adc.h"
+#include "libsc/passive_buzzer.h"
+#include "libsc/battery_meter.h"
 #include "config.h"
 #include "PID.h"
-#include <libsc/k60/ov7725.h>
-#include <libsc/k60/ov7725_configurator.h>
 #include "corner.h"
 #include "edge.h"
 #include "facing.h"
 #include "bluetooth.h"
 #include "find_midline.h"
 #include "DualCar_UART.h"
-#include "libsc/passive_buzzer.h"
-#include "libsc/battery_meter.h"
-#include "libbase/k60/vectors.h"
 #include "mag_func.h"
 #include "useful_functions.h"
 #define pi 3.1415926
@@ -58,8 +57,6 @@ using libsc::System;
 using namespace libsc;
 using namespace libbase::k60;
 using libsc::k60::JyMcuBt106;
-
-
 
 char *str = "";
 
@@ -114,85 +111,38 @@ int main() {
 	St7735r lcd(myConfig::GetLcdConfig());
 	LcdTypewriter writer(myConfig::GetWriterConfig(&lcd));
 	LcdConsole console(myConfig::GetConsoleConfig(&lcd));
-//    lcd.SetRegion(Lcd::Rect(0,0,128,160));
-//    lcd.FillColor(lcd.kWhite);
 
-	DirEncoder REncoder(myConfig::GetEncoderConfig(0));
-	DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
+	DirEncoder encoderR(myConfig::GetEncoderConfig(0));
+	DirEncoder encoderL(myConfig::GetEncoderConfig(1));
 	PID servoPIDStraight(2200, 0.03);
 	PID servoPIDCurve(5500, 1); //4825,0.5
 	PID servoPIDAlignCurve(-10, 0);
-	PID left_motorPID(0, 0, 0, &LEncoder, false);
-	PID right_motorPID(0, 0, 0, &REncoder, true);
-//    bt mBT(&servoPID, &left_motorPID, &right_motorPID);
+	PID left_motorPID(0, 0, 0, &encoderL, false);
+	PID right_motorPID(0, 0, 0, &encoderR, true);
+
 	typedef enum {
 		normal = 0,
-		nearLoop,
-		straight1,
-		straight2,
-		turning,
-		inLoop,
-		junction,
-		outLoop,
 		leave,
 		align,
 		side,
 		back
 	} carState;
 	carState state = normal;
-	uint32_t greenTime = 0;
-	bool dir = 0;
-	uint8_t left_mag, right_mag, mid_l_mag, mid_r_mag;
-	float left_x, right_x;
-	const float left_k = 767.2497;
-	const float right_k = 854.7614;
-	const float h = 6.2; //magnetic sensor height
-	float magRatio, xRatio;
-	bool left = 0;
-	uint8_t count = 0;
-	bool waitTrigger = 1;
-	int motor_speed = 200;
-	bool control = false;
-
-	float testLinear = 0;
-	bool start = false, cali = false, noCal = true, approaching = false;
-	bool onlyNormal = true, tuningPID = false;
-	bool leftLoop = false;
-	uint16_t filterSum0 = 0, filterSum1 = 0, filterSum2 = 0, filterSum3 = 0,
-			filterSum4 = 0, filterSum5 = 0;
-	uint8_t filterCounter = 0;
-	int32_t loopSum = 0;
-	uint16_t loopCounter = 0;
-	uint32_t lastTime = 0, stateTime = 0, approachTime = 0;
+	uint32_t lastTime = 0, approachTime = 0;
+	bool approaching = false, cali = false;
 
 	const uint16_t middleServo = 850, leftServo = 1150, rightServo = 550;
 	float angle = middleServo;
 	float lastServo = 0;
 
-	volatile uint8_t cycleTime = 0;
+	uint8_t cycleTime = 0;
 	const uint8_t cycle = 10;
 	float loopSpeed = 4 * cycle, highSpeed = 6 * cycle, alignSpeed = 6 * cycle;
 	float speed = highSpeed;
-	float frontLinear, midLinear, diffLinear;
-	float raw_frontLinear, raw_midLinear;
-	float multiplier = 0.0, top_multiplier = 0.0;
-	float front_left = 1, front_right = 1, mid_left = 1, mid_right = 1,
-			back_left = 1, back_right = 1, top_left = 1, top_right = 1;
-	uint8_t raw_front_left, raw_front_right, raw_mid_left, raw_mid_right,
-			raw_top_left, raw_top_right;
 	volatile float encoderLval, encoderRval;
 	int32_t powerL, powerR;
-	float pCurve, dCurve, pStraight, dStraight, pleft_motor, ileft_motor,
-			dleft_motor, pright_motor, iright_motor, dright_motor;
-	float setAngle = 0;
 
-	uint8_t oneLineMax = 0, oneLineMin = 250, equalMin = 250, equalMax = 0,
-			topMax = 0;
-	uint8_t maxLeft = 0, minLeft = 100, maxRight = 0, minRight = 100;
-	uint8_t count1, count4;
-	//\DualCar_UART uart0; // << BT related
-	int right_motor_speed = 180;
-	int left_motor_speed = 180;
+	//DualCar_UART uart0; // << BT related
 	bool turn_on_motor = false;
 
 	//pid value
@@ -215,28 +165,24 @@ int main() {
 			changed = true;
 			select = false;
 			select_time = 0;
-			line =1;
-			if(mode == 0) {
-				mode = 0;
-			} else {
+			line = 1;
+			if(mode != 0){
 				mode--;
 			}
 		}
-		else if(state == Joystick::State::kRight ) {
+		else if(state == Joystick::State::kRight){
 			changed = true;
 			select = false;
 			select_time = 0;
-			line =1;
-			if(mode == 3) {
-				mode = 3;
-			} else {
+			line = 1;
+			if(mode != 3){
 				mode++;
 			}
 		}
 		else if (state == Joystick::State::kSelect) {
-			if(mode ==1) {
+			if(mode == 1) {
 				select_time++;
-				if(select_time%2==1)
+				if(select_time % 2 == 1)
 				select = true;
 				else
 				select = false;
@@ -409,32 +355,22 @@ int main() {
 		}
 	})));
 
-	servo.SetDegree(1000);
+	servo.SetDegree(middleServo);
 
 	//bluetooth communicate
-
 	vector<pair<int, int>> temp;
 	vector<pair<int, int>> midline;
 	M_Bluetooth m_master_bluetooth;
-//	NVIC_SetPriority();
-
-	bool work = false;
-	bool do_not_change_m = false;
-	bool do_not_change_s = false;
 
 	vector<pair<int, int>> m_slave_vector;
 	vector<pair<int, int>> m_master_vector;
-	vector<pair<int, int>> m_vector;
-	int pre_x_coord = 40;
-
-	int servo_degree = 1000;
 
 	while (1) {
 		if (System::Time() != lastTime) {
 
 			lastTime = System::Time();
 
-			//uart0.RunEveryMS(); // << BT related
+			//uart0.RunEveryMS();
 			mag.TakeSample();
 			if (lastTime % cycle == 0) {
 				const Byte* camBuffer = camera.LockBuffer();
@@ -465,8 +401,8 @@ int main() {
 //						}
 //					}
 				}
-				if (start && mag.noMagField()) {
-					start = false;
+				if (turn_on_motor && mag.noMagField()) {
+					turn_on_motor = false;
 					left_motorPID.setDesiredVelocity(0);
 					right_motorPID.setDesiredVelocity(0);
 				}
@@ -490,17 +426,9 @@ int main() {
 					//	speed = highSpeed;
 				}
 
-//				REncoder.Update();
-				int left_encoder_velocity = REncoder.GetCount();
-//				LEncoder.Update();
-				int right_encoder_velocity = LEncoder.GetCount();
-				left_encoder_velocity = -left_encoder_velocity;
-
 				double master_slope;
 				double slave_slope;
 				double midline_slope;
-				bool is_turn = false;
-
 
 				servoPIDStraight.setkP(straight_servo_pd[0]);
 				servoPIDStraight.setkD(straight_servo_pd[1]);
@@ -527,20 +455,12 @@ int main() {
 				midline_slope = find_slope(midline);
 
 				if (cali) {
-					angle = setAngle;
+					angle = middleServo;
 				} else if (state == normal) {
-					if (mag.SmallerThanMin(0, 2.5)
-							|| mag.SmallerThanMin(1, 2.5)) {
+					if (mag.SmallerThanMin(0, 2.5) || mag.SmallerThanMin(1, 2.5)){
 						angle = lastServo * 1.05; //compare with which side and angle sign
 					} else {
 						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
-//						if(IsCurve(frontLinear, midLinear)){
-//							angle = servoPIDCurve.getPID(0.0,frontLinear);
-//							buzz.SetBeep(true);
-//						}else{
-//							angle = servoPIDStraight.getPID(0.0,frontLinear);
-//							buzz.SetBeep(false);
-//						}
 					}
 					lastServo = angle;
 				} else if (state == align) {
@@ -553,7 +473,6 @@ int main() {
 				}
 
 				m_master_bluetooth.reset_m_edge();
-
 
 				angle += middleServo;
 				angle = max(rightServo, min(leftServo, angle));
@@ -576,20 +495,15 @@ int main() {
 				}
 
 				if (mode != 3) {
-					LEncoder.Update();
-					REncoder.Update();
+					encoderL.Update();
+					encoderR.Update();
 				}
-				encoderLval = LEncoder.GetCount();
-				encoderRval = -REncoder.GetCount();
+				encoderLval = encoderL.GetCount();
+				encoderRval = -encoderR.GetCount();
 
 				if (turn_on_motor) {
 					powerR = right_motorPID.getPID();
 					powerL = left_motorPID.getPID();
-
-					if (abs(powerL) > 400 || abs(powerR) > 400) {
-						powerL = 400;
-						powerR = 400;
-					}
 					if (powerR > 0) {
 						right_motor.SetClockwise(true); //right_motor_true == forward
 						right_motor.SetPower(powerR);
@@ -597,7 +511,6 @@ int main() {
 						right_motor.SetClockwise(false);
 						right_motor.SetPower(powerR);
 					}
-
 //					if (powerL > 0) {
 //						left_motor.SetClockwise(true);//
 //						left_motor.SetPower(220);
@@ -605,17 +518,16 @@ int main() {
 //						left_motor.SetClockwise(false);
 //						left_motor.SetPower(220);
 //					}
-
 				} else {
 					left_motorPID.setDesiredVelocity(0);
 					right_motorPID.setDesiredVelocity(0);
 					left_motor.SetPower(0);
 					right_motor.SetPower(0);
 					if (encoderLval != 0) {
-						LEncoder.Update();
+						encoderL.Update();
 					}
 					if (encoderRval != 0) {
-						REncoder.Update();
+						encoderR.Update();
 					}
 				}
 
@@ -666,19 +578,6 @@ int main() {
 					lcd.SetRegion(Lcd::Rect(0, 105, 88, 15));
 					sprintf(c, "Sv:%d ", servo.GetDegree());\
 					writer.WriteBuffer(c, 10);
-					for (int i = 0; i < 10; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 120, 88, 15));
-					sprintf(c, "R:%d ", right_motor_speed);
-					writer.WriteBuffer(c, 10);
-					for (int i = 0; i < 10; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 135, 88, 15));
-					sprintf(c, "L:%d ", left_motor_speed);
-					writer.WriteBuffer(c, 10);
-
 				}
 
 				if (mode == 1) {
@@ -738,11 +637,11 @@ int main() {
 					for (int i = 0; i < 15; i++) {
 						c[i] = ' ';
 					}
-					if (select == true) {
+					if (select) {
 						lcd.SetRegion(Lcd::Rect(0, 135, 120, 15));
 						sprintf(c, "select: true");
 						writer.WriteBuffer(c, 15);
-					} else if (select == false) {
+					} else {
 						lcd.SetRegion(Lcd::Rect(0, 135, 120, 15));
 						sprintf(c, "select: false");
 						writer.WriteBuffer(c, 15);
@@ -815,11 +714,11 @@ int main() {
 					for (int i = 0; i < 15; i++) {
 						c[i] = ' ';
 					}
-					if (select == true) {
+					if (select) {
 						lcd.SetRegion(Lcd::Rect(0, 135, 120, 15));
 						sprintf(c, "select: true");
 						writer.WriteBuffer(c, 15);
-					} else if (select == false) {
+					} else {
 						lcd.SetRegion(Lcd::Rect(0, 135, 120, 15));
 						sprintf(c, "select: false");
 						writer.WriteBuffer(c, 15);
@@ -834,8 +733,6 @@ int main() {
 				}
 				midline.clear();
 				temp.clear();
-
-				m_vector.clear();
 				m_slave_vector.clear();
 				m_master_vector.clear();
 
@@ -847,4 +744,3 @@ int main() {
 }
 
 #endif
-
