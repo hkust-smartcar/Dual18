@@ -5,9 +5,9 @@
  *      Author: morristseng
  */
 
-#define Master
+#define slave
 
-#ifdef Slave
+#ifdef slave
 
 #include <cmath>
 #include <vector>
@@ -101,21 +101,21 @@ int main() {
 	PassiveBuzzer buzz(config);
 	buzz.SetNote(523);
 
-	FutabaS3010 servo(myConfig::GetServoConfig());
-	AlternateMotor right_motor(myConfig::GetMotorConfig(1));
-	AlternateMotor left_motor(myConfig::GetMotorConfig(0));
+//	FutabaS3010 servo(myConfig::GetServoConfig());
+//	AlternateMotor right_motor(myConfig::GetMotorConfig(1));
+//	AlternateMotor left_motor(myConfig::GetMotorConfig(0));
 	St7735r lcd(myConfig::GetLcdConfig());
 	LcdTypewriter writer(myConfig::GetWriterConfig(&lcd));
 	LcdConsole console(myConfig::GetConsoleConfig(&lcd));
-	DirEncoder REncoder(myConfig::GetEncoderConfig(0));
-	DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
-	PID servoPIDStraight(2200, 0.03);
-	PID servoPIDCurve(5500, 1); //4825,0.5
-	PID servoPIDAlignCurve(-10, 0);
-	PID left_motorPID(0, 0, 0, &LEncoder, false);
-	PID right_motorPID(0, 0, 0, &REncoder, true);
+//	DirEncoder REncoder(myConfig::GetEncoderConfig(0));
+//	DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
+//	PID servoPIDStraight(2200, 0.03);
+//	PID servoPIDCurve(5500, 1); //4825,0.5
+//	PID servoPIDAlignCurve(-10, 0);
+//	PID left_motorPID(0, 0, 0, &LEncoder, false);
+//	PID right_motorPID(0, 0, 0, &REncoder, true);
 	uint32_t lastTime = 0;
-	const uint8_t cycle = 10;
+	uint8_t cycle = 10;
 	uint8_t cycleTime = 0;
 
 	//joystick value
@@ -176,7 +176,7 @@ int main() {
 		}
 	})));
 
-	servo.SetDegree(1000);
+//	servo.SetDegree(1000);
 
 	const bool is_slave = true;
 	S_Bluetooth m_slave_bluetooth;
@@ -193,7 +193,7 @@ int main() {
 	vector<pair<int, int>> m_vector;
 	int pre_x_coord = 40;
 
-	int servo_degree = 1000;
+//	int servo_degree = 1000;
 
 	while (1) {
 		if (System::Time() != lastTime) {
@@ -244,12 +244,16 @@ int main() {
 					lcd.SetRegion(Lcd::Rect(0, 75, 88, 15));
 					sprintf(c, "Sl:%.2f ", slave_slope);
 					writer.WriteBuffer(c, 10);
+
+					cycle = 10;
 				}
 				if (mode == 1) {
 					if (changed == 1) {
 						lcd.Clear();
 						changed = 0;
 					}
+
+//					cycle = 50;
 				}
 
 				m_vector.clear();
