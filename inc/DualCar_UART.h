@@ -66,8 +66,8 @@ using std::vector;
 
 #define REPEAT_SEND_MS 100
 #define LOCAL_BUFFER_MAX 8
-#define BUFFER_SENT_MAX 200
-#define CHECK_VALUE_PER 10
+#define BUFFER_SENT_MAX 80
+#define CHECK_VALUE_PER 5
 // buffer size will determine the max len of the string
 // keep it between 8 to 64
 

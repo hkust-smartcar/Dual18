@@ -281,6 +281,23 @@ class GeneralVariableTile extends GUI_Raw {
         m_DataTypeLabel.setTextColor(m_TextColor);
         m_ValueLabel.setTextColor(m_TextColor);
     };
+
+    @Override
+        void serialSend() {
+        if (uart != null) {
+            if (m_DataType == DATA_TYPE.DOUBLE) {
+                uart.Send_double(double_MailBox_id, DataArray_double[double_MailBox_id.ordinal()]);
+            } else if (m_DataType == DATA_TYPE.FLOAT) {
+                uart.Send_float(float_MailBox_id, DataArray_float[float_MailBox_id.ordinal()]);
+            } else if (m_DataType == DATA_TYPE.UINT8_T) {
+                uart.Send_uint8_t(uint8_t_MailBox_id, DataArray_uint8_t[uint8_t_MailBox_id.ordinal()]);
+            } else if (m_DataType == DATA_TYPE.INT) {
+                uart.Send_int(int_MailBox_id, DataArray_int[int_MailBox_id.ordinal()]);
+            } else if (m_DataType == DATA_TYPE.BOOLEAN) {
+                uart.Send_bool(bool_MailBox_id, DataArray_bool[bool_MailBox_id.ordinal()]);
+            }
+        }
+    }
 }
 
 class ButtonTile extends GUI_Raw {

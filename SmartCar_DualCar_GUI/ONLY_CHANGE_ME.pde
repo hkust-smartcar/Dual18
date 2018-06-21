@@ -1,8 +1,11 @@
-final String EnvPath = "/Users/JosephYim/Desktop/";
+//Path path = FileSystems.getDefault().getPath(".");
+final String EnvPath = System.getProperty("user.dir");
+//"/Users/JosephYim/Desktop/";
 final boolean SameFile = true;
 
-//final String BTtarget = "tty.MORRIS";
-final String BTtarget = "";
+final String BTtarget = "tty.MORRIS";
+//final String BTtarget = "tty.JOSEPH";
+//final String BTtarget = "tty.COLUMN";
 
 
 void init() { // add tiles here 
@@ -23,8 +26,10 @@ void init() { // add tiles here
     //addOutputValueTile(Mailbox.u5, "u5");
     //addOutputValueTile(Mailbox.u6, "u6");
     //addOutputValueTile(Mailbox.u7, "u7");
+    //addLineBreak(); // break into next column
 
-    addOutputValueTile(Mailbox.b0, "b0");
+    addOutputValueTile(Mailbox.i0, "i0");
+    addOutputValueTile(Mailbox.i1, "i1");
 
     //addLineBreak(); // break into next column
 
@@ -55,9 +60,9 @@ void init() { // add tiles here
 
     //addCameraGraph();
 
-    //addElapsedTime();
+    addElapsedTime();
     //addOutputValueTile(Mailbox.b0, "b0");
-    addButtonTile(Mailbox.b0, "b0");
+    //addButtonTile(Mailbox.b0, "b0");
     //addButtonTile(Mailbox.b0, "b0");
 
     //addChart(100, 5, 600, -1, 255); // << start a new chart, i.e. chart 1
