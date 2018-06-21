@@ -38,6 +38,7 @@
 #include "libsc/passive_buzzer.h"
 #include "libsc/battery_meter.h"
 #include "libbase/k60/vectors.h"
+#include "mag_func.h"
 #define pi 3.1415926
 
 //#define Slave
@@ -186,19 +187,7 @@ int main() {
 	led2.SetEnable(1);
 	led3.SetEnable(1);
 
-	Adc mag0(myConfig::GetAdcConfig(0));
-	Adc mag1(myConfig::GetAdcConfig(1));
-	Adc mag2(myConfig::GetAdcConfig(2));
-	Adc mag3(myConfig::GetAdcConfig(3));
-	Adc mag4(myConfig::GetAdcConfig(4));
-	Adc mag5(myConfig::GetAdcConfig(5));
-
-	mag0.StartConvert();
-	mag1.StartConvert();
-	mag2.StartConvert();
-	mag3.StartConvert();
-	mag4.StartConvert();
-	mag5.StartConvert();
+	Mag mag;
 
 	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig());
 	float batteryVoltage = batteryMeter.GetVoltage();
@@ -573,66 +562,37 @@ int main() {
 			lastTime = System::Time();
 
 			//uart0.RunEveryMS(); // << BT related
-			filterCounter++;
-			filterSum0 += mag0.GetResult();
-			filterSum1 += mag1.GetResult();
-			filterSum2 += mag2.GetResult();
-			filterSum3 += mag3.GetResult();
-			filterSum4 += mag4.GetResult();
-			filterSum5 += mag5.GetResult();
+			mag.TakeSample();
 			if (lastTime % cycle == 0 && filterCounter != 0) {
 				const Byte* camBuffer = camera.LockBuffer();
 				camera.UnlockBuffer();
-				raw_mid_left = round(1.0 * filterSum0 / filterCounter);
-				raw_mid_right = round(1.0 * filterSum1 / filterCounter);
-				raw_front_left = round(1.0 * filterSum2 / filterCounter);
-				raw_front_right = round(1.0 * filterSum3 / filterCounter);
-				raw_top_left = round(1.0 * filterSum4 / filterCounter);
-				raw_top_right = round(1.0 * filterSum5 / filterCounter);
-				if (multiplier != 0) {
-					mid_left = raw_mid_left * multiplier;
-					mid_right = raw_mid_right * multiplier;
-					front_left = raw_front_left * multiplier;
-					front_right = raw_front_right * multiplier;
-					top_left = raw_top_left * top_multiplier;
-					top_right = raw_top_right * top_multiplier;
-				}
-				filterSum0 = 0;
-				filterSum1 = 0;
-				filterSum2 = 0;
-				filterSum3 = 0;
-				filterSum4 = 0;
-				filterSum5 = 0;
-				filterCounter = 0;
+				mag.Update();
 				if (cali) {
-					oneLineMin = min(raw_front_left,
-							min(raw_front_right,
-									min(raw_mid_left,
-											min(raw_mid_right, oneLineMin))));
-					oneLineMax = max(raw_front_left,
-							max(raw_front_right,
-									max(raw_mid_left,
-											max(raw_mid_right, oneLineMax))));
-					topMax = max(raw_top_left, max(raw_top_right, topMax));
-					if (raw_front_left == raw_front_right) {
-						if (equalMin > 100
-								|| (equalMin > raw_front_left
-										&& equalMin - raw_front_left < 5)) {
-							equalMin = raw_front_left;
-
-						}
-						if (equalMax < 10
-								|| (equalMax < raw_front_left
-										&& raw_front_left - equalMax < 5)) {
-							equalMax = raw_front_left;
-						}
-					}
+					mag.Calibrate();
+//					oneLineMin = min(raw_front_left,
+//							min(raw_front_right,
+//									min(raw_mid_left,
+//											min(raw_mid_right, oneLineMin))));
+//					oneLineMax = max(raw_front_left,
+//							max(raw_front_right,
+//									max(raw_mid_left,
+//											max(raw_mid_right, oneLineMax))));
+//					topMax = max(raw_top_left, max(raw_top_right, topMax));
+//					if (raw_front_left == raw_front_right) {
+//						if (equalMin > 100
+//								|| (equalMin > raw_front_left
+//										&& equalMin - raw_front_left < 5)) {
+//							equalMin = raw_front_left;
+//
+//						}
+//						if (equalMax < 10
+//								|| (equalMax < raw_front_left
+//										&& raw_front_left - equalMax < 5)) {
+//							equalMax = raw_front_left;
+//						}
+//					}
 				}
-				if (start
-						&& max(
-								max(max(raw_front_left, raw_front_right),
-										raw_mid_left), raw_mid_right)
-								< oneLineMin * 2) {
+				if (start && mag.noMagField()){
 					start = false;
 					left_motorPID.setDesiredVelocity(0);
 					right_motorPID.setDesiredVelocity(0);
@@ -641,18 +601,15 @@ int main() {
 				if (state == normal && approaching) {
 					state = leave;
 					speed = alignSpeed;
-				} else if (state == leave && raw_front_right < equalMin * 1.2
-						&& raw_front_left < equalMin * 0.5) {
+				} else if (state == leave && mag.SmallerThanE(0, 0.5) && mag.SmallerThanE(1, 1.2)){
 					state = align;
-				} else if (state == align
-						&& (raw_front_right - raw_mid_right) < 10
-						&& abs((int) angle - middleServo) < 50) {
+				} else if (state == align && mag.Difference(0, 1) < 10 && abs((int) angle - middleServo) < 50) {
 					state = side;
 					approachTime = System::Time();
 				} else if (state == side && !approaching) {
 					state = back;
 					lastServo = -300;
-				} else if (state == back && raw_front_left > equalMin) {
+				} else if (state == back && !mag.SmallerThanE(0, 1)) {
 					state = normal;
 					speed = 0;
 					//	speed = highSpeed;
@@ -753,11 +710,10 @@ int main() {
 				if (cali) {
 					angle = setAngle;
 				} else if (state == normal) {
-					if (raw_front_left < oneLineMin * 2.5
-							|| raw_front_right < oneLineMin * 2.5) {
+					if (mag.SmallerThanMin(0, 2.5) || mag.SmallerThanMin(1, 2.5)){
 						angle = lastServo * 1.05; //compare with which side and angle sign
 					} else {
-						angle = servoPIDCurve.getPID(0.0, frontLinear);
+						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
 //						if(IsCurve(frontLinear, midLinear)){
 //							angle = servoPIDCurve.getPID(0.0,frontLinear);
 //							buzz.SetBeep(true);
@@ -767,11 +723,10 @@ int main() {
 //						}
 					}
 					lastServo = angle;
-				} else if (state == align) {
-					angle = servoPIDAlignCurve.getPID(equalMin,
-							raw_front_right);
+				} else if (state == align){
+					angle = servoPIDAlignCurve.getPID(mag.GetEMin(1),mag.GetMag(1));
 //					angle = servoPIDCurve.getPID(0.08,frontLinear);
-					if (raw_front_left > oneLineMin * 3 && angle < 0) {
+					if (!mag.SmallerThanMin(0,3) && angle < 0) {
 						angle = -angle;
 					}
 				}
