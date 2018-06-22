@@ -123,6 +123,14 @@ private:
 
 class DualCar_Menu{
 public:
+	typedef enum{
+		kImage,
+		kServoPD,
+		kMotorPID,
+		kMag,
+		kStart
+	} Page;
+
 	DualCar_Menu(){};
 
 	void change_mode(bool);

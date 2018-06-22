@@ -127,38 +127,27 @@ public:
     static Adc::Config GetAdcConfig(int id){
     	Adc::Config config;
     	switch (id) {
-    			case 0:
+    			case 4:
     				config.adc = Adc::Name::kAdc0Ad4B;
-    	//			config.pin = libbase::k60::Pin::Name::kPtc2;
     				break;
-    			case 1:
+    			case 5:
     				config.adc = Adc::Name::kAdc1Ad4B;
-    	//			config.pin = libbase::k60::Pin::Name::kPtc8;
     				break;
     			case 2:
     				config.adc = Adc::Name::kAdc1Ad5B;
-    	//			config.pin = libbase::k60::Pin::Name::kPtc9;
     				break;
     			case 3:
     				config.adc = Adc::Name::kAdc1Ad6B;
-    	//			config.pin = libbase::k60::Pin::Name::kPtc10;
     				break;
-    			case 4:
+    			case 0:
     				config.adc = Adc::Name::kAdc1Ad7B;
-    	//			config.pin = libbase::k60::Pin::Name::kPtc11;
     				break;
-    			case 5:
+    			case 1:
     				config.adc = Adc::Name::kAdc0Ad5B;
-    	//			config.pin = libbase::k60::Pin::Name::kPtd1;
     				break;
     			case 6:
     				config.adc = Adc::Name::kAdc0Ad6B;
-    	//			config.pin = libbase::k60::Pin::Name::kPtd5;
     				break;
-    	//		case 7:
-    	//			config.adc = Adc::Name::kAdc0Ad7B;
-    	//			config.pin = libbase::k60::Pin::Name::kPtd6;
-    	//			break;
     			default:
     				break;
     	}

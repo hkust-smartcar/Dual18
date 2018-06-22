@@ -244,6 +244,7 @@ int main() {
 
 	int32_t on9lastSent = 0;
 	float x = 0;
+
 	while (1) {
 		if (System::Time() != lastTime) {
 
@@ -387,13 +388,16 @@ int main() {
 					right_motorPID.setDesiredVelocity(speed * sin(x));
 				}
 
-				if (mode != 3) {
+				if (menu.get_mode() != DualCar_Menu::Page::kStart) {
 					encoderL.Update();
 					encoderR.Update();
 					encoderLval = encoderL.GetCount();
 					encoderRval = -encoderR.GetCount();
 				}
 
+				if (menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()){
+					turn_on_motor = !turn_on_motor;
+				}
 
 				if (turn_on_motor) {
 					powerR = right_motorPID.getPID();
@@ -425,7 +429,7 @@ int main() {
 					}
 				}
 
-				if(menu.get_mode() !=3){//printing show value
+				if(menu.get_mode() != DualCar_Menu::Page::kStart){//printing show value
 					Items item0("Master");
 					Items item1 ("B_Sl", midline_slope);
 					Items item2("R_Sl", master_slope);
@@ -444,6 +448,7 @@ int main() {
 
 					Items item22("left", mag.GetMag(0));
 					Items item23("right", mag.GetMag(1));
+					Items item24("time", lastTime % 100);
 
 
 					mode0.add_items(&item0);
@@ -473,6 +478,7 @@ int main() {
 
 					mode3.add_items(&item22);
 					mode3.add_items(&item23);
+					mode3.add_items(&item24);
 				}
 
 				menu.add_mode(&mode0);
@@ -482,7 +488,7 @@ int main() {
 				menu.add_mode(&ClearMode);
 
 
-				if (menu.get_mode() == 0) {
+				if (menu.get_mode() == DualCar_Menu::Page::kImage) {
 					if (menu.change_screen()) {
 						lcd.Clear();
 					}
@@ -515,7 +521,7 @@ int main() {
 					}
 				}
 
-				else if (menu.get_mode() == 1) {
+				else if (menu.get_mode() != DualCar_Menu::Page::kStart) {
 					if (menu.change_screen()) {
 						lcd.Clear();
 					}
@@ -523,19 +529,7 @@ int main() {
 						lcd.SetRegion(Lcd::Rect(0, 15*i, 88, 15));
 						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),15);
 					}
-				}
-				else if (menu.get_mode() == 2) {
-					if (menu.change_screen()) {
-						lcd.Clear();
-					}
-
-					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
-						lcd.SetRegion(Lcd::Rect(0, 15*i, 88, 15));
-						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),15);
-					}
-				}
-
-				else{
+				}else{
 					if (menu.change_screen()) {
 						lcd.Clear();
 					}
