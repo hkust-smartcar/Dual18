@@ -38,6 +38,7 @@
 #include "libsc/passive_buzzer.h"
 #include "libbase/k60/vectors.h"
 #include "useful_functions.h"
+#include "menu.h"
 #define pi 3.1415926
 
 namespace libbase {
@@ -101,78 +102,41 @@ int main() {
 	PassiveBuzzer buzz(config);
 	buzz.SetNote(523);
 
-//	FutabaS3010 servo(myConfig::GetServoConfig());
-//	AlternateMotor right_motor(myConfig::GetMotorConfig(1));
-//	AlternateMotor left_motor(myConfig::GetMotorConfig(0));
 	St7735r lcd(myConfig::GetLcdConfig());
 	LcdTypewriter writer(myConfig::GetWriterConfig(&lcd));
 	LcdConsole console(myConfig::GetConsoleConfig(&lcd));
-//	DirEncoder REncoder(myConfig::GetEncoderConfig(0));
-//	DirEncoder LEncoder(myConfig::GetEncoderConfig(1));
-//	PID servoPIDStraight(2200, 0.03);
-//	PID servoPIDCurve(5500, 1); //4825,0.5
-//	PID servoPIDAlignCurve(-10, 0);
-//	PID left_motorPID(0, 0, 0, &LEncoder, false);
-//	PID right_motorPID(0, 0, 0, &REncoder, true);
 	uint32_t lastTime = 0;
 	uint8_t cycle = 10;
 	uint8_t cycleTime = 0;
 
 	//joystick value
-	int line = 1;
-	bool select = true;
-	int select_time = 0;
-	bool changed = false;
+	DualCar_Menu menu;
+	Mode mode0(0);
+	Mode mode1(1);
+	Mode ClearMode(2);
+
+	float temp = 100.0;
+	float temp2 = 100.0;
+	Items item4("change", &temp, true);
+	item4.set_increment(10.2);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
-		if(state == Joystick::State::kLeft) {
-			changed = true;
-			select = false;
-			select_time = 0;
-			line =1;
-			if(mode == 0) {
-				mode = 0;
-			} else {
-				mode--;
-			}
+		if(state == Joystick::State::kRight) {
+			menu.change_mode(true);
 		}
-		else if(state == Joystick::State::kRight ) {
-			changed = true;
-			select = false;
-			select_time = 0;
-			line =1;
-			if(mode == 3) {
-				mode = 3;
-			} else {
-				mode++;
-			}
+		else if(state == Joystick::State::kLeft){
+			menu.change_mode(false);
 		}
-		else if (state == Joystick::State::kSelect) {
-			if(mode ==1) {
-			}
-			if(mode ==2) {
-			}
-			if(mode==3) {
-			}
+		else if(state == Joystick::State::kSelect){
+			menu.select_pressed();
 		}
-		else if (state == Joystick::State::kUp) {
-			if(mode==0) {
-			}
-			else if(mode==1) {
+		else if(state == Joystick::State::kUp){
+			menu.change_line(true);
 
-			}
-			else if(mode==2) {
-			}
 		}
-		else if (state == Joystick::State::kDown) {
-			if(mode==0) {
-			}
-			else if(mode==1) {
-
-			}
-			else if(mode==2) {
-			}
+		else if(state == Joystick::State::kDown){
+			menu.change_line(false);
 		}
 	})));
 
@@ -195,6 +159,8 @@ int main() {
 
 //	int servo_degree = 1000;
 
+
+
 	while (1) {
 		if (System::Time() != lastTime) {
 
@@ -206,7 +172,7 @@ int main() {
 
 // bluetooth send image
 
-				double slave_slope;
+				float slave_slope;
 				bool right_fail;
 				vector<Corner> m_corner;
 				right_fail = check_right_edge(20, 60, camBuffer,
@@ -221,14 +187,29 @@ int main() {
 				m_slave_bluetooth.send_corner(m_corner);
 //				}
 
-				if (mode == 0) {
-					if (changed == 1) {
+
+				if(menu.get_mode()!=2){
+					Items item1("Sl", &slave_slope,false);
+					Items item2("Select", menu.get_selected());
+					Items item3("line", menu.get_line());
+
+					mode0.add_items(&item1);
+					mode0.add_items(&item4);
+					mode0.add_items(&item2);
+					mode0.add_items(&item3);
+
+					mode1.add_items(&item1);
+					mode1.add_items(&item2);
+				}
+
+				menu.add_mode(&mode0);
+				menu.add_mode(&mode1);
+				menu.add_mode(&ClearMode);
+
+				if (menu.get_mode() == 0) {
+
+					if (menu.change_screen()) {
 						lcd.Clear();
-						changed = 0;
-					}
-					char c[10];
-					for (int i = 0; i < 10; i++) {
-						c[i] = ' ';
 					}
 					lcd.SetRegion(Lcd::Rect(0, 0, Width, Height));
 					lcd.FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
@@ -238,24 +219,30 @@ int main() {
 										m_slave_vector[i].second, 2, 2));
 						lcd.FillColor(Lcd::kBlue);
 					}
-					lcd.SetRegion(Lcd::Rect(0, 60, 88, 15));
-					sprintf(c, "Slave");
-					writer.WriteBuffer(c, 10);
-					lcd.SetRegion(Lcd::Rect(0, 75, 88, 15));
-					sprintf(c, "Sl:%.2f ", slave_slope);
-					writer.WriteBuffer(c, 10);
 
-					cycle = 10;
-				}
-				if (mode == 1) {
-					if (changed == 1) {
-						lcd.Clear();
-						changed = 0;
+					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
+						lcd.SetRegion(Lcd::Rect(0, 60+15*i, 88, 15));
+						writer.WriteBuffer(menu.m_menu[0]->m_items[i]->get_message(),15);
 					}
-
-//					cycle = 50;
 				}
-
+				else if (menu.get_mode() == 1) {
+					if (menu.change_screen()) {
+						lcd.Clear();
+					}
+					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
+						lcd.SetRegion(Lcd::Rect(0, 15*i, 88, 15));
+						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),15);
+					}
+				}
+				else{
+					if (menu.change_screen()) {
+						lcd.Clear();
+					}
+				}
+				menu.clear();
+				mode0.clear();
+				mode1.clear();
+				ClearMode.clear();
 				m_vector.clear();
 				m_slave_vector.clear();
 				m_master_vector.clear();
