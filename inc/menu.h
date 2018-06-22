@@ -143,9 +143,9 @@ public:
 	}
 
 	void clear(){
-//		for(int i=0; i<m_menu.size(); i++){
-//			m_menu[i]->clear();
-//		}
+		for(int i=0; i<m_menu.size(); i++){
+			m_menu[i]->clear();
+		}
 		m_menu.clear();
 	}
 
