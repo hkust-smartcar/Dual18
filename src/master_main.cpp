@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define Master
+#define Master
 
 #ifdef Master
 
@@ -117,6 +117,7 @@ int main() {
 	PID servoPIDStraight(2200, 0.03);
 	PID servoPIDCurve(5500, 1); //4825,0.5
 	PID servoPIDAlignCurve(-10, 0);
+    PID servoPIDAlignStraight(-4,10);
 	PID left_motorPID(0, 0, 0, &encoderL, false);
 	PID right_motorPID(0, 0, 0, &encoderR, true);
 
@@ -401,20 +402,18 @@ int main() {
 //						}
 //					}
 				}
-				if (turn_on_motor && mag.noMagField()) {
-					turn_on_motor = false;
-					left_motorPID.setDesiredVelocity(0);
-					right_motorPID.setDesiredVelocity(0);
-				}
+//				if (turn_on_motor && mag.noMagField()) {
+//					turn_on_motor = false;
+//					left_motorPID.setDesiredVelocity(0);
+//					right_motorPID.setDesiredVelocity(0);
+//				}
 				//for alignment
 				if (state == normal && approaching) {
 					state = leave;
 					speed = alignSpeed;
-				} else if (state == leave && mag.SmallerThanE(0, 0.5)
-						&& mag.SmallerThanE(1, 1.2)) {
+				} else if (state == leave && mag.SmallerThanE(0, 0.5) && mag.SmallerThanE(1, 1.2)) {
 					state = align;
-				} else if (state == align && mag.Difference(0, 1) < 10
-						&& abs((int) angle - middleServo) < 50) {
+				} else if (state == align && mag.Difference(0, 1) < 10 && abs((int) angle - middleServo) < 50) {
 					state = side;
 					approachTime = System::Time();
 				} else if (state == side && !approaching) {
@@ -458,18 +457,26 @@ int main() {
 					angle = middleServo;
 				} else if (state == normal) {
 					if (mag.SmallerThanMin(0, 2.5) || mag.SmallerThanMin(1, 2.5)){
-						angle = lastServo * 1.05; //compare with which side and angle sign
+						angle = lastServo * 1.3;
 					} else {
 						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
+						lastServo = angle;
 					}
-					lastServo = angle;
+				} else if (state == leave){
+					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0), mag.GetMag(0));
+//					angle = servoPIDCurve.getPID(0.08,frontLinear);
 				} else if (state == align) {
-					angle = servoPIDAlignCurve.getPID(mag.GetEMin(1),
-							mag.GetMag(1));
+					angle = servoPIDAlignCurve.getPID(mag.GetEMin(1), mag.GetMag(1));
 //					angle = servoPIDCurve.getPID(0.08,frontLinear);
 					if (!mag.SmallerThanMin(0, 3) && angle < 0) {
 						angle = -angle;
 					}
+				} else if (state == side){
+					angle = servoPIDAlignStraight.getPID(mag.GetEMin(1), mag.GetMag(1));
+//					angle = servoPIDStraight.getPID(0.08,frontLinear);
+				} else if (state == back){
+					angle = servoPIDAlignCurve.getPID(mag.GetEMax(0), mag.GetMag(0));
+//					angle = servoPIDAlignStraight.getPID(equalMax, raw_front_left);
 				}
 
 				m_master_bluetooth.reset_m_edge();
@@ -481,17 +488,13 @@ int main() {
 				if (angle > middleServo) {
 					float angleRatio = 0.0013 * (angle - middleServo);
 					float differential = angleRatio / (2 - angleRatio);
-					left_motorPID.setDesiredVelocity(
-							speed * (1 - differential));
-					right_motorPID.setDesiredVelocity(
-							speed * (1 + differential));
+					left_motorPID.setDesiredVelocity(speed * (1 - differential));
+					right_motorPID.setDesiredVelocity(speed * (1 + differential));
 				} else {
 					float angleRatio = 0.0013 * (middleServo - angle);
 					float differential = angleRatio / (2 - angleRatio);
-					left_motorPID.setDesiredVelocity(
-							speed * (1 + differential));
-					right_motorPID.setDesiredVelocity(
-							speed * (1 - differential));
+					left_motorPID.setDesiredVelocity(speed * (1 + differential));
+					right_motorPID.setDesiredVelocity(speed * (1 - differential));
 				}
 
 				if (mode != 3) {
@@ -505,19 +508,19 @@ int main() {
 					powerR = right_motorPID.getPID();
 					powerL = left_motorPID.getPID();
 					if (powerR > 0) {
-						right_motor.SetClockwise(true); //right_motor_true == forward
+						right_motor.SetClockwise(true);
 						right_motor.SetPower(powerR);
 					} else {
 						right_motor.SetClockwise(false);
-						right_motor.SetPower(powerR);
+						right_motor.SetPower(-powerR);
 					}
-//					if (powerL > 0) {
-//						left_motor.SetClockwise(true);//
-//						left_motor.SetPower(220);
-//					} else {
-//						left_motor.SetClockwise(false);
-//						left_motor.SetPower(220);
-//					}
+					if (powerL > 0) {
+						left_motor.SetClockwise(true);
+						left_motor.SetPower(powerL);
+					} else {
+						left_motor.SetClockwise(false);
+						left_motor.SetPower(-powerL);
+					}
 				} else {
 					left_motorPID.setDesiredVelocity(0);
 					right_motorPID.setDesiredVelocity(0);
