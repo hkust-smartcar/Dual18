@@ -40,6 +40,7 @@
 #include "DualCar_UART.h"
 #include "mag_func.h"
 #include "useful_functions.h"
+#include "menu.h"
 #define pi 3.1415926
 
 namespace libbase {
@@ -176,205 +177,40 @@ int main() {
 	//
 
 	//joystick value
-	int line = 1;
-	bool select = true;
-	int select_time = 0;
-	bool changed = false;
+	DualCar_Menu menu;
+	Mode mode0(0);
+	Mode mode1(1);
+	Mode mode2(2);
+	Mode ClearMode(2);
+
+
+	Items item5("sr_kp", &straight_servo_pd[0], true);
+	Items item6("sr_kd", &straight_servo_pd[1], true);
+	Items item7("cr_kp", &curve_servo_pd[0], true);
+	Items item8("cr_kd", &curve_servo_pd[1], true);
+	item5.set_increment(100);
+	item6.set_increment(100);
+	item7.set_increment(100);
+	item8.set_increment(100);
+
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
-
-		if(state == Joystick::State::kLeft) {
-			changed = true;
-			select = false;
-			select_time = 0;
-			line = 1;
-			if(mode != 0){
-				mode--;
-			}
+		if(state == Joystick::State::kRight) {
+			menu.change_mode(true);
 		}
-		else if(state == Joystick::State::kRight){
-			changed = true;
-			select = false;
-			select_time = 0;
-			line = 1;
-			if(mode != 3){
-				mode++;
-			}
+		else if(state == Joystick::State::kLeft){
+			menu.change_mode(false);
 		}
-		else if (state == Joystick::State::kSelect) {
-			if(mode == 1) {
-				select_time++;
-				if(select_time % 2 == 1)
-				select = true;
-				else
-				select = false;
-			}
-			if(mode ==2) {
-				select_time++;
-				if(select_time%2==1)
-				select = true;
-				else
-				select = false;
-			}
-			if(mode==3) {
-				select_time++;
-				if(select_time%2==1) {
-					turn_on_motor = true;
-				}
-				else {
-					right_motor.SetPower(0);
-					left_motor.SetPower(0);
-					turn_on_motor = false;
-				}
-			}
+		else if(state == Joystick::State::kSelect){
+			menu.select_pressed();
 		}
-		else if (state == Joystick::State::kUp) {
-			if(mode==0) {
-			}
-			else if(mode==1) {
-				if(!select) {
-					if(line == 1)
-					line=1;
-					else
-					line --;
-				}
-				else {
-					switch(line%4) {
-						case 1:
-						straight_servo_pd[0]+= 100;
-						break;
-						case 2:
-						straight_servo_pd[1]+= 100;
-						break;
-						case 3:
-						curve_servo_pd[0]+= 100;
-						break;
-						case 0:
-						curve_servo_pd[1]+= 100;
-						break;
-					}
-				}
-			}
-			else if(mode==2) {
-				if(!select) {
-					if(line == 1)
-					line=1;
-					else
-					line --;
-				}
-				else {
-					switch(line%7) {
-						case 1:
-						left_motor_pid[0]+= 0.1;
-						break;
-						case 2:
-						left_motor_pid[1]+= 0.1;
-						break;
-						case 3:
-						left_motor_pid[2]+= 0.1;
-						break;
-						case 4:
-						right_motor_pid[0]+= 0.1;
-						break;
-						case 5:
-						right_motor_pid[1]+= 0.1;
-						break;
-						case 6:
-						right_motor_pid[2]+= 0.1;
-						break;
-						case 7:
-						speed += 10;
-						break;
-					}
-				}
-			}
+		else if(state == Joystick::State::kUp){
+			menu.change_line(true);
+
 		}
-		else if (state == Joystick::State::kDown) {
-			if(mode==0) {
-			}
-			else if(mode==1) {
-				if(!select) {
-					if(line >= 4)
-					line=4;
-					else
-					line ++;
-				}
-				else {
-					switch(line%4) {
-						case 1:
-						straight_servo_pd[0]-= 100;
-						if(straight_servo_pd[0]<0)
-						straight_servo_pd[0]=0;
-						break;
-
-						case 2:
-						straight_servo_pd[1]-= 100;
-						if(straight_servo_pd[1]<0)
-						straight_servo_pd[1]=0;
-						break;
-
-						case 3:
-						curve_servo_pd[0]-= 100;
-						if(curve_servo_pd[0]<0)
-						curve_servo_pd[0]=0;
-						break;
-
-						case 0:
-						curve_servo_pd[1]-= 100;
-						if(curve_servo_pd[1]<0)
-						curve_servo_pd[1]=0;
-						break;
-					}
-				}
-			}
-			else if(mode==2) {
-				if(!select) {
-					if(line >= 7)
-					line=8;
-					else
-					line ++;
-				}
-				else {
-					switch(line%7) {
-						case 1:
-						left_motor_pid[0]-= 0.1;
-						if(left_motor_pid[0]<0)
-						left_motor_pid[0] =0;
-						break;
-						case 2:
-						left_motor_pid[1]-= 0.1;
-						if(left_motor_pid[1]<0)
-						left_motor_pid[1] =0;
-						break;
-						case 3:
-						left_motor_pid[2]-= 0.1;
-						if(left_motor_pid[2]<0)
-						left_motor_pid[2] =0;
-						break;
-						case 4:
-						right_motor_pid[0]-= 0.1;
-						if(right_motor_pid[0]<0)
-						right_motor_pid[0] =0;
-						break;
-						case 5:
-						right_motor_pid[1]-= 0.1;
-						if(right_motor_pid[1]<0)
-						right_motor_pid[1] =0;
-						break;
-						case 6:
-						right_motor_pid[2]-= 0.1;
-						if(right_motor_pid[2]<0)
-						right_motor_pid[2] =0;
-						break;
-						case 7:
-						speed -= 10;
-						if(speed<0)
-						speed = 0;
-						break;
-					}
-				}
-			}
+		else if(state == Joystick::State::kDown){
+			menu.change_line(false);
 		}
 	})));
 
@@ -571,14 +407,44 @@ int main() {
 					}
 				}
 
-				if (mode == 0) {
-					if (changed == 1) {
+				if(menu.get_mode() !=3){
+					Items item0("Master");
+					Items item1 ("B_Sl", midline_slope);
+					Items item2("R_Sl", master_slope);
+					Items item3("G_Sl", slave_slope);
+					Items item4("Sv", servo.GetDegree());
+
+
+					Items item9("r_en", encoderRval);
+					Items item10("l_en", encoderLval);
+					Items item11("lines", menu.get_line());
+					Items item12("selected", menu.get_selected());
+
+					mode0.add_items(&item0);
+					mode0.add_items(&item1);
+					mode0.add_items(&item2);
+					mode0.add_items(&item3);
+					mode0.add_items(&item4);
+
+					mode1.add_items(&item5);
+					mode1.add_items(&item6);
+					mode1.add_items(&item7);
+					mode1.add_items(&item8);
+					mode1.add_items(&item9);
+					mode1.add_items(&item10);
+					mode1.add_items(&item11);
+					mode1.add_items(&item12);
+				}
+
+				menu.add_mode(&mode0);
+				menu.add_mode(&mode1);
+				menu.add_mode(&mode2);
+				menu.add_mode(&ClearMode);
+
+
+				if (menu.get_mode() == 0) {
+					if (menu.change_screen()) {
 						lcd.Clear();
-						changed = 0;
-					}
-					char c[10];
-					for (int i = 0; i < 10; i++) {
-						c[i] = ' ';
 					}
 					lcd.SetRegion(Lcd::Rect(0, 0, Width, Height));
 					lcd.FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
@@ -603,174 +469,106 @@ int main() {
 										2, 2));
 						lcd.FillColor(Lcd::kBlue);
 					}
-					lcd.SetRegion(Lcd::Rect(0, 60, 88, 15));
-					sprintf(c, "B_Sl:%.2f", midline_slope);
-					writer.WriteBuffer(c, 10);
-					lcd.SetRegion(Lcd::Rect(0, 75, 88, 15));
-					sprintf(c, "R_Sl:%.2f ", master_slope);
-					writer.WriteBuffer(c, 10);
-					lcd.SetRegion(Lcd::Rect(0, 90, 88, 15));
-					sprintf(c, "G_Sl:%.2f ", slave_slope);
-					writer.WriteBuffer(c, 10);
-					for (int i = 0; i < 10; i++) {
-						c[i] = ' ';
+					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
+						lcd.SetRegion(Lcd::Rect(0, 60+15*i, 88, 15));
+						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),15);
 					}
-					lcd.SetRegion(Lcd::Rect(0, 105, 88, 15));
-					sprintf(c, "Sv:%d ", servo.GetDegree());\
-					writer.WriteBuffer(c, 10);
 				}
 
-				if (mode == 1) {
-					char c[15];
-					if (changed == 1) {
+				else if (menu.get_mode() == 1) {
+					if (menu.change_screen()) {
 						lcd.Clear();
-						changed = 0;
 					}
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
+					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
+						lcd.SetRegion(Lcd::Rect(0, 15*i, 88, 15));
+						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),15);
 					}
-					lcd.SetRegion(Lcd::Rect(0, 0, 88, 15));
-					sprintf(c, "sr_kp:%.3f", straight_servo_pd[0]);
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 15, 88, 15));
-					sprintf(c, "sr_kd:%.3f", straight_servo_pd[1]);
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 30, 88, 15));
-					sprintf(c, "sr_kp:%.3f", curve_servo_pd[0]);
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 45, 88, 15));
-					sprintf(c, "sr_kd:%.3f", curve_servo_pd[1]);
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 90, 88, 15));
-					sprintf(c, "r_en:%f", encoderRval);
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 105, 88, 15));
-					sprintf(c, "l_en:%f", encoderLval);
-					writer.WriteBuffer(c, 15);
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 120, 88, 15));
-					sprintf(c, "line:%d", line);
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					if (select) {
-						lcd.SetRegion(Lcd::Rect(0, 135, 120, 15));
-						sprintf(c, "select: true");
-						writer.WriteBuffer(c, 15);
-					} else {
-						lcd.SetRegion(Lcd::Rect(0, 135, 120, 15));
-						sprintf(c, "select: false");
-						writer.WriteBuffer(c, 15);
-					}
-
 				}
-				if (mode == 2) {
-					if (changed == 1) {
+				else if (menu.get_mode() == 2) {
+					if (menu.change_screen()) {
 						lcd.Clear();
-						changed = 0;
 					}
-					char c[15];
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 0, 100, 15));
-					sprintf(c, "ml_kp:%.3f", left_motorPID.getkP());
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 15, 100, 15));
-					sprintf(c, "ml_ki:%.3f", left_motorPID.getkI());
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 30, 100, 15));
-					sprintf(c, "ml_kd:%.3f", left_motorPID.getkD());
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 45, 100, 15));
-					sprintf(c, "mr_kp:%.3f", right_motorPID.getkP());
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 60, 100, 15));
-					sprintf(c, "mr_ki:%.3f", right_motorPID.getkI());
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 75, 100, 15));
-					sprintf(c, "mr_kd:%.3f", right_motorPID.getkD());
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 10; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 90, 88, 15));
-					sprintf(c, "speed:%d ", speed);
-					writer.WriteBuffer(c, 10);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					lcd.SetRegion(Lcd::Rect(0, 120, 100, 15));
-					sprintf(c, "line:%d", line);
-					writer.WriteBuffer(c, 15);
-
-					for (int i = 0; i < 15; i++) {
-						c[i] = ' ';
-					}
-					if (select) {
-						lcd.SetRegion(Lcd::Rect(0, 135, 120, 15));
-						sprintf(c, "select: true");
-						writer.WriteBuffer(c, 15);
-					} else {
-						lcd.SetRegion(Lcd::Rect(0, 135, 120, 15));
-						sprintf(c, "select: false");
-						writer.WriteBuffer(c, 15);
-					}
+//					char c[15];
+//
+//					for (int i = 0; i < 15; i++) {
+//						c[i] = ' ';
+//					}
+//					lcd.SetRegion(Lcd::Rect(0, 0, 100, 15));
+//					sprintf(c, "ml_kp:%.3f", left_motorPID.getkP());
+//					writer.WriteBuffer(c, 15);
+//
+//					for (int i = 0; i < 15; i++) {
+//						c[i] = ' ';
+//					}
+//					lcd.SetRegion(Lcd::Rect(0, 15, 100, 15));
+//					sprintf(c, "ml_ki:%.3f", left_motorPID.getkI());
+//					writer.WriteBuffer(c, 15);
+//
+//					for (int i = 0; i < 15; i++) {
+//						c[i] = ' ';
+//					}
+//					lcd.SetRegion(Lcd::Rect(0, 30, 100, 15));
+//					sprintf(c, "ml_kd:%.3f", left_motorPID.getkD());
+//					writer.WriteBuffer(c, 15);
+//
+//					for (int i = 0; i < 15; i++) {
+//						c[i] = ' ';
+//					}
+//					lcd.SetRegion(Lcd::Rect(0, 45, 100, 15));
+//					sprintf(c, "mr_kp:%.3f", right_motorPID.getkP());
+//					writer.WriteBuffer(c, 15);
+//
+//					for (int i = 0; i < 15; i++) {
+//						c[i] = ' ';
+//					}
+//					lcd.SetRegion(Lcd::Rect(0, 60, 100, 15));
+//					sprintf(c, "mr_ki:%.3f", right_motorPID.getkI());
+//					writer.WriteBuffer(c, 15);
+//
+//					for (int i = 0; i < 15; i++) {
+//						c[i] = ' ';
+//					}
+//					lcd.SetRegion(Lcd::Rect(0, 75, 100, 15));
+//					sprintf(c, "mr_kd:%.3f", right_motorPID.getkD());
+//					writer.WriteBuffer(c, 15);
+//
+//					for (int i = 0; i < 10; i++) {
+//						c[i] = ' ';
+//					}
+//					lcd.SetRegion(Lcd::Rect(0, 90, 88, 15));
+//					sprintf(c, "speed:%d ", speed);
+//					writer.WriteBuffer(c, 10);
+//
+//					for (int i = 0; i < 15; i++) {
+//						c[i] = ' ';
+//					}
+//					lcd.SetRegion(Lcd::Rect(0, 120, 100, 15));
+//					sprintf(c, "line:%d", line);
+//					writer.WriteBuffer(c, 15);
+//
+//					for (int i = 0; i < 15; i++) {
+//						c[i] = ' ';
+//					}
+//					if (select) {
+//						lcd.SetRegion(Lcd::Rect(0, 135, 120, 15));
+//						sprintf(c, "select: true");
+//						writer.WriteBuffer(c, 15);
+//					} else {
+//						lcd.SetRegion(Lcd::Rect(0, 135, 120, 15));
+//						sprintf(c, "select: false");
+//						writer.WriteBuffer(c, 15);
+//					}
 				}
 
-				if (mode == 3) {
-					if (changed == 1) {
+				else{
+					if (menu.change_screen()) {
 						lcd.Clear();
-						changed = 0;
 					}
 				}
+				menu.clear();
+				mode0.clear();
+				mode1.clear();
+				mode2.clear();
 				midline.clear();
 				temp.clear();
 				m_slave_vector.clear();

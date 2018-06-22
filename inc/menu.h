@@ -143,6 +143,9 @@ public:
 	}
 
 	void clear(){
+//		for(int i=0; i<m_menu.size(); i++){
+//			m_menu[i]->clear();
+//		}
 		m_menu.clear();
 	}
 
@@ -153,6 +156,7 @@ public:
 	bool get_selected(){return selected;}
 
 	uint8_t get_line(){return line;}
+
 	float get_temp(){return temp;}
 
 private:

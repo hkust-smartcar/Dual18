@@ -243,7 +243,6 @@ int main() {
 				menu.clear();
 				mode0.clear();
 				mode1.clear();
-				ClearMode.clear();
 				m_vector.clear();
 				m_slave_vector.clear();
 				m_master_vector.clear();
