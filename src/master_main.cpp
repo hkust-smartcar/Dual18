@@ -375,17 +375,17 @@ int main() {
 				if (angle > middleServo) {
 					float angleRatio = 0.0013 * (angle - middleServo);
 					float differential = angleRatio / (2 - angleRatio);
-//					left_motorPID.setDesiredVelocity(speed * (1 - differential));
-//					right_motorPID.setDesiredVelocity(speed * (1 + differential));
-					left_motorPID.setDesiredVelocity(speed *sin(x));
-					right_motorPID.setDesiredVelocity(speed * sin(x));
+					left_motorPID.setDesiredVelocity(speed * (1 - differential));
+					right_motorPID.setDesiredVelocity(speed * (1 + differential));
+//					left_motorPID.setDesiredVelocity(speed * sin(x));
+//					right_motorPID.setDesiredVelocity(speed * sin(x));
 				} else {
 					float angleRatio = 0.0013 * (middleServo - angle);
 					float differential = angleRatio / (2 - angleRatio);
-//					left_motorPID.setDesiredVelocity(speed * (1 + differential));
-//					right_motorPID.setDesiredVelocity(speed * (1 - differential));
-					left_motorPID.setDesiredVelocity(speed * sin(x));
-					right_motorPID.setDesiredVelocity(speed * sin(x));
+					left_motorPID.setDesiredVelocity(speed * (1 + differential));
+					right_motorPID.setDesiredVelocity(speed * (1 - differential));
+//					left_motorPID.setDesiredVelocity(speed * sin(x));
+//					right_motorPID.setDesiredVelocity(speed * sin(x));
 				}
 
 				if (menu.get_mode() != DualCar_Menu::Page::kStart) {
