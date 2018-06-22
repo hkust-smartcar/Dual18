@@ -181,7 +181,8 @@ int main() {
 	Mode mode0(0);
 	Mode mode1(1);
 	Mode mode2(2);
-	Mode ClearMode(2);
+	Mode mode3(3);
+	Mode ClearMode(4);
 	//
 
 	//printing change value
@@ -441,6 +442,9 @@ int main() {
 					Items item20("lines", menu.get_line());
 					Items item21("selected", menu.get_selected());
 
+					Items item22("left", mag.GetMag(0));
+					Items item23("right", mag.GetMag(1));
+
 
 					mode0.add_items(&item0);
 					mode0.add_items(&item1);
@@ -466,11 +470,15 @@ int main() {
 					mode2.add_items(&item19);
 					mode2.add_items(&item20);
 					mode2.add_items(&item21);
+
+					mode3.add_items(&item22);
+					mode3.add_items(&item23);
 				}
 
 				menu.add_mode(&mode0);
 				menu.add_mode(&mode1);
 				menu.add_mode(&mode2);
+				menu.add_mode(&mode3);
 				menu.add_mode(&ClearMode);
 
 
