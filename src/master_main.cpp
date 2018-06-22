@@ -140,17 +140,39 @@ int main() {
 	const uint8_t cycle = 10;
 	float loopSpeed = 4 * cycle, highSpeed = 6 * cycle, alignSpeed = 6 * cycle;
 	float speed = highSpeed;
-	volatile float encoderLval, encoderRval;
+//	volatile
+	float encoderLval, encoderRval;
 	int32_t powerL, powerR;
 
-	//DualCar_UART uart0; // << BT related
+	DualCar_UART uart0(1); // << BT related
+
 	bool turn_on_motor = false;
 
 	//pid value
-	float left_motor_pid[3] = { 10.00, 0.00, 0.00 };
-	float right_motor_pid[3] = { 10.00, 0.00, 0.00 };
+	float left_motor_pid[3] = { 1.8, 2.1, 7.3 };
+	float right_motor_pid[3] = { 2.0, 2.4, 6.0 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
+
+	// below sync data to the computer side
+	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
+	uart0.add(DualCar_UART::FLOAT::f1, &left_motor_pid[1], false);
+	uart0.add(DualCar_UART::FLOAT::f2, &left_motor_pid[2], false);
+
+	uart0.add(DualCar_UART::FLOAT::f3, &right_motor_pid[0], false);
+	uart0.add(DualCar_UART::FLOAT::f4, &right_motor_pid[1], false);
+	uart0.add(DualCar_UART::FLOAT::f5, &right_motor_pid[2], false);
+
+	uart0.add(DualCar_UART::FLOAT::f6, &straight_servo_pd[0], false);
+	uart0.add(DualCar_UART::FLOAT::f7, &straight_servo_pd[1], false);
+
+	uart0.add(DualCar_UART::FLOAT::f8, &curve_servo_pd[0], false);
+	uart0.add(DualCar_UART::FLOAT::f9, &curve_servo_pd[1], false);
+
+	uart0.add(DualCar_UART::FLOAT::f12, &encoderLval, true);
+	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
+
+	uart0.parseValues();
 	//
 
 	//joystick value
@@ -366,14 +388,24 @@ int main() {
 	vector<pair<int, int>> m_slave_vector;
 	vector<pair<int, int>> m_master_vector;
 
+	int32_t on9lastSent = 0;
+	float x = 0;
 	while (1) {
 		if (System::Time() != lastTime) {
 
 			lastTime = System::Time();
 
-			//uart0.RunEveryMS();
+			// bt send motor speed
+			if (lastTime - on9lastSent > 50) {
+				on9lastSent = lastTime;
+//				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
+				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
+			}
+
+			uart0.RunEveryMS();
 			mag.TakeSample();
 			if (lastTime % cycle == 0) {
+				x += 0.02;
 				const Byte* camBuffer = camera.LockBuffer();
 				camera.UnlockBuffer();
 				mag.Update();
@@ -488,21 +520,26 @@ int main() {
 				if (angle > middleServo) {
 					float angleRatio = 0.0013 * (angle - middleServo);
 					float differential = angleRatio / (2 - angleRatio);
-					left_motorPID.setDesiredVelocity(speed * (1 - differential));
-					right_motorPID.setDesiredVelocity(speed * (1 + differential));
+//					left_motorPID.setDesiredVelocity(speed * (1 - differential));
+//					right_motorPID.setDesiredVelocity(speed * (1 + differential));
+					left_motorPID.setDesiredVelocity(speed *sin(x));
+					right_motorPID.setDesiredVelocity(speed * sin(x));
 				} else {
 					float angleRatio = 0.0013 * (middleServo - angle);
 					float differential = angleRatio / (2 - angleRatio);
-					left_motorPID.setDesiredVelocity(speed * (1 + differential));
-					right_motorPID.setDesiredVelocity(speed * (1 - differential));
+//					left_motorPID.setDesiredVelocity(speed * (1 + differential));
+//					right_motorPID.setDesiredVelocity(speed * (1 - differential));
+					left_motorPID.setDesiredVelocity(speed * sin(x));
+					right_motorPID.setDesiredVelocity(speed * sin(x));
 				}
 
 				if (mode != 3) {
 					encoderL.Update();
 					encoderR.Update();
+					encoderLval = encoderL.GetCount();
+					encoderRval = -encoderR.GetCount();
 				}
-				encoderLval = encoderL.GetCount();
-				encoderRval = -encoderR.GetCount();
+
 
 				if (turn_on_motor) {
 					powerR = right_motorPID.getPID();

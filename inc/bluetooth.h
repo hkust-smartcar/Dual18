@@ -91,14 +91,14 @@ public:
 											this->buffer.push_back(*buff);
 											if(((*buff)==Informations::end)) {
 												int size = buffer[1];
-												if(size!=0){
+												if(size!=0) {
 													how_many_lines = buffer[2];
 													if(buffer.size() == size) {
 														set_y_coord();
 														buffer.clear();
 													}
 												}
-												else{
+												else {
 													reset_m_edge();
 													buffer.clear();
 												}
@@ -113,18 +113,18 @@ public:
 											}
 										}
 
-										else if(information_types == Informations::corner){
+										else if(information_types == Informations::corner) {
 											this->buffer.push_back(*buff);
 											reset_slave_corner();
-											if(((*buff)==Informations::end)){
+											if(((*buff)==Informations::end)) {
 												int size = 3*buffer[1]+3;
-												if(size!=3){
+												if(size!=3) {
 													if(buffer.size() == size) {
 														set_corner();
 														buffer.clear();
 													}
 												}
-												else{
+												else {
 													reset_slave_corner();
 													buffer.clear();
 												}
@@ -139,7 +139,6 @@ public:
 										return true;}))) {
 	}
 	;
-
 
 	void set_y_coord();
 
@@ -157,7 +156,7 @@ public:
 		return fail_on_turn;
 	}
 
-	vector<Corner> get_slave_corner(){
+	vector<Corner> get_slave_corner() {
 		return slave_corner;
 	}
 
@@ -165,7 +164,7 @@ public:
 		m_edge.clear();
 	}
 
-	void reset_slave_corner(){
+	void reset_slave_corner() {
 		slave_corner.clear();
 	}
 

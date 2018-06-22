@@ -189,7 +189,8 @@ int main() {
 
 
 				if(menu.get_mode()!=2){
-					Items item1("Sl", &slave_slope,false);
+					Items item0 ("Slave");
+					Items item1("Sl", slave_slope);
 					Items item2("Select", menu.get_selected());
 					Items item3("line", menu.get_line());
 
