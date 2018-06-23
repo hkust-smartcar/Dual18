@@ -138,7 +138,7 @@ int main() {
 	float lastServo = 0;
 
 	uint8_t cycleTime = 0;
-	const uint8_t cycle = 10;
+	const uint8_t cycle = 12;
 	float loopSpeed = 4 * cycle, highSpeed = 6 * cycle, alignSpeed = 6 * cycle;
 	float speed = highSpeed;
 //	volatile
@@ -151,7 +151,7 @@ int main() {
 
 	//pid value
 	float left_motor_pid[3] = { 1.8, 2.1, 7.3 };
-	float right_motor_pid[3] = { 2.0, 2.4, 6.0 };
+	float right_motor_pid[3] = { 2.0, 3.0, 5.0 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
 
@@ -243,6 +243,7 @@ int main() {
 	vector<pair<int, int>> m_master_vector;
 
 	int32_t on9lastSent = 0;
+	int32_t on9lastMain = 0;
 	float x = 0;
 
 	while (1) {
@@ -253,41 +254,19 @@ int main() {
 			// bt send motor speed
 			if (lastTime - on9lastSent > 50) {
 				on9lastSent = lastTime;
-//				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
+				uart0.Send_float(DualCar_UART::FLOAT::f10, right_motorPID.getdTime() + 0.0);
 				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 			}
 
 			uart0.RunEveryMS();
 			mag.TakeSample();
-			if (lastTime % cycle == 0) {
+			if (lastTime - on9lastMain >= cycle) {
 				x += 0.02;
 				const Byte* camBuffer = camera.LockBuffer();
 				camera.UnlockBuffer();
 				mag.Update();
 				if (cali) {
 					mag.Calibrate();
-//					oneLineMin = min(raw_front_left,
-//							min(raw_front_right,
-//									min(raw_mid_left,
-//											min(raw_mid_right, oneLineMin))));
-//					oneLineMax = max(raw_front_left,
-//							max(raw_front_right,
-//									max(raw_mid_left,
-//											max(raw_mid_right, oneLineMax))));
-//					topMax = max(raw_top_left, max(raw_top_right, topMax));
-//					if (raw_front_left == raw_front_right) {
-//						if (equalMin > 100
-//								|| (equalMin > raw_front_left
-//										&& equalMin - raw_front_left < 5)) {
-//							equalMin = raw_front_left;
-//
-//						}
-//						if (equalMax < 10
-//								|| (equalMax < raw_front_left
-//										&& raw_front_left - equalMax < 5)) {
-//							equalMax = raw_front_left;
-//						}
-//					}
 				}
 //				if (turn_on_motor && mag.noMagField()) {
 //					turn_on_motor = false;
@@ -337,7 +316,7 @@ int main() {
 
 				left_fail = check_left_edge(20, 60, camBuffer, m_master_vector);
 				right_fail = m_master_bluetooth.get_fail_on_turn();
-				x = find_slope(m_master_vector);
+				master_slope = find_slope(m_master_vector);
 				slave_slope = find_slope(temp);
 
 				find_midline(m_master_vector, temp, midline);
@@ -379,17 +358,21 @@ int main() {
 				if (angle > middleServo) {
 					float angleRatio = 0.0013 * (angle - middleServo);
 					float differential = angleRatio / (2 - angleRatio);
-					left_motorPID.setDesiredVelocity(speed * (1 - differential));
-					right_motorPID.setDesiredVelocity(speed * (1 + differential));
+//					left_motorPID.setDesiredVelocity(speed * (1 - differential));
+//					right_motorPID.setDesiredVelocity(speed * (1 + differential));
 //					left_motorPID.setDesiredVelocity(speed * sin(x));
 //					right_motorPID.setDesiredVelocity(speed * sin(x));
+					left_motorPID.setDesiredVelocity(speed);
+					right_motorPID.setDesiredVelocity(speed);
 				} else {
 					float angleRatio = 0.0013 * (middleServo - angle);
 					float differential = angleRatio / (2 - angleRatio);
-					left_motorPID.setDesiredVelocity(speed * (1 + differential));
-					right_motorPID.setDesiredVelocity(speed * (1 - differential));
+//					left_motorPID.setDesiredVelocity(speed * (1 + differential));
+//					right_motorPID.setDesiredVelocity(speed * (1 - differential));
 //					left_motorPID.setDesiredVelocity(speed * sin(x));
 //					right_motorPID.setDesiredVelocity(speed * sin(x));
+					left_motorPID.setDesiredVelocity(speed);
+					right_motorPID.setDesiredVelocity(speed);
 				}
 
 				if (menu.get_mode() != DualCar_Menu::Page::kStart) {
@@ -399,41 +382,37 @@ int main() {
 					encoderRval = -encoderR.GetCount();
 				}
 
-				if (menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()){
-					turn_on_motor = !turn_on_motor;
-				}
-
-				if (turn_on_motor) {
-					powerR = right_motorPID.getPID();
-					powerL = left_motorPID.getPID();
-					if (powerR > 0) {
-						right_motor.SetClockwise(true);
-						right_motor.SetPower(powerR);
+				if (menu.get_mode() == DualCar_Menu::Page::kStart){
+					if (menu.get_selected()) {
+						powerR = right_motorPID.getPID();
+						powerL = left_motorPID.getPID();
+						if (powerR > 0) {
+							right_motor.SetClockwise(true);
+							right_motor.SetPower(powerR);
+						} else {
+							right_motor.SetClockwise(false);
+							right_motor.SetPower(-powerR);
+						}
+						if (powerL > 0) {
+							left_motor.SetClockwise(false);
+							left_motor.SetPower(powerL);
+						} else {
+							left_motor.SetClockwise(true);
+							left_motor.SetPower(-powerL);
+						}
 					} else {
-						right_motor.SetClockwise(false);
-						right_motor.SetPower(-powerR);
+						left_motorPID.setDesiredVelocity(0);
+						right_motorPID.setDesiredVelocity(0);
+						left_motor.SetPower(0);
+						right_motor.SetPower(0);
+						if (encoderLval != 0) {
+							encoderL.Update();
+						}
+						if (encoderRval != 0) {
+							encoderR.Update();
+						}
 					}
-					if (powerL > 0) {
-						left_motor.SetClockwise(true);
-						left_motor.SetPower(powerL);
-					} else {
-						left_motor.SetClockwise(false);
-						left_motor.SetPower(-powerL);
-					}
-				} else {
-					left_motorPID.setDesiredVelocity(0);
-					right_motorPID.setDesiredVelocity(0);
-					left_motor.SetPower(0);
-					right_motor.SetPower(0);
-					if (encoderLval != 0) {
-						encoderL.Update();
-					}
-					if (encoderRval != 0) {
-						encoderR.Update();
-					}
-				}
-
-				if(menu.get_mode() != DualCar_Menu::Page::kStart){//printing show value
+				} else{//not start, printing show value
 					Items item0("Master");
 					Items item1 ("B_Sl", midline_slope);
 					Items item2("R_Sl", master_slope);
@@ -545,7 +524,8 @@ int main() {
 						lcd.SetRegion(Lcd::Rect(0, 15*i, 88, 15));
 						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),15);
 					}
-				}else{
+				}
+				else{
 					if (menu.change_screen()) {
 						lcd.Clear();
 					}

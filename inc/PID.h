@@ -1,7 +1,7 @@
 /*
  * motorPID.h
  *
- *  Created on: 2018¦~1¤ë19¤é
+ *  Created on: 2018ï¿½~1ï¿½ï¿½19ï¿½ï¿½
  *      Author: Jake
  */
 
@@ -28,6 +28,7 @@ public:
 	float getDesiredVelocty(){return desireVelocity;}
 	void setDesiredVelocity(float v){desireVelocity = v;}
 	float getdTerm(){return dTerm;}
+	uint32_t getdTime(){return dTime;}
 	virtual ~PID();
 private:
 	float kP = 0.0;

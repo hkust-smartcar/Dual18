@@ -1,7 +1,7 @@
 /*
  * motorPID.cpp
  *
- *  Created on: 2018¦~1¤ë19¤é
+ *  Created on: 2018ï¿½~1ï¿½ï¿½19ï¿½ï¿½
  *      Author: Jake
  */
 
@@ -25,11 +25,11 @@ float PID::getPID(){
 	 }
 	 currentError = desireVelocity - currentVelocity ;
 	 accumulateError += currentError;
-	 if (accumulateError > 100){
-		 accumulateError = 100;
-	 }else if (accumulateError < -100){
-		 accumulateError = -100;
-	 }
+//	 if (accumulateError > 300){
+//		 accumulateError = 300;
+//	 }else if (accumulateError < -300){
+//		 accumulateError = -300;
+//	 }
 	 output = kP*currentError + kI*accumulateError + kD*(currentError - lastError);
 	 lastTime = currentTime;
 	 lastError = currentError;
