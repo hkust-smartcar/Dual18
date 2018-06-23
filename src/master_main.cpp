@@ -125,13 +125,13 @@ int main() {
 
 	//pid value
 #ifdef car1
-	float left_motor_pid[3] = { 0.0, 0.0, 0.0 };
+	float left_motor_pid[3] = { 0.16, 0.001, 0.00004 };
 	float right_motor_pid[3] = { 0.16, 0.001, 0.00004 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
 #endif
 #ifdef car2
-	float left_motor_pid[3] = { 0.0, 0.0, 0.0 };
+	float left_motor_pid[3] = { 0.16, 0.001, 0.00004};
 	float right_motor_pid[3] = { 0.16, 0.001, 0.00004 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
