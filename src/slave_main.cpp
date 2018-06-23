@@ -115,10 +115,7 @@ int main() {
 	Mode mode1(1);
 	Mode ClearMode(2);
 
-	float temp = 100.0;
-	float temp2 = 100.0;
-	Items item4("change", &temp, true);
-	item4.set_increment(10.2);
+
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -193,14 +190,14 @@ int main() {
 					Items item1("Sl", slave_slope);
 					Items item2("Select", menu.get_selected());
 					Items item3("line", menu.get_line());
+					Items item4("corner", m_corner.size());
 
+					mode0.add_items(&item0);
 					mode0.add_items(&item1);
-					mode0.add_items(&item4);
 					mode0.add_items(&item2);
 					mode0.add_items(&item3);
+					mode0.add_items(&item4);
 
-					mode1.add_items(&item1);
-					mode1.add_items(&item2);
 				}
 
 				menu.add_mode(&mode0);

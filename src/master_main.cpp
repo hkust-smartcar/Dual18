@@ -330,10 +330,14 @@ int main() {
 				temp = m_master_bluetooth.get_m_edge();
 				bool left_fail = true;
 				bool right_fail = true;
+				vector<Corner> master_corner;
+				vector<Corner> slave_corner;
+				master_corner = check_corner(camBuffer, 20, 60, true);
+				slave_corner = m_master_bluetooth.get_slave_corner();
 
 				left_fail = check_left_edge(20, 60, camBuffer, m_master_vector);
 				right_fail = m_master_bluetooth.get_fail_on_turn();
-				master_slope = find_slope(m_master_vector);
+				x = find_slope(m_master_vector);
 				slave_slope = find_slope(temp);
 
 				find_midline(m_master_vector, temp, midline);
@@ -435,6 +439,7 @@ int main() {
 					Items item2("R_Sl", master_slope);
 					Items item3("G_Sl", slave_slope);
 					Items item4("Sv", servo.GetDegree());
+					Items item25("corner", master_corner.size());
 
 
 					Items item9("r_en", encoderRval);
@@ -456,6 +461,7 @@ int main() {
 					mode0.add_items(&item2);
 					mode0.add_items(&item3);
 					mode0.add_items(&item4);
+					mode0.add_items(&item25);
 
 					mode1.add_items(&item5);
 					mode1.add_items(&item6);
@@ -503,11 +509,8 @@ int main() {
 					for (int i = 0; i < temp.size(); i++) {
 						lcd.SetRegion(
 								Lcd::Rect(temp[i].first, temp[i].second, 2, 2));
-						lcd.FillColor(Lcd::kGreen);
+						lcd.FillColor(Lcd::kPurple);
 					}
-					lcd.SetRegion(
-							Lcd::Rect(temp[0].first, temp[0].second, 2, 2));
-					lcd.FillColor(Lcd::kPurple);
 
 					for (int i = 0; i < midline.size(); i++) {
 						lcd.SetRegion(
@@ -515,6 +518,19 @@ int main() {
 										2, 2));
 						lcd.FillColor(Lcd::kBlue);
 					}
+
+					for (int i = 0; i < master_corner.size(); i++) {
+						lcd.SetRegion(
+								Lcd::Rect(master_corner[i].get_xcoord(), master_corner[i].get_ycoord(), 2, 2));
+						lcd.FillColor(Lcd::kGreen);
+					}
+
+					for (int i = 0; i < slave_corner.size(); i++) {
+						lcd.SetRegion(
+								Lcd::Rect(slave_corner[i].get_xcoord(), slave_corner[i].get_ycoord(), 2, 2));
+						lcd.FillColor(Lcd::kGreen);
+					}
+
 					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
 						lcd.SetRegion(Lcd::Rect(0, 60+15*i, 88, 15));
 						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),15);
