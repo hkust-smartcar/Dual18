@@ -6,6 +6,7 @@
  */
 
 #define Master
+#define car1
 
 #ifdef Master
 
@@ -122,6 +123,20 @@ int main() {
 	PID left_motorPID(0, 0, 0, &encoderL, false);
 	PID right_motorPID(0, 0, 0, &encoderR, true);
 
+	//pid value
+#ifdef car1
+	float left_motor_pid[3] = { 0.0, 0.0, 0.0 };
+	float right_motor_pid[3] = { 0.16, 0.001, 0.00004 };
+	float straight_servo_pd[2] = { 1600, 2000 };
+	float curve_servo_pd[2] = { 1600, 2000 };
+#endif
+#ifdef car2
+	float left_motor_pid[3] = { 0.0, 0.0, 0.0 };
+	float right_motor_pid[3] = { 0.16, 0.001, 0.00004 };
+	float straight_servo_pd[2] = { 1600, 2000 };
+	float curve_servo_pd[2] = { 1600, 2000 };
+#endif
+
 	typedef enum {
 		normal = 0,
 		leave,
@@ -138,22 +153,17 @@ int main() {
 	float lastServo = 0;
 
 	uint8_t cycleTime = 0;
-	const uint8_t cycle = 12;
+	const uint8_t cycle = 10;
 	float loopSpeed = 4 * cycle, highSpeed = 6 * cycle, alignSpeed = 6 * cycle;
 	float speed = highSpeed;
 //	volatile
 	float encoderLval, encoderRval;
+	float voltL, voltR;
 	int32_t powerL, powerR;
 
 	DualCar_UART uart0(1); // << BT related
 
 	bool turn_on_motor = false;
-
-	//pid value
-	float left_motor_pid[3] = { 1.8, 2.1, 7.3 };
-	float right_motor_pid[3] = { 2.0, 3.0, 5.0 };
-	float straight_servo_pd[2] = { 1600, 2000 };
-	float curve_servo_pd[2] = { 1600, 2000 };
 
 	// below sync data to the computer side
 	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
@@ -254,7 +264,7 @@ int main() {
 			// bt send motor speed
 			if (lastTime - on9lastSent > 50) {
 				on9lastSent = lastTime;
-				uart0.Send_float(DualCar_UART::FLOAT::f10, right_motorPID.getdTime() + 0.0);
+				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
 				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 			}
 
@@ -262,6 +272,7 @@ int main() {
 			mag.TakeSample();
 			if (lastTime - on9lastMain >= cycle) {
 				x += 0.02;
+				on9lastMain = lastTime;
 				const Byte* camBuffer = camera.LockBuffer();
 				camera.UnlockBuffer();
 				mag.Update();
@@ -384,8 +395,10 @@ int main() {
 
 				if (menu.get_mode() == DualCar_Menu::Page::kStart){
 					if (menu.get_selected()) {
-						powerR = right_motorPID.getPID();
-						powerL = left_motorPID.getPID();
+						voltR = right_motorPID.getPID();
+						voltL = left_motorPID.getPID();
+						powerR = voltR/batteryVoltage*1000;
+						powerL = voltL/batteryVoltage*1000;
 						if (powerR > 0) {
 							right_motor.SetClockwise(true);
 							right_motor.SetPower(powerR);
@@ -433,6 +446,7 @@ int main() {
 					Items item22("left", mag.GetMag(0));
 					Items item23("right", mag.GetMag(1));
 					Items item24("time", lastTime % 100);
+					Items item26("volt", batteryMeter.GetVoltage());
 
 
 					mode0.add_items(&item0);
@@ -464,6 +478,7 @@ int main() {
 					mode3.add_items(&item22);
 					mode3.add_items(&item23);
 					mode3.add_items(&item24);
+					mode3.add_items(&item26);
 				}
 
 				menu.add_mode(&mode0);

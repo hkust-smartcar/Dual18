@@ -34,10 +34,10 @@ float PID::getPID(){
 	 lastTime = currentTime;
 	 lastError = currentError;
 	 lastVelocity = currentVelocity;
-	 if(output < -1000){
-	  output = -1000;
-	 }else if(output >= 1000){
-		 output = 1000;
+	 if(output < -8.5){
+	  output = -8.5;
+	 }else if(output >= 8.5){
+		 output = 8.5;
 	 }
 	 return output;
 }

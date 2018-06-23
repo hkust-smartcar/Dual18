@@ -182,7 +182,7 @@ public:
 
     static BatteryMeter::Config GetBatteryMeterConfig(){
     	BatteryMeter::Config config;
-    	config.voltage_ratio = 0.39;
+    	config.voltage_ratio = 0.365;
     	return config;
     }
 };
