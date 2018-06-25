@@ -125,8 +125,8 @@ int main() {
 
 	//pid value
 #ifdef car1
-	float left_motor_pid[3] = { 0.16, 0.001, 0.00004 };
-	float right_motor_pid[3] = { 0.16, 0.001, 0.00004 };
+	float left_motor_pid[3] = { 0.036, 0.003, 0.0 };
+	float right_motor_pid[3] = { 0.034, 0.004, 0.0 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
 #endif
@@ -407,10 +407,10 @@ int main() {
 							right_motor.SetPower(-powerR);
 						}
 						if (powerL > 0) {
-							left_motor.SetClockwise(false);
+							left_motor.SetClockwise(true);
 							left_motor.SetPower(powerL);
 						} else {
-							left_motor.SetClockwise(true);
+							left_motor.SetClockwise(false);
 							left_motor.SetPower(-powerL);
 						}
 					} else {
