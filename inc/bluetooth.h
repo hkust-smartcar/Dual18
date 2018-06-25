@@ -31,38 +31,22 @@ enum Informations {
 	edge = 100, fail_on_turn, corner, end, unclear
 };
 
-class Package {
-	Package(Informations type, vector<uint8_t> data) {
-		this->type = type;
-		this->data = data;
-	}
-	Package(Informations type, vector<pair<uint8_t, uint8_t>> coordinate) {
-		this->type = type;
-		for (int i = 0; i < coordinate.size(); i++) {
-			this->data.push_back(coordinate[i].first);
-			this->data.push_back(coordinate[i].second);
-		}
-	}
-
-private:
-	Informations type;
-	vector<uint8_t> data;
-
-};
-
-//class Bluetooth{
-//	 Bluetooth(): m_bt(myConfig::GetBluetoothConfig([this](const Byte* data, const size_t size){return handle_package(data, size);})) {}
-//
-//	 void build_package();
-//
-////	 void send_package(Package m_package) = 0;
-//
-//	 bool handle_package(const Byte* data, const size_t size){
-//		 return true;
-//	 }
+//class Package {
+//	Package(Informations type, vector<uint8_t> data) {
+//		this->type = type;
+//		this->data = data;
+//	}
+//	Package(Informations type, vector<pair<uint8_t, uint8_t>> coordinate) {
+//		this->type = type;
+//		for (int i = 0; i < coordinate.size(); i++) {
+//			this->data.push_back(coordinate[i].first);
+//			this->data.push_back(coordinate[i].second);
+//		}
+//	}
 //
 //private:
-//    JyMcuBt106 m_bt;
+//	Informations type;
+//	vector<uint8_t> data;
 //
 //};
 
@@ -95,6 +79,9 @@ public:
 													how_many_lines = buffer[2];
 													if(buffer.size() == size) {
 														set_y_coord();
+														buffer.clear();
+													}
+													else{
 														buffer.clear();
 													}
 												}

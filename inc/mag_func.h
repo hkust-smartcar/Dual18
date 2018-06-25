@@ -49,12 +49,12 @@ private:
 	Adc mag3;
 	Adc mag4;
 	Adc mag5;
-	uint16_t sum[6] = {0,0,0,0,0,0};
+	uint16_t sum[6] = {0};
 	uint8_t filterCounter = 0;
-	uint8_t v[6];
-	float multi[3] = {1.0,1.0,1.0}, linear[3] = {0,0,0};
-	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0,0,0,0,0,0},
-			emin[3] = {255,255,255}, emax[3] = {0,0,0};
+	uint8_t v[6] ={255};
+	float multi[3] = {1.0}, linear[3] = {0};
+	uint8_t min[6] = {15}, max[6] = {0},
+			emin[3] = {255}, emax[3] = {0};
 };
 
 #endif /* INC_MAG_FUNC_H_ */

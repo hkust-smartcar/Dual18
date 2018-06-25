@@ -45,15 +45,14 @@ void Mag::Calibrate(){
 			if (v[i*2] > emax[i]){
 				emax[i] = v[i*2];
 			}
-			multi[i] = 50/(emin[i]+emax[i])*2;
 		}
 	}
 }
 
 bool Mag::noMagField(){
 	bool b = true;
-	for (int i = 0; i < 6; i++){
-		b = b && (v[i] < min[i]*3);
+	for (int i = 0; i < 2; i++){
+		b = b && (v[i] < min[i]*2);
 	}
 	return b;
 }
@@ -64,11 +63,11 @@ float Mag::GetLinear(uint8_t pair_id){
  void Mag::SetMag(uint8_t id){
 	if (id == 1){
 		min[0] = 5;
-		min[1] = 5;
-		max[0] = 50;
-		max[1] = 50;
-		emin[0] = 22;
-		emax[0] = 26;
+		min[1] = 6;
+		max[0] = 54;
+		max[1] = 52;
+		emin[0] = 24;
+		emax[0] = 28;
 	}else if (id == 2){
 		min[0] = 5;
 		min[1] = 5;
@@ -85,5 +84,5 @@ float Mag::GetLinear(uint8_t pair_id){
 		emin[0] = 22;
 		emax[0] = 26;
 	}
-	multi[0] = 50/(emin[0]+emax[0])*2;
+	multi[0] = 50.0/(emin[0]+emax[0])*2;
  }

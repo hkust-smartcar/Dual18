@@ -126,7 +126,7 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 				}
 			}
 			percent = percent/49.0;
-			if ((percent<0.25)&&(percent!=0)){
+			if ((percent<0.25)&&(percent>0.1)){
 				Corner temp(edge[i].first,edge[i].second, percent);
 				m_corner.push_back(temp);
 			}

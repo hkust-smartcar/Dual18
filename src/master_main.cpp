@@ -105,7 +105,7 @@ int main() {
 	PassiveBuzzer::Config config;
 	PassiveBuzzer buzz(config);
 	buzz.SetNote(523);
-	buzz.SetBeep(batteryVoltage < 7);
+	buzz.SetBeep(batteryVoltage < 7.4);
 
 	FutabaS3010 servo(myConfig::GetServoConfig());
 	AlternateMotor right_motor(myConfig::GetMotorConfig(1));
@@ -129,7 +129,8 @@ int main() {
 	float right_motor_pid[3] = { 0.034, 0.004, 0.0 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
-	bool forwardL = false, forwardR = true;
+	bool forwardL = true, forwardR = true;
+	const uint16_t middleServo = 1035, leftServo = 1305, rightServo = 750;
 	mag.SetMag(1);
 #endif
 #ifdef car2
@@ -137,7 +138,8 @@ int main() {
 	float right_motor_pid[3] = { 0.16, 0.001, 0.00004 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
-	bool forwardL = true, forwardR = true;
+	bool forwardL = false, forwardR = true;
+	const uint16_t middleServo = 850, leftServo = 1150, rightServo = 550;
 	mag.SetMag(2);
 #endif
 
@@ -152,13 +154,12 @@ int main() {
 	uint32_t lastTime = 0, approachTime = 0;
 	bool approaching = false, cali = false;
 
-	const uint16_t middleServo = 850, leftServo = 1150, rightServo = 550;
 	float angle = middleServo;
 	float lastServo = 0;
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 10;
-	float loopSpeed = 4 * cycle, highSpeed = 6 * cycle, alignSpeed = 6 * cycle;
+	float loopSpeed = 4 * cycle, highSpeed = 5 * cycle, alignSpeed = 6 * cycle;
 	float speed = highSpeed;
 //	volatile
 	float encoderLval, encoderRval;
@@ -267,7 +268,7 @@ int main() {
 			// bt send motor speed
 			if (lastTime - on9lastSent > 50) {
 				on9lastSent = lastTime;
-				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
+				uart0.Send_float(DualCar_UART::FLOAT::f10, cycleTime);
 				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 			}
 
@@ -282,11 +283,11 @@ int main() {
 				if (cali) {
 					mag.Calibrate();
 				}
-				if (mag.noMagField() && menu.get_mode() != DualCar_Menu::Page::kStart && menu.get_selected()) {
-					left_motorPID.setDesiredVelocity(0);
-					right_motorPID.setDesiredVelocity(0);
-					menu.select_pressed();
-				}
+//				if (mag.noMagField() && menu.get_mode() != DualCar_Menu::Page::kStart && menu.get_selected()) {
+//					left_motorPID.setDesiredVelocity(0);
+//					right_motorPID.setDesiredVelocity(0);
+//					menu.select_pressed();
+//				}
 
 				//for alignment
 				if (state == normal && approaching) {
@@ -341,18 +342,16 @@ int main() {
 					}
 				}
 
-
-
-
 				if (cali) {
 					angle = middleServo;
 				} else if (state == normal) {
-					if (mag.SmallerThanMin(0, 2.5) || mag.SmallerThanMin(1, 2.5)){
-						angle = lastServo * 1.3;
-					} else {
+					buzz.SetBeep(mag.SmallerThanMin(0, 2.5) || mag.SmallerThanMin(1, 2.5));
+//					if (mag.SmallerThanMin(0, 2.5) || mag.SmallerThanMin(1, 2.5)){
+//						angle = lastServo * 1.3;
+//					} else {
 						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
-						lastServo = angle;
-					}
+//						lastServo = angle;
+//					}
 				} else if (state == leave){
 					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0), mag.GetMag(0));
 //					angle = servoPIDCurve.getPID(0.08,frontLinear);
