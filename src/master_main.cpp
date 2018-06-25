@@ -6,7 +6,7 @@
  */
 
 #define Master
-#define car2
+#define car1
 
 #ifdef Master
 
@@ -259,6 +259,8 @@ int main() {
 	int32_t on9lastSent = 0;
 	int32_t on9lastMain = 0;
 	float x = 0;
+	bool enter_loop = false;
+	bool enter_crossroad = false;
 
 	while (1) {
 		if (System::Time() != lastTime) {
@@ -329,7 +331,19 @@ int main() {
 				master_corner = check_corner(camBuffer, 20, 60, true);
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
-				if((master_corner.size()==1)^(slave_corner.size()==1)){
+				//detect for crossroad
+				if((master_corner.size()==1)&&(slave_corner.size()==1)){
+					enter_crossroad = true;
+				}
+
+				if(enter_crossroad == true){
+					if((master_corner.size()==0)&&(slave_corner.size()==0)){
+						enter_crossroad = false;
+					}
+				}
+				//
+
+				if(((master_corner.size()==1)^(slave_corner.size()==1))&&(enter_crossroad == false)){
 					slave_edge = m_master_bluetooth.get_m_edge();
 					midline = find_midline(master_edge, slave_edge);
 					left_fail = check_left_edge(20, 60, camBuffer, master_edge);
@@ -435,7 +449,7 @@ int main() {
 						}
 					}
 				} else{//not start, printing show value
-					Items item0("Master");
+					Items item0("Master car1");
 					Items item1 ("B_Sl", midline_slope);
 					Items item2("R_Sl", master_slope);
 					Items item3("s_edge", slave_edge.size());
