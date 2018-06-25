@@ -10,6 +10,25 @@ inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
     return ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1);//return 1 if black
 }
 
+bool check_if_fail(int topline, int bottomline, vector<pair<int,int>> intput_vector){
+	bool fail = false;
+
+	std::vector<float> temp;
+	temp = linear_regression(intput_vector);
+	float variation=0;
+	for(int i=0; i<intput_vector.size(); i++){
+		float desire_x = 1.0*(intput_vector[i].second-temp[0])/temp[1];
+		variation += (abs(intput_vector[i].first - (int)desire_x))^2;
+	}
+	variation = variation/intput_vector.size();
+
+	if((variation>7)){
+		return fail;
+	}
+
+	return !fail;
+
+}
 
 
 bool check_left_edge(int topline, int bottomline,const Byte* camBuffer, vector<pair<int,int>> &edge_coord){

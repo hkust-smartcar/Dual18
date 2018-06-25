@@ -6,7 +6,7 @@
  */
 
 #define Master
-#define car1
+#define car2
 
 #ifdef Master
 
@@ -325,13 +325,14 @@ int main() {
 				float master_slope = 0;
 				float slave_slope = 0;
 				float midline_slope = 0;
-				bool left_fail = true;
-				bool right_fail = true;
 				slave_edge = m_master_bluetooth.get_m_edge();
 				vector<Corner> master_corner;
 				master_corner = check_corner(camBuffer, 30, 60, true);
+				slave_corner = m_master_bluetooth.get_slave_corner();
+
 				master_slope = find_slope(master_edge);
 				slave_slope = find_slope(slave_edge);
+
 
 				//detect for crossroad
 				if((master_corner.size()==1)&&(slave_corner.size()==1)){
@@ -351,13 +352,7 @@ int main() {
 						enter_crossroad = false;
 					}
 				}
-
 				//
-
-				slave_corner = m_master_bluetooth.get_slave_corner();
-
-
-
 
 				if(((master_corner.size()==1)^(slave_corner.size()==1))&&(enter_crossroad == false)&&(enter_loop==false)){
 					if((master_corner.size()==1)&&(slave_slope>-0.6)){
@@ -370,8 +365,6 @@ int main() {
 						buzz.SetBeep(true);
 						enter_loop = true;
 					}
-//					left_fail = check_left_edge(30, 60, camBuffer, master_edge);
-//					right_fail = m_master_bluetooth.get_fail_on_turn();
 //					if ((menu.get_mode() != DualCar_Menu::Page::kStart) && menu.get_selected()){
 //					menu.select_pressed();
 //					}
@@ -475,7 +468,7 @@ int main() {
 					}
 				} else{//not start, printing show value
 					Items item0("Master car1");
-					Items item1 ("B_Sl", midline_slope);
+					Items item1 (" ");
 					Items item2("loop", enter_loop);
 					Items item3("s_edge", slave_edge.size());
 					Items item4("Sv", servo.GetDegree());

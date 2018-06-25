@@ -213,14 +213,14 @@ int main() {
 						lcd.SetRegion(
 								Lcd::Rect(m_slave_vector[i].first,
 										m_slave_vector[i].second, 2, 2));
-						lcd.FillColor(Lcd::kBlue);
+						lcd.FillColor(Lcd::kRed);
 					}
 
 					for (int i = 0; i < m_corner.size(); i++) {
 						lcd.SetRegion(
 								Lcd::Rect(m_corner[i].get_xcoord(),
 										m_corner[i].get_ycoord(), 2, 2));
-						lcd.FillColor(Lcd::kRed);
+						lcd.FillColor(Lcd::kBlue);
 					}
 
 					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
@@ -255,4 +255,3 @@ int main() {
 }
 
 #endif
-

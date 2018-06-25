@@ -16,7 +16,7 @@
 #include <libsc/st7735r.h>
 #include <libsc/lcd.h>
 #include <vector>
-
+#include "edge.h"
 using namespace std;
 
 class Corner{

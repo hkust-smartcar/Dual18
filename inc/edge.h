@@ -33,6 +33,7 @@ private:
 };
 
 
+bool check_if_fail(int topline, int bottomline, vector<pair<int,int>> intput_vector);
 
 vector<pair<int,int>>check_edge(const Byte* camBuffer);
 
