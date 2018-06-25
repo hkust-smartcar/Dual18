@@ -78,10 +78,12 @@ public:
 												if(size!=0) {
 													how_many_lines = buffer[2];
 													if(buffer.size() == size) {
+														reset_m_edge();
 														set_y_coord();
 														buffer.clear();
 													}
 													else{
+														reset_m_edge();
 														buffer.clear();
 													}
 												}
@@ -98,6 +100,9 @@ public:
 												fail_on_turn = buffer[2];
 												buffer.clear();
 											}
+											else{
+												buffer.clear();
+											}
 										}
 
 										else if(information_types == Informations::corner) {
@@ -107,7 +112,12 @@ public:
 												int size = 3*buffer[1]+3;
 												if(size!=3) {
 													if(buffer.size() == size) {
+														reset_slave_corner();
 														set_corner();
+														buffer.clear();
+													}
+													else{
+														reset_slave_corner();
 														buffer.clear();
 													}
 												}

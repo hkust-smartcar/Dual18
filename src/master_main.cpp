@@ -128,7 +128,7 @@ int main() {
 	float left_motor_pid[3] = { 0.036, 0.003, 0.0 };
 	float right_motor_pid[3] = { 0.034, 0.004, 0.0 };
 	float straight_servo_pd[2] = { 1600, 2000 };
-	float curve_servo_pd[2] = { 1600, 2000 };
+	float curve_servo_pd[2] = { 8000, 2000 };
 	bool forwardL = true, forwardR = true;
 	const uint16_t middleServo = 1035, leftServo = 1305, rightServo = 750;
 	mag.SetMag(1);
