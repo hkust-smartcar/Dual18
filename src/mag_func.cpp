@@ -52,7 +52,7 @@ void Mag::Calibrate(){
 bool Mag::noMagField(){
 	bool b = true;
 	for (int i = 0; i < 2; i++){
-		b = b && (v[i] < min[i]*2);
+		b = b && (v[i] < min[i]*2*multi[i/2]);
 	}
 	return b;
 }

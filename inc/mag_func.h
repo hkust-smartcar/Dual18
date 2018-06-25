@@ -31,8 +31,8 @@ public:
 	void Update();
 	void Calibrate();
 	bool noMagField();
-	bool SmallerThanE(uint8_t id, float t){return v[id] < emin[id]*t;}
-	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t;}
+	bool SmallerThanE(uint8_t id, float t){return v[id] < emin[id]*t*multi[id/2];}
+	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id/2];}
 	int Difference(uint8_t id0, uint8_t id1){return v[id0]-v[id1];}
 	void SetMag(uint8_t id);
 	float GetLinear(uint8_t pair_id);

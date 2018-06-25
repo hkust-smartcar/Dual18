@@ -5,8 +5,8 @@
  *      Author: morristseng
  */
 
-//#define Master
-#define car1
+#define Master
+#define car2
 
 #ifdef Master
 
@@ -134,8 +134,8 @@ int main() {
 	mag.SetMag(1);
 #endif
 #ifdef car2
-	float left_motor_pid[3] = { 0.16, 0.001, 0.00004};
-	float right_motor_pid[3] = { 0.16, 0.001, 0.00004 };
+	float left_motor_pid[3] = { 0.036, 0.003, 0.00004};
+	float right_motor_pid[3] = { 0.036, 0.003, 0.00004 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
 	bool forwardL = false, forwardR = true;
@@ -283,11 +283,11 @@ int main() {
 				if (cali) {
 					mag.Calibrate();
 				}
-//				if (mag.noMagField() && menu.get_mode() != DualCar_Menu::Page::kStart && menu.get_selected()) {
-//					left_motorPID.setDesiredVelocity(0);
-//					right_motorPID.setDesiredVelocity(0);
-//					menu.select_pressed();
-//				}
+				if (mag.noMagField() && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
+					left_motorPID.setDesiredVelocity(0);
+					right_motorPID.setDesiredVelocity(0);
+					menu.select_pressed();
+				}
 
 				//for alignment
 				if (state == normal && approaching) {
@@ -345,8 +345,8 @@ int main() {
 				if (cali) {
 					angle = middleServo;
 				} else if (state == normal) {
-					buzz.SetBeep(mag.SmallerThanMin(0, 2.5) || mag.SmallerThanMin(1, 2.5));
-//					if (mag.SmallerThanMin(0, 2.5) || mag.SmallerThanMin(1, 2.5)){
+					buzz.SetBeep(mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2));
+//					if (mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2)){
 //						angle = lastServo * 1.3;
 //					} else {
 						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
