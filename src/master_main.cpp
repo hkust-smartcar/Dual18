@@ -326,7 +326,7 @@ int main() {
 				master_corner = check_corner(camBuffer, 20, 60, true);
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
-				if((master_corner.size()==1)||(slave_corner.size()==1)){
+				if((master_corner.size()==1)^(slave_corner.size()==1)){
 					slave_edge = m_master_bluetooth.get_m_edge();
 					midline = find_midline(master_edge, slave_edge);
 					left_fail = check_left_edge(20, 60, camBuffer, master_edge);
