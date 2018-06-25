@@ -176,7 +176,7 @@ private:
 	vector<Byte> buffer;
 	int information_types = Informations::unclear;
 	int how_many_lines = 0;
-	int corner_size = 0
+	int corner_size = 0;
 	bool fail_on_turn = 0;
 	std::vector<int> y_coord();
 	std::vector<std::pair<int, int>> m_edge;

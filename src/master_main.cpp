@@ -327,11 +327,22 @@ int main() {
 				float midline_slope = 0;
 				bool left_fail = true;
 				bool right_fail = true;
+				slave_edge = m_master_bluetooth.get_m_edge();
 				vector<Corner> master_corner;
 				master_corner = check_corner(camBuffer, 30, 60, true);
+				master_slope = find_slope(master_edge);
+				slave_slope = find_slope(slave_edge);
 
 				//detect for crossroad
 				if((master_corner.size()==1)&&(slave_corner.size()==1)){
+					enter_crossroad = true;
+				}
+
+				else if((master_corner.size()==1)&&(slave_edge.size()<2)){
+					enter_crossroad = true;
+				}
+
+				else if((slave_corner.size()==1)&&(master_edge.size()<2)){
 					enter_crossroad = true;
 				}
 
@@ -340,25 +351,29 @@ int main() {
 						enter_crossroad = false;
 					}
 				}
+
 				//
 
 				slave_corner = m_master_bluetooth.get_slave_corner();
-				if(slave_corner.size()==m_master_bluetooth.get_corner_size()){
-					slave_corner.clear();
-				}
 
 
-				if(((master_corner.size()==1)^(slave_corner.size()==1))&&(enter_crossroad == false)){
-					led0.SetEnable(false);
-					slave_edge = m_master_bluetooth.get_m_edge();
-					midline = find_midline(master_edge, slave_edge);
+
+
+				if(((master_corner.size()==1)^(slave_corner.size()==1))&&(enter_crossroad == false)&&(enter_loop==false)){
+					if((master_corner.size()==1)&&(slave_slope>-0.6)){
+						midline = find_midline(master_edge, slave_edge);
+						buzz.SetBeep(true);
+						enter_loop = true;
+					}
+					else if((slave_corner.size()==1)&&(master_slope<0.6)){
+						midline = find_midline(master_edge, slave_edge);
+						buzz.SetBeep(true);
+						enter_loop = true;
+					}
 //					left_fail = check_left_edge(30, 60, camBuffer, master_edge);
 //					right_fail = m_master_bluetooth.get_fail_on_turn();
 //					if ((menu.get_mode() != DualCar_Menu::Page::kStart) && menu.get_selected()){
-					led1.SetEnable(false);
-					menu.select_pressed();
-					buzz.SetBeep(true);
-					enter_loop = true;
+//					menu.select_pressed();
 //					}
 				}
 				else{
