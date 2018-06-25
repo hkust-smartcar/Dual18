@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define slave
+#define slave
 
 #ifdef slave
 
@@ -174,13 +174,13 @@ int main() {
 						m_slave_vector);
 				m_corner = check_corner(camBuffer, 20, 50, false);
 				slave_slope = find_slope(m_slave_vector);
-//				send_ms++;
-//				if(send_ms%5==0) {
-//					send_ms = 0;
+				send_ms++;
+				if(send_ms%2==0) {
+					send_ms = 0;
 				m_slave_bluetooth.send_edge(m_slave_vector);
 				m_slave_bluetooth.send_info(right_fail);
 				m_slave_bluetooth.send_corner(m_corner);
-//				}
+				}
 
 
 				if(menu.get_mode()!=2){

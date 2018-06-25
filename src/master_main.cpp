@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-#define Master
+//#define Master
 #define car1
 
 #ifdef Master

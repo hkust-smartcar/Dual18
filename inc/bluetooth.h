@@ -107,6 +107,9 @@ public:
 
 										else if(information_types == Informations::corner) {
 											this->buffer.push_back(*buff);
+
+											int temp = 0;
+											temp = *buff;
 											reset_slave_corner();
 											if(((*buff)==Informations::end)) {
 												int size = 3*buffer[1]+3;
