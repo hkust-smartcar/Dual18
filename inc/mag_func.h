@@ -34,6 +34,7 @@ public:
 	bool SmallerThanE(uint8_t id, float t){return v[id] < emin[id]*t;}
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t;}
 	int Difference(uint8_t id0, uint8_t id1){return v[id0]-v[id1];}
+	void SetMag(uint8_t id);
 	float GetLinear(uint8_t pair_id);
 	uint8_t GetMag(uint8_t id){return v[id];}
 	uint8_t GetMin(uint8_t id){return min[id];}

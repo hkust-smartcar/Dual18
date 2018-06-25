@@ -130,6 +130,7 @@ int main() {
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
 	bool forwardL = false, forwardR = true;
+	mag.SetMag(1);
 #endif
 #ifdef car2
 	float left_motor_pid[3] = { 0.16, 0.001, 0.00004};
@@ -137,6 +138,7 @@ int main() {
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
 	bool forwardL = true, forwardR = true;
+	mag.SetMag(2);
 #endif
 
 	typedef enum {
@@ -280,11 +282,11 @@ int main() {
 				if (cali) {
 					mag.Calibrate();
 				}
-//				if (turn_on_motor && mag.noMagField()) {
-//					turn_on_motor = false;
-//					left_motorPID.setDesiredVelocity(0);
-//					right_motorPID.setDesiredVelocity(0);
-//				}
+				if (mag.noMagField() && menu.get_mode() != DualCar_Menu::Page::kStart && menu.get_selected()) {
+					left_motorPID.setDesiredVelocity(0);
+					right_motorPID.setDesiredVelocity(0);
+					menu.select_pressed();
+				}
 
 				//for alignment
 				if (state == normal && approaching) {
@@ -334,6 +336,9 @@ int main() {
 					master_slope = find_slope(master_edge);
 					slave_slope = find_slope(slave_edge);
 					midline_slope = find_slope(midline);
+					if (menu.get_mode() != DualCar_Menu::Page::kStart && menu.get_selected()){
+						menu.select_pressed();
+					}
 				}
 
 

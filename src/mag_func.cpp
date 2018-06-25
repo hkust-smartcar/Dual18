@@ -53,7 +53,7 @@ void Mag::Calibrate(){
 bool Mag::noMagField(){
 	bool b = true;
 	for (int i = 0; i < 6; i++){
-		b = b && (v[i] < min[i]*2);
+		b = b && (v[i] < min[i]*3);
 	}
 	return b;
 }
@@ -61,3 +61,29 @@ bool Mag::noMagField(){
 float Mag::GetLinear(uint8_t pair_id){
 	return linear[pair_id];
 }
+ void Mag::SetMag(uint8_t id){
+	if (id == 1){
+		min[0] = 5;
+		min[1] = 5;
+		max[0] = 50;
+		max[1] = 50;
+		emin[0] = 22;
+		emax[0] = 26;
+	}else if (id == 2){
+		min[0] = 5;
+		min[1] = 5;
+		max[0] = 50;
+		max[1] = 50;
+		emin[0] = 22;
+		emax[0] = 26;
+	}
+	else{
+		min[0] = 5;
+		min[1] = 5;
+		max[0] = 50;
+		max[1] = 50;
+		emin[0] = 22;
+		emax[0] = 26;
+	}
+	multi[0] = 50/(emin[0]+emax[0])*2;
+ }
