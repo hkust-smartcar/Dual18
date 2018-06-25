@@ -114,6 +114,7 @@ public:
 											if(((*buff)==Informations::end)) {
 												int size = 3*buffer[1]+3;
 												if(size!=3) {
+													corner_size = buffer[1];
 													if(buffer.size() == size) {
 														reset_slave_corner();
 														set_corner();
@@ -160,6 +161,8 @@ public:
 		return slave_corner;
 	}
 
+	int get_corner_size(){return corner_size;}
+
 	void reset_m_edge() {
 		m_edge.clear();
 	}
@@ -173,6 +176,7 @@ private:
 	vector<Byte> buffer;
 	int information_types = Informations::unclear;
 	int how_many_lines = 0;
+	int corner_size = 0
 	bool fail_on_turn = 0;
 	std::vector<int> y_coord();
 	std::vector<std::pair<int, int>> m_edge;

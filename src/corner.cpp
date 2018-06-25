@@ -20,7 +20,7 @@ vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int b
 	vector<pair<int,int>> m_edge;
 
 	if(!type){//slave
-		for(int j = topline; j<bottomline; j++){//scan from left
+		for(int j = bottomline; j>topline; j--){//scan from left
 			for(int i=0; i<78; i++){
 				if(ret_cam_bit(0,j,camBuffer)==0){
 					if((ret_cam_bit(i,j,camBuffer)!=ret_cam_bit(i+1,j,camBuffer))&&(ret_cam_bit(i,j,camBuffer)==0)){
@@ -59,7 +59,7 @@ vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int b
 	}
 
 	else{
-		for(int j = topline; j<bottomline; j++){//scan from right
+		for(int j = bottomline; j>topline; j--){//scan from right
 			for(int i=79; i>1; i--){
 				if(ret_cam_bit(79,j,camBuffer)==0){
 					if((ret_cam_bit(i,j,camBuffer)!=ret_cam_bit(i-1,j,camBuffer))&&(ret_cam_bit(i,j,camBuffer)==0)){

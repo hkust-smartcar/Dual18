@@ -170,9 +170,9 @@ int main() {
 				float slave_slope;
 				bool right_fail;
 				vector<Corner> m_corner;
-				right_fail = check_right_edge(20, 60, camBuffer,
+				right_fail = check_right_edge(30, 60, camBuffer,
 						m_slave_vector);
-				m_corner = check_corner(camBuffer, 20, 50, false);
+				m_corner = check_corner(camBuffer, 30, 60, false);
 				slave_slope = find_slope(m_slave_vector);
 				send_ms++;
 				if(send_ms%2==0) {
