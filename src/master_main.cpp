@@ -6,7 +6,7 @@
  */
 
 #define Master
-#define car2
+#define car1
 
 #ifdef Master
 
@@ -127,8 +127,8 @@ int main() {
 #ifdef car1
 	float left_motor_pid[3] = { 0.036, 0.003, 0.0 };
 	float right_motor_pid[3] = { 0.034, 0.004, 0.0 };
-	float straight_servo_pd[2] = { 1600, 2000 };
-	float curve_servo_pd[2] = { 8000, 2000 };
+	float straight_servo_pd[2] = { 5500, 300000 };
+	float curve_servo_pd[2] = { 9300, 230000 };
 	bool forwardL = true, forwardR = true;
 	const uint16_t middleServo = 1035, leftServo = 1305, rightServo = 750;
 	mag.SetMag(1);
@@ -158,7 +158,7 @@ int main() {
 	float lastServo = 0;
 
 	uint8_t cycleTime = 0;
-	const uint8_t cycle =16;
+	const uint8_t cycle = 12;
 	float loopSpeed = 4 * cycle, highSpeed = 5 * cycle, alignSpeed = 6 * cycle;
 	float speed = highSpeed;
 //	volatile
@@ -166,29 +166,28 @@ int main() {
 	float voltL, voltR;
 	int32_t powerL, powerR;
 
-	DualCar_UART uart0(1); // << BT related
-
 	bool turn_on_motor = false;
 
 	// below sync data to the computer side
-	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
-	uart0.add(DualCar_UART::FLOAT::f1, &left_motor_pid[1], false);
-	uart0.add(DualCar_UART::FLOAT::f2, &left_motor_pid[2], false);
-
-	uart0.add(DualCar_UART::FLOAT::f3, &right_motor_pid[0], false);
-	uart0.add(DualCar_UART::FLOAT::f4, &right_motor_pid[1], false);
-	uart0.add(DualCar_UART::FLOAT::f5, &right_motor_pid[2], false);
-
-	uart0.add(DualCar_UART::FLOAT::f6, &straight_servo_pd[0], false);
-	uart0.add(DualCar_UART::FLOAT::f7, &straight_servo_pd[1], false);
-
-	uart0.add(DualCar_UART::FLOAT::f8, &curve_servo_pd[0], false);
-	uart0.add(DualCar_UART::FLOAT::f9, &curve_servo_pd[1], false);
-
-	uart0.add(DualCar_UART::FLOAT::f12, &encoderLval, true);
-	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
-
-	uart0.parseValues();
+//	DualCar_UART uart0(1); // << BT related
+//	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
+//	uart0.add(DualCar_UART::FLOAT::f1, &left_motor_pid[1], false);
+//	uart0.add(DualCar_UART::FLOAT::f2, &left_motor_pid[2], false);
+//
+//	uart0.add(DualCar_UART::FLOAT::f3, &right_motor_pid[0], false);
+//	uart0.add(DualCar_UART::FLOAT::f4, &right_motor_pid[1], false);
+//	uart0.add(DualCar_UART::FLOAT::f5, &right_motor_pid[2], false);
+//
+//	uart0.add(DualCar_UART::FLOAT::f6, &straight_servo_pd[0], false);
+//	uart0.add(DualCar_UART::FLOAT::f7, &straight_servo_pd[1], false);
+//
+//	uart0.add(DualCar_UART::FLOAT::f8, &curve_servo_pd[0], false);
+//	uart0.add(DualCar_UART::FLOAT::f9, &curve_servo_pd[1], false);
+//
+//	uart0.add(DualCar_UART::FLOAT::f12, &encoderLval, true);
+//	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
+//
+//	uart0.parseValues();
 	//
 
 	//joystick value
@@ -263,19 +262,24 @@ int main() {
 	bool enter_crossroad = false;
 	vector<Corner> slave_corner;
 
+
+	int straightCounter = 0;
+	int curveCounter = 0;
+	bool isStraight = true;
+
 	while (1) {
 		if (System::Time() != lastTime) {
 
 			lastTime = System::Time();
 
 			// bt send motor speed
-			if (lastTime - on9lastSent > 50) {
-				on9lastSent = lastTime;
-				uart0.Send_float(DualCar_UART::FLOAT::f10, cycleTime);
-				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
-			}
-
-			uart0.RunEveryMS();
+//			if (lastTime - on9lastSent > 50) {
+//				on9lastSent = lastTime;
+//				uart0.Send_float(DualCar_UART::FLOAT::f10, cycleTime);
+//				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
+//			}
+//
+//			uart0.RunEveryMS();
 			mag.TakeSample();
 			if (lastTime - on9lastMain >= cycle) {
 				x += 0.02;
@@ -377,13 +381,34 @@ int main() {
 				if (cali) {
 					angle = middleServo;
 				} else if (state == normal) {
-//					buzz.SetBeep(mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2));
-//					if (mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2)){
-//						angle = lastServo * 1.3;
-//					} else {
+					float offset = 0.018;
+					if(mag.GetLinear(0) >= offset || mag.GetLinear(0) <= -offset){
+						if(isStraight){
+							curveCounter++;
+						}else{
+							curveCounter = 0;
+						}
+						if(curveCounter >= 23 && isStraight){
+							isStraight = false;
+						}
+					}
+					else{
+						if(!isStraight){
+							straightCounter++;
+						}else{
+							straightCounter = 0;
+						}
+						if(straightCounter >= 50 && !isStraight){
+							isStraight = true;
+						}
+					}
+					if(isStraight){
+						angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
+						buzz.SetBeep(false);
+					}else{
 						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
-//						lastServo = angle;
-//					}
+						buzz.SetBeep(true);
+					}
 				} else if (state == leave){
 					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0), mag.GetMag(0));
 //					angle = servoPIDCurve.getPID(0.08,frontLinear);

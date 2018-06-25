@@ -106,7 +106,7 @@ int main() {
 	LcdTypewriter writer(myConfig::GetWriterConfig(&lcd));
 	LcdConsole console(myConfig::GetConsoleConfig(&lcd));
 	uint32_t lastTime = 0;
-	uint8_t cycle = 10;
+	uint8_t cycle = 12;
 	uint8_t cycleTime = 0;
 
 	//joystick value
