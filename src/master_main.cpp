@@ -129,12 +129,14 @@ int main() {
 	float right_motor_pid[3] = { 0.034, 0.004, 0.0 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
+	bool forwardL = false, forwardR = true;
 #endif
 #ifdef car2
 	float left_motor_pid[3] = { 0.16, 0.001, 0.00004};
 	float right_motor_pid[3] = { 0.16, 0.001, 0.00004 };
 	float straight_servo_pd[2] = { 1600, 2000 };
 	float curve_servo_pd[2] = { 1600, 2000 };
+	bool forwardL = true, forwardR = true;
 #endif
 
 	typedef enum {
@@ -245,12 +247,11 @@ int main() {
 	servo.SetDegree(middleServo);
 
 	//bluetooth communicate
-	vector<pair<int, int>> temp;
+	vector<pair<int, int>> slave_edge;
+	vector<pair<int, int>> master_edge;
 	vector<pair<int, int>> midline;
 	M_Bluetooth m_master_bluetooth;
 
-	vector<pair<int, int>> m_slave_vector;
-	vector<pair<int, int>> m_master_vector;
 
 	int32_t on9lastSent = 0;
 	int32_t on9lastMain = 0;
@@ -284,6 +285,7 @@ int main() {
 //					left_motorPID.setDesiredVelocity(0);
 //					right_motorPID.setDesiredVelocity(0);
 //				}
+
 				//for alignment
 				if (state == normal && approaching) {
 					state = leave;
@@ -302,10 +304,6 @@ int main() {
 					//	speed = highSpeed;
 				}
 
-				double master_slope;
-				double slave_slope;
-				double midline_slope;
-
 				servoPIDStraight.setkP(straight_servo_pd[0]);
 				servoPIDStraight.setkD(straight_servo_pd[1]);
 				servoPIDCurve.setkP(curve_servo_pd[0]);
@@ -317,7 +315,10 @@ int main() {
 				right_motorPID.setkI(right_motor_pid[1]);
 				right_motorPID.setkD(right_motor_pid[2]);
 
-				temp = m_master_bluetooth.get_m_edge();
+
+				float master_slope = 0;
+				float slave_slope = 0;
+				float midline_slope = 0;
 				bool left_fail = true;
 				bool right_fail = true;
 				vector<Corner> master_corner;
@@ -325,14 +326,18 @@ int main() {
 				master_corner = check_corner(camBuffer, 20, 60, true);
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
-				left_fail = check_left_edge(20, 60, camBuffer, m_master_vector);
-				right_fail = m_master_bluetooth.get_fail_on_turn();
-				master_slope = find_slope(m_master_vector);
-				slave_slope = find_slope(temp);
+				if((master_corner.size()==1)||(slave_corner.size()==1)){
+					slave_edge = m_master_bluetooth.get_m_edge();
+					midline = find_midline(master_edge, slave_edge);
+					left_fail = check_left_edge(20, 60, camBuffer, master_edge);
+					right_fail = m_master_bluetooth.get_fail_on_turn();
+					master_slope = find_slope(master_edge);
+					slave_slope = find_slope(slave_edge);
+					midline_slope = find_slope(midline);
+				}
 
-				find_midline(m_master_vector, temp, midline);
 
-				midline_slope = find_slope(midline);
+
 
 				if (cali) {
 					angle = middleServo;
@@ -400,17 +405,17 @@ int main() {
 						powerR = voltR/batteryVoltage*1000;
 						powerL = voltL/batteryVoltage*1000;
 						if (powerR > 0) {
-							right_motor.SetClockwise(true);
+							right_motor.SetClockwise(forwardR);
 							right_motor.SetPower(powerR);
 						} else {
-							right_motor.SetClockwise(false);
+							right_motor.SetClockwise(!forwardR);
 							right_motor.SetPower(-powerR);
 						}
 						if (powerL > 0) {
-							left_motor.SetClockwise(true);
+							left_motor.SetClockwise(forwardL);
 							left_motor.SetPower(powerL);
 						} else {
-							left_motor.SetClockwise(false);
+							left_motor.SetClockwise(!forwardL);
 							left_motor.SetPower(-powerL);
 						}
 					} else {
@@ -429,7 +434,7 @@ int main() {
 					Items item0("Master");
 					Items item1 ("B_Sl", midline_slope);
 					Items item2("R_Sl", master_slope);
-					Items item3("G_Sl", slave_slope);
+					Items item3("s_edge", slave_edge.size());
 					Items item4("Sv", servo.GetDegree());
 					Items item25("corner", master_corner.size());
 
@@ -494,15 +499,15 @@ int main() {
 					}
 					lcd.SetRegion(Lcd::Rect(0, 0, Width, Height));
 					lcd.FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
-					for (int i = 0; i < m_master_vector.size(); i++) {
+					for (int i = 0; i < master_edge.size(); i++) {
 						lcd.SetRegion(
-								Lcd::Rect(m_master_vector[i].first,
-										m_master_vector[i].second, 2, 2));
+								Lcd::Rect(master_edge[i].first,
+										master_edge[i].second, 2, 2));
 						lcd.FillColor(Lcd::kRed);
 					}
-					for (int i = 0; i < temp.size(); i++) {
+					for (int i = 0; i < slave_edge.size(); i++) {
 						lcd.SetRegion(
-								Lcd::Rect(temp[i].first, temp[i].second, 2, 2));
+								Lcd::Rect(slave_edge[i].first, slave_edge[i].second, 2, 2));
 						lcd.FillColor(Lcd::kPurple);
 					}
 
@@ -546,10 +551,11 @@ int main() {
 					}
 				}
 				menu.clear();
+				master_edge.clear();
+				slave_edge.clear();
 				midline.clear();
-				temp.clear();
-				m_slave_vector.clear();
-				m_master_vector.clear();
+				master_corner.clear();
+				slave_corner.clear();
 
 				cycleTime = System::Time() - lastTime;
 			}

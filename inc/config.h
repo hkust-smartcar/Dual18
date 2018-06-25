@@ -96,7 +96,7 @@ public:
         //TODO: finish it
     	JyMcuBt106::Config config;
     	config.id = 0;
-    	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
+    	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k57600;
     	config.rx_isr = isr;
     	return config;
     }
@@ -105,7 +105,7 @@ public:
         //TODO: finish it
     	JyMcuBt106::Config config;
     	config.id = 1;
-    	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
+    	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k57600;
     	return config;
     }
 

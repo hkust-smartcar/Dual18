@@ -48,6 +48,10 @@ double find_slope(std::vector<std::pair<int,int>> m_vector){
 	std::vector<std::pair<int,int>> max_xy;
 	double slope;
 
+	if(m_vector.size()==0){
+		return 0;
+	}
+
 	for(int i=(m_vector.size()/2); i<m_vector.size(); i++){
 
 		if((m_vector[i].first<=78)&&(min_find == false)){

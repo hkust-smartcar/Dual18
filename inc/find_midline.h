@@ -11,7 +11,7 @@
 
 using namespace std;
 
-void find_midline(vector<pair<int,int>>m_master_vector, vector<pair<int,int>> temp, vector<pair<int,int>> &midline);
+vector<pair<int,int>> find_midline(vector<pair<int,int>>master_edge, vector<pair<int,int>> slave_edge);
 
 
 

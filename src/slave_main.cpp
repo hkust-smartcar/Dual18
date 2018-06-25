@@ -150,8 +150,6 @@ int main() {
 	bool do_not_change_s = false;
 
 	vector<pair<int, int>> m_slave_vector;
-	vector<pair<int, int>> m_master_vector;
-	vector<pair<int, int>> m_vector;
 	int pre_x_coord = 40;
 
 //	int servo_degree = 1000;
@@ -218,6 +216,13 @@ int main() {
 						lcd.FillColor(Lcd::kBlue);
 					}
 
+					for (int i = 0; i < m_corner.size(); i++) {
+						lcd.SetRegion(
+								Lcd::Rect(m_corner[i].get_xcoord(),
+										m_corner[i].get_ycoord(), 2, 2));
+						lcd.FillColor(Lcd::kRed);
+					}
+
 					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
 						lcd.SetRegion(Lcd::Rect(0, 60+15*i, 88, 15));
 						writer.WriteBuffer(menu.m_menu[0]->m_items[i]->get_message(),15);
@@ -240,9 +245,7 @@ int main() {
 				menu.clear();
 				mode0.clear();
 				mode1.clear();
-				m_vector.clear();
 				m_slave_vector.clear();
-				m_master_vector.clear();
 
 				cycleTime = System::Time() - lastTime;
 			}

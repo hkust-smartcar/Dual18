@@ -11,15 +11,18 @@
 
 using namespace std;
 
-void find_midline(vector<pair<int,int>>m_master_vector, vector<pair<int,int>> temp, vector<pair<int,int>> &midline){
-	if(m_master_vector.size()==temp.size()){
+vector<pair<int,int>> find_midline(vector<pair<int,int>>master_edge, vector<pair<int,int>> slave_edge){
+
+	vector<pair<int,int>> midline;
+
+	if(master_edge.size()==slave_edge.size()){
 		int k=0;
 //					led2.Switch();
 		vector<int> index;
-		for(int i = m_master_vector[0].second; i>(*m_master_vector.end()).second; i--){
-			for(int j=0; j<temp.size(); j++){
-				if(temp[j].second==i){
-					midline.push_back(make_pair((m_master_vector[k].first+temp[j].first)/2,i));
+		for(int i = master_edge[0].second; i>(*master_edge.end()).second; i--){
+			for(int j=0; j<slave_edge.size(); j++){
+				if(slave_edge[j].second==i){
+					midline.push_back(make_pair((master_edge[k].first+slave_edge[j].first)/2,i));
 					index.push_back(j);
 					break;
 				}
@@ -28,19 +31,19 @@ void find_midline(vector<pair<int,int>>m_master_vector, vector<pair<int,int>> te
 		}
 	}
 
-	else if(m_master_vector.size()>temp.size()){
+	else if(master_edge.size()>slave_edge.size()){
 		vector<int> index;
 
-		for(int i =0; i<temp.size(); i++){
-			for(int j=0; j<m_master_vector.size(); j++){
-				if(m_master_vector[j].second==temp[i].second){
-					midline.push_back(make_pair((m_master_vector[j].first+temp[i].first)/2,temp[i].second));
+		for(int i =0; i<slave_edge.size(); i++){
+			for(int j=0; j<master_edge.size(); j++){
+				if(master_edge[j].second==slave_edge[i].second){
+					midline.push_back(make_pair((master_edge[j].first+slave_edge[i].first)/2,slave_edge[i].second));
 					index.push_back(j);
 					break;
 				}
 			}
 		}
-		for(int i=0; i<m_master_vector.size(); i++){
+		for(int i=0; i<master_edge.size(); i++){
 			bool repeat = false;
 			for(int j=0; j<index.size(); j++){
 				if((i==index[j])){
@@ -49,25 +52,25 @@ void find_midline(vector<pair<int,int>>m_master_vector, vector<pair<int,int>> te
 				}
 			}
 			if(!repeat){
-				midline.push_back(make_pair((m_master_vector[i].first+78)/2,m_master_vector[i].second));
+				midline.push_back(make_pair((master_edge[i].first+78)/2,master_edge[i].second));
 			}
 		}
 		index.clear();
 	}
 
-	else if(m_master_vector.size() < temp.size()){
+	else if(master_edge.size() < slave_edge.size()){
 		vector<int> index;
-		for(int i = 0; i<m_master_vector.size(); i++){
-			for(int j=0; j<temp.size(); j++){
-				if(temp[j].second==m_master_vector[i].second){
-					midline.push_back(make_pair((m_master_vector[i].first+temp[j].first)/2,m_master_vector[i].second));
+		for(int i = 0; i<master_edge.size(); i++){
+			for(int j=0; j<slave_edge.size(); j++){
+				if(slave_edge[j].second==master_edge[i].second){
+					midline.push_back(make_pair((master_edge[i].first+slave_edge[j].first)/2,master_edge[i].second));
 					index.push_back(j);
 					break;
 				}
 			}
 		}
 
-		for(int i=0; i<temp.size(); i++){
+		for(int i=0; i<slave_edge.size(); i++){
 			bool repeat = false;
 			for(int j=0; j<index.size(); j++){
 				if((i==index[j])){
@@ -76,9 +79,10 @@ void find_midline(vector<pair<int,int>>m_master_vector, vector<pair<int,int>> te
 				}
 			}
 			if(!repeat){
-				midline.push_back(make_pair((temp[i].first+0)/2,temp[i].second));
+				midline.push_back(make_pair((slave_edge[i].first+0)/2,slave_edge[i].second));
 			}
 		}
 		index.clear();
 	}
+	return midline;
 }

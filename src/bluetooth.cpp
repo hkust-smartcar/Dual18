@@ -35,7 +35,7 @@ void S_Bluetooth::send_edge(std::vector<std::pair<int, int>> slave_edge) {
 		buffer[1] = 0; //size
 		buffer[2] = Informations::end;
 		m_bt.SendBuffer(buffer, 3);
-		delete buffer;
+		delete []buffer;
 	}
 	if (slave_edge.size() > 0) {
 		int how_many_lines = slave_edge.size();
