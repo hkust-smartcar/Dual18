@@ -124,9 +124,8 @@ public:
     	return config;
     }
 
-    static Adc::Config GetAdcConfig(int id){
+    static Adc::Config GetAdcConfig(int id, bool isCar1){
     	Adc::Config config;
-    	BoardID board;
     	switch (id) {
     			case 4:
     				config.adc = Adc::Name::kAdc0Ad4B;
@@ -137,18 +136,18 @@ public:
     			case 2:
     				config.adc = Adc::Name::kAdc1Ad5B;
     				break;
-    			case 3:
-    				if(board.isCar1()){
-    					config.adc = Adc::Name::kAdc1Ad7B;
-    				} else{
+    			case 0:
+    				if(isCar1){
     					config.adc = Adc::Name::kAdc1Ad6B;
+    				} else{
+    					config.adc = Adc::Name::kAdc1Ad7B;
     				}
     				break;
-    			case 0:
-    				if(board.isCar1()){
-    					config.adc = Adc::Name::kAdc1Ad6B;
-    				}else{
+    			case 3:
+    				if(isCar1){
     					config.adc = Adc::Name::kAdc1Ad7B;
+    				}else{
+    					config.adc = Adc::Name::kAdc1Ad6B;
     				}
     				break;
     			case 1:

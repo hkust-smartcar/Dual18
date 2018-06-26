@@ -13,13 +13,13 @@
 
 class Mag{
 public:
-	Mag():
-		mag0(myConfig::GetAdcConfig(0)),
-		mag1(myConfig::GetAdcConfig(1)),
-		mag2(myConfig::GetAdcConfig(2)),
-		mag3(myConfig::GetAdcConfig(3)),
-		mag4(myConfig::GetAdcConfig(4)),
-		mag5(myConfig::GetAdcConfig(5)){
+	Mag(bool isCar1):
+		mag0(myConfig::GetAdcConfig(0, isCar1)),
+		mag1(myConfig::GetAdcConfig(1, isCar1)),
+		mag2(myConfig::GetAdcConfig(2, isCar1)),
+		mag3(myConfig::GetAdcConfig(3, isCar1)),
+		mag4(myConfig::GetAdcConfig(4, isCar1)),
+		mag5(myConfig::GetAdcConfig(5, isCar1)){
 		mag0.StartConvert();
 		mag1.StartConvert();
 		mag2.StartConvert();

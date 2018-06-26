@@ -103,7 +103,7 @@ int main() {
 	led2.SetEnable(1);
 	led3.SetEnable(1);
 
-	Mag mag;
+	Mag mag(board.isCar1());
 
 	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig());
 	float batteryVoltage = batteryMeter.GetVoltage();
@@ -123,8 +123,8 @@ int main() {
 	DirEncoder encoderL(myConfig::GetEncoderConfig(1));
 	PID servoPIDStraight(2200, 0.03);
 	PID servoPIDCurve(5500, 1); //4825,0.5
-	PID servoPIDAlignCurve(-10, 0);
-    PID servoPIDAlignStraight(-4,10);
+	PID servoPIDAlignCurve(-6, 1);
+    PID servoPIDAlignStraight(-6,1);
 	PID left_motorPID(0, 0, 0, &encoderL, false);
 	PID right_motorPID(0, 0, 0, &encoderR, true);
 
@@ -167,11 +167,11 @@ int main() {
 	} else {
 		left_motor_pid[0] = 0.036;
 		left_motor_pid[1] = 0.003;
-		left_motor_pid[2] = 00004;
+		left_motor_pid[2] = 0.0004;
 
 		right_motor_pid[0] = 0.036;
 		right_motor_pid[1] = 0.003;
-		right_motor_pid[2] = 00004;
+		right_motor_pid[2] = 0.0004;
 
 		straight_servo_pd[0] = 5300;
 		straight_servo_pd[1] = 350000;
@@ -179,8 +179,8 @@ int main() {
 		curve_servo_pd[0] = 10500;
 		curve_servo_pd[1] = 200000;
 
-		align_servo_pd[0] = 0;
-		align_servo_pd[1] = 0;
+		align_servo_pd[0] = -6;
+		align_servo_pd[1] = 1;
 
 		forwardL = false;
 		forwardR = true;
@@ -229,7 +229,7 @@ int main() {
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 12;
-	float loopSpeed = 4 * cycle, highSpeed = 5 * cycle, alignSpeed = 6 * cycle;
+	float loopSpeed = 4 * cycle, highSpeed = 5 * cycle, alignSpeed = 5 * cycle;
 	float speed = highSpeed;
 //	volatile
 	float alignTarget = 0.055;
@@ -241,7 +241,8 @@ int main() {
 	DualCar_UART uart0(1); // << BT related
 	uart0.add(DualCar_UART::FLOAT::f0, &align_servo_pd[0], false);
 	uart0.add(DualCar_UART::FLOAT::f1, &align_servo_pd[1], false);
-	//	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
+	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, true);
+//	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
 //	uart0.add(DualCar_UART::FLOAT::f1, &left_motor_pid[1], false);
 //	uart0.add(DualCar_UART::FLOAT::f2, &left_motor_pid[2], false);
 //
@@ -356,8 +357,9 @@ int main() {
 //				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 //			}
 //
-//			uart0.RunEveryMS();
+			uart0.RunEveryMS();
 			mag.TakeSample();
+
 			if (lastTime - on9lastMain >= cycle) {
 				x += 0.02;
 				on9lastMain = lastTime;
@@ -367,7 +369,7 @@ int main() {
 				if (cali) {
 					mag.Calibrate();
 				}
-				if (mag.noMagField() && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
+				if (mag.noMagField() && !approaching && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
 					left_motorPID.setDesiredVelocity(0);
 					right_motorPID.setDesiredVelocity(0);
 					menu.select_pressed();
@@ -387,8 +389,8 @@ int main() {
 					lastServo = -300;
 				} else if (state == back && !mag.SmallerThanE(0, 1)) {
 					state = normal;
-					speed = 0;
-					//	speed = highSpeed;
+//					speed = 0;
+					speed = highSpeed;
 				}
 
 				servoPIDStraight.setkP(straight_servo_pd[0]);
@@ -418,27 +420,27 @@ int main() {
 //				slave_slope = find_slope(slave_edge);
 
 
-				//detect for crossroad
-				if((master_corner.size()==1)&&(slave_corner.size()==1)){
-					enter_crossroad = true;
-				}
+//				//detect for crossroad
+//				if((master_corner.size()==1)&&(slave_corner.size()==1)){
+//					enter_crossroad = true;
+//				}
+//
+//				else if((master_corner.size()==1)&&(slave_edge.size()<2)){
+//					enter_crossroad = true;
+//				}
+//
+//				else if((slave_corner.size()==1)&&(master_edge.size()<2)){
+//					enter_crossroad = true;
+//				}
+//
+//				if(enter_crossroad == true){
+//					if((master_corner.size()==0)&&(slave_corner.size()==0)){
+//						enter_crossroad = false;
+//					}
+//				}
+//				//
 
-				else if((master_corner.size()==1)&&(slave_edge.size()<2)){
-					enter_crossroad = true;
-				}
-
-				else if((slave_corner.size()==1)&&(master_edge.size()<2)){
-					enter_crossroad = true;
-				}
-
-				if(enter_crossroad == true){
-					if((master_corner.size()==0)&&(slave_corner.size()==0)){
-						enter_crossroad = false;
-					}
-				}
-				//
-
-				if(((master_corner.size()==1)^(slave_corner.size()==1))&&(isStraight)){
+				if(((master_corner.size()==1)^(slave_corner.size()==1))){
 					midline = find_midline(master_edge, slave_edge);
 					buzz.SetBeep(true);
 					enter_loop = true;
@@ -454,42 +456,43 @@ int main() {
 				if (cali) {
 					angle = middleServo;
 				} else if (state == normal) {
-					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-//					float offset = 0.015;
-//					if(mag.GetLinear(0) >= offset || mag.GetLinear(0) <= -offset){
-//						if(isStraight){
-//							curveCounter++;
-//						}else{
-//							curveCounter = 0;
-//						}
-//						if(curveCounter >= 8 && isStraight){
-//							isStraight = false;
-//						}
+//					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
+					float offset = 0.015;
+					if(mag.GetLinear(0) >= offset || mag.GetLinear(0) <= -offset){
+						if(isStraight){
+							curveCounter++;
+						}else{
+							curveCounter = 0;
+						}
+						if(curveCounter >= 8 && isStraight){
+							isStraight = false;
+						}
+					}
+					else{
+						if(!isStraight){
+							straightCounter++;
+						}else{
+							straightCounter = 0;
+						}
+						if(straightCounter >= 60 && !isStraight){
+							isStraight = true;
+						}
+					}
+//					if (mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2)){
+//						angle = lastServo * 1.3;
+//					} else {
+						if(isStraight){
+							angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
+//							buzz.SetBeep(false);
+						}else{
+							angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
+//							buzz.SetBeep(true);
+						}
+						lastServo = angle;
 //					}
-//					else{
-//						if(!isStraight){
-//							straightCounter++;
-//						}else{
-//							straightCounter = 0;
-//						}
-//						if(straightCounter >= 60 && !isStraight){
-//							isStraight = true;
-//						}
-//					}
-////					if (mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2)){
-////						angle = lastServo * 1.3;
-////					} else {
-//						if(isStraight){
-//							angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
-////							buzz.SetBeep(false);
-//						}else{
-//							angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
-////							buzz.SetBeep(true);
-//						}
-//						lastServo = angle;
-////					}
 				} else if (state == leave){
-					angle = servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
+					angle = leftServo;
+//					angle = servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
 //					angle = servoPIDCurve.getPID(alignTarget,mag.GetLinear(0));
 				} else if (state == align) {
 					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
@@ -523,13 +526,15 @@ int main() {
 				} else {
 					float angleRatio = 0.0013 * (middleServo - angle);
 					float differential = angleRatio / (2 - angleRatio);
-//					left_motorPID.setDesiredVelocity(speed * (1 + differential));
-//					right_motorPID.setDesiredVelocity(speed * (1 - differential));
+					left_motorPID.setDesiredVelocity(speed * (1 + differential));
+					right_motorPID.setDesiredVelocity(speed * (1 - differential));
 //					left_motorPID.setDesiredVelocity(speed * sin(x));
 //					right_motorPID.setDesiredVelocity(speed * sin(x));
 					left_motorPID.setDesiredVelocity(speed);
 					right_motorPID.setDesiredVelocity(speed);
 				}
+
+				cycleTime = System::Time() - lastTime;
 
 				if (menu.get_mode() != DualCar_Menu::Page::kStart) {
 					encoderL.Update();
@@ -602,8 +607,9 @@ int main() {
 					Items item27("state", (int)state);
 					Items item28("t", alignTarget);
 					Items item29("l", mag.GetLinear(0));
-
 					Items item30("Ultra", UltrasonicSensor.getDistance());
+					Items item31("aP", align_servo_pd[0]);
+					Items item32("ad", align_servo_pd[1]);
 
 					mode0.add_items(&item0);
 					mode0.add_items(&item1);
@@ -631,14 +637,16 @@ int main() {
 					mode2.add_items(&item20);
 					mode2.add_items(&item21);
 
-//					mode3.add_items(&item22);
-//					mode3.add_items(&item23);
+					mode3.add_items(&item22);
+					mode3.add_items(&item23);
 					mode3.add_items(&item24);
 //					mode3.add_items(&item26);
 					mode3.add_items(&item27);
 					mode3.add_items(&item28);
 					mode3.add_items(&item29);
 					mode3.add_items(&item30);
+					mode3.add_items(&item31);
+					mode3.add_items(&item32);
 				}
 
 				menu.add_mode(&mode0);
@@ -710,7 +718,6 @@ int main() {
 				slave_edge.clear();
 				midline.clear();
 				master_corner.clear();
-				cycleTime = System::Time() - lastTime;
 			}
 		}
 	}
