@@ -6,7 +6,11 @@
  */
 
 #define Master
+<<<<<<< HEAD
+#define car1
+=======
 #define car2
+>>>>>>> c6038056e3a62a754e0db96fbec7bef18d172cd6
 
 #ifdef Master
 
@@ -360,10 +364,8 @@ int main() {
 				}
 				//
 
-				if((master_corner.size()==1)^(slave_corner.size()==1)){
+				if(((master_corner.size()==1)^(slave_corner.size()==1))&&(isStraight)){
 					midline = find_midline(master_edge, slave_edge);
-					int tempx = slave_corner[0].get_xcoord();
-					int tempy = slave_corner[0].get_ycoord();
 					buzz.SetBeep(true);
 					enter_loop = true;
 					if ((menu.get_mode() != DualCar_Menu::Page::kStart) && menu.get_selected()){
@@ -371,7 +373,7 @@ int main() {
 					}
 				}
 				else{
-//					buzz.SetBeep(false);
+					buzz.SetBeep(false);
 					enter_loop = false;
 				}
 
