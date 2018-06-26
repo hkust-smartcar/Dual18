@@ -136,10 +136,10 @@ public:
     			case 2:
     				config.adc = Adc::Name::kAdc1Ad5B;
     				break;
-    			case 0:
+    			case 3:
     				config.adc = Adc::Name::kAdc1Ad6B;
     				break;
-    			case 3:
+    			case 0:
     				config.adc = Adc::Name::kAdc1Ad7B;
     				break;
     			case 1:

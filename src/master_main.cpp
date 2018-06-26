@@ -5,8 +5,8 @@
  *      Author: morristseng
  */
 
-//#define Master
-#define car1
+#define Master
+#define car2
 
 #ifdef Master
 
@@ -136,8 +136,8 @@ int main() {
 #ifdef car2
 	float left_motor_pid[3] = { 0.036, 0.003, 0.00004};
 	float right_motor_pid[3] = { 0.036, 0.003, 0.00004 };
-	float straight_servo_pd[2] = { 1600, 2000 };
-	float curve_servo_pd[2] = { 1600, 2000 };
+	float straight_servo_pd[2] = { 5300, 350000 };
+	float curve_servo_pd[2] = { 10500, 200000 };
 	bool forwardL = false, forwardR = true;
 	const uint16_t middleServo = 850, leftServo = 1150, rightServo = 550;
 	mag.SetMag(2);
@@ -378,14 +378,14 @@ int main() {
 				if (cali) {
 					angle = middleServo;
 				} else if (state == normal) {
-					float offset = 0.018;
+					float offset = 0.015;
 					if(mag.GetLinear(0) >= offset || mag.GetLinear(0) <= -offset){
 						if(isStraight){
 							curveCounter++;
 						}else{
 							curveCounter = 0;
 						}
-						if(curveCounter >= 23 && isStraight){
+						if(curveCounter >= 8 && isStraight){
 							isStraight = false;
 						}
 					}
@@ -395,17 +395,22 @@ int main() {
 						}else{
 							straightCounter = 0;
 						}
-						if(straightCounter >= 50 && !isStraight){
+						if(straightCounter >= 60 && !isStraight){
 							isStraight = true;
 						}
 					}
-					if(isStraight){
-						angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
-//						buzz.SetBeep(false);
-					}else{
-						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
-//						buzz.SetBeep(true);
-					}
+//					if (mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2)){
+//						angle = lastServo * 1.3;
+//					} else {
+						if(isStraight){
+							angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
+							buzz.SetBeep(false);
+						}else{
+							angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
+							buzz.SetBeep(true);
+						}
+						lastServo = angle;
+//					}
 				} else if (state == leave){
 					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0), mag.GetMag(0));
 //					angle = servoPIDCurve.getPID(0.08,frontLinear);
