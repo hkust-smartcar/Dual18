@@ -27,6 +27,18 @@
 #ifndef INC_BOARDID_H_
 #define INC_BOARDID_H_
 
+#include "libbase/k60/cmsis/mk60f15.h"
+#include <libbase/k60/mcg.h>
+#include <libsc/system.h>
+#include "libbase/k60/pit.h"
+#include "libbase/k60/vectors.h"
+#include "libbase/k60/gpio.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <libsc/system.h>
+
 class BoardID {
 public:
 	BoardID() :
@@ -46,16 +58,16 @@ private:
 	const Pin::Name CAR_PIN = Pin::Name::kPte12;
 	const Pin::Name BOARD_PIN = Pin::Name::kPte24;
 
-	Gpi m_car;
-	Gpi m_board;
+	libbase::k60::Gpi m_car;
+	libbase::k60::Gpi m_board;
 
 	bool m_isCar1, m_isBoardA;
 
-	Gpi::Config getGpiConfig(uint8_t id) {
-		Gpi::Config config;
+	libbase::k60::Gpi::Config getGpiConfig(uint8_t id) {
+		libbase::k60::Gpi::Config config;
 		config.config.set(Pin::Config::ConfigBit::kPullUp);
 		config.interrupt = Pin::Config::Interrupt::kBoth;
-		config.isr = [&] (Gpi *gpi) {
+		config.isr = [&] (libbase::k60::Gpi *gpi) {
 			m_isCar1 = m_car.Get();
 			m_isBoardA = m_board.Get();
 		};

@@ -60,6 +60,11 @@ bool Mag::noMagField(){
 float Mag::GetLinear(uint8_t pair_id){
 	return linear[pair_id];
 }
+
+float Mag::GetMulti(uint8_t pair_id){
+	return multi[pair_id];
+}
+
  void Mag::SetMag(uint8_t id){
 	if (id == 1){
 		min[0] = 5;
