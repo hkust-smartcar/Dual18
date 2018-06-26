@@ -35,6 +35,7 @@ obj/main-d-2017-inno.o: src/main.cpp \
  /Users/JosephYim/git/libsccc/inc/libbase/k60/i2c_master_interface.h \
  /Users/JosephYim/git/libsccc/inc/libsc/joystick.h \
  /Users/JosephYim/git/libsccc/inc/libbase/k60/adc.h \
+ /Users/JosephYim/git/libsccc/inc/libsc/battery_meter.h \
  /Users/JosephYim/git/libsccc/inc/libsc/alternate_motor.h \
  /Users/JosephYim/git/libsccc/inc/libbase/pinout_macros.h \
  /Users/JosephYim/git/libsccc/inc/libbase/k60/ftm_pwm.h \
@@ -58,4 +59,4 @@ obj/main-d-2017-inno.o: src/main.cpp \
  /Users/JosephYim/git/libsccc/inc/libbase/k60/hardware.h inc/Buzzer.h \
  /Users/JosephYim/git/libsccc/inc/libutil/notes.h \
  /Users/JosephYim/git/libsccc/inc/libsc/simple_buzzer.h \
- /Users/JosephYim/git/libsccc/inc/libsc/passive_buzzer.h
+ /Users/JosephYim/git/libsccc/inc/libsc/passive_buzzer.h inc/BoardID.h

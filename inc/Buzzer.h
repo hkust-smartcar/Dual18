@@ -8,13 +8,14 @@
 #ifndef INC_BUZZER_H_
 #define INC_BUZZER_H_
 
-
 #include <libutil/notes.h>
 #include "libsc/simple_buzzer.h"
 #include "libsc/passive_buzzer.h"
 #include <math.h>
 #include <vector>
+
 using std::vector;
+
 class musicPlayer {
 public:
 	enum note {
@@ -32,6 +33,7 @@ public:
 
 	musicPlayer() :
 			buzzzer(getBuzzerConfig()) {
+		playSong(NokiaSound);
 	}
 
 	PassiveBuzzer buzzzer;
@@ -114,6 +116,5 @@ public:
 		return config;
 	}
 };
-
 
 #endif /* INC_BUZZER_H_ */

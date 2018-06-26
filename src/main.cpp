@@ -14,6 +14,7 @@
 #include "libsc/k60/ov7725.h"
 #include "libsc/joystick.h"
 #include "libbase/k60/adc.h"
+#include "libsc/battery_meter.h"
 
 #include "libsc/alternate_motor.h"
 #include "libsc/encoder.h"
@@ -23,6 +24,7 @@
 #include "DualCar_UART.h"
 #include "DistanceModule.h"
 #include "Buzzer.h"
+#include "BoardID.h"
 
 namespace libbase {
 namespace k60 {
@@ -129,8 +131,8 @@ int main() {
 
 	Led led0(GetLedConfig(0));
 	Led led1(GetLedConfig(1));
-//	Led led2(GetLedConfig(2));
-//	Led led3(GetLedConfig(3));
+	Led led2(GetLedConfig(2));
+	Led led3(GetLedConfig(3));
 
 	St7735r lcd(GetLcdConfig());
 	LcdTypewriter writer(GetWriterConfig(&lcd));
@@ -140,8 +142,8 @@ int main() {
 //	Adc adc1(getADCConfig(1));
 //	Adc adc2(getADCConfig(2));
 //	Adc adc3(getADCConfig(3));
-//	Adc adc4(getADCConfig(4));
-//	Adc adc5(getADCConfig(5));
+	Adc adc4(getADCConfig(4));
+	Adc adc5(getADCConfig(5));
 //	Adc adc6(getADCConfig(6));
 //	Adc adc7(getADCConfig(7));
 
@@ -149,8 +151,8 @@ int main() {
 //	adc1.StartConvert();
 //	adc2.StartConvert();
 //	adc3.StartConvert();
-//	adc4.StartConvert();
-//	adc5.StartConvert();
+	adc4.StartConvert();
+	adc5.StartConvert();
 //	adc6.StartConvert();
 //	adc7.StartConvert();
 
@@ -205,13 +207,25 @@ int main() {
 //	jCon.listener_triggers[4] = Joystick::Config::Trigger::kDown;
 //	Joystick jStick(jCon);
 
-//	Ov7725::Config con;
-//	con.h = 60;
-//	con.w = 80;
-//	con.id = 0;
-//	con.fps = Ov7725::Config::Fps::kHigh;
+	Ov7725::Config con;
+	con.h = 60;
+	con.w = 80;
+	con.id = 0;
+	con.fps = Ov7725::Config::Fps::kHigh;
 
-	DistanceModule d;
+//	DistanceModule d([&] (float distanceInCm) {
+//		if (distanceInCm > 30) {
+//			led2.SetEnable(true);
+//		} else {
+//			led2.SetEnable(false);
+//		}
+//	});
+
+	BatteryMeter::Config c;
+	c.voltage_ratio = 1 / 2.71538;
+	BatteryMeter m(c);
+
+//	BoardID on9;
 
 //	Ov7725 cam(con);
 //	cam.Start();
@@ -220,7 +234,31 @@ int main() {
 	while (true) {
 		if (System::Time() != lastTime) {
 			lastTime = System::Time();
+			uart0.RunEveryMS(); // << BT related
+
+//			static double lastValue;
+//			if (lastValue != d.getDistance()) {
+//				lastValue = d.getDistance();
+//				uart0.Send_double(DualCar_UART::DOUBLE::d0, d.getDistance());
+//			}
+
 			if (lastTime % 100 == 0) {
+//				if (on9.isBoardA()) {
+//					uart0.Send_int(DualCar_UART::INT::i5, 10);
+//					led2.SetEnable(true);
+//				} else {
+//					uart0.Send_int(DualCar_UART::INT::i5, 0);
+//					led2.SetEnable(false);
+//				}
+//
+//				if (on9.isCar1()) {
+//					uart0.Send_int(DualCar_UART::INT::i6, 10);
+//					led3.SetEnable(true);
+//				} else {
+//					uart0.Send_int(DualCar_UART::INT::i6, 0);
+//					led3.SetEnable(false);
+//				}
+
 //				lcd.SetRegion(Lcd::Rect(0, 0, 80, 60));
 //				const Byte* Buffer = cam.LockBuffer();
 //				lcd.FillBits(Lcd::kBlack, Lcd::kWhite, Buffer, 60 * 80);
@@ -234,13 +272,10 @@ int main() {
 //				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u1, adc1.GetResult());
 //				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u2, adc2.GetResult());
 //				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u3, adc3.GetResult());
-//				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u4, adc4.GetResult());
-//				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u5, adc5.GetResult());
+				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u4, adc4.GetResult());
+				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u5, adc5.GetResult());
 //				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u6, adc6.GetResult());
 //				uart0.Send_uint8_t(DualCar_UART::UINT8_T::u7, adc7.GetResult());
-
-				uart0.Send_int(DualCar_UART::INT::i0, d.getDistance());
-				uart0.Send_int(DualCar_UART::INT::i1, d.debug_runTime);
 
 //				lcd.SetRegion(Lcd::Rect(0, 60, 80, 15));
 //				char c[20];
@@ -249,6 +284,7 @@ int main() {
 
 //				uart0.Send_bool(DualCar_UART::BOOLEAN::b0, playBuzzer);
 
+				uart0.Send_float(DualCar_UART::FLOAT::f0, m.GetVoltage());
 				led0.Switch();
 				led1.Switch();
 //				led2.Switch();
@@ -263,7 +299,6 @@ int main() {
 
 			}
 
-			uart0.RunEveryMS(); // << BT related
 		}
 	}
 }

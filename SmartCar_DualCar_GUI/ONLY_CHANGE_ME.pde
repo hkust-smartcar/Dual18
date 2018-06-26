@@ -3,8 +3,8 @@ final String EnvPath = System.getProperty("user.dir");
 //"/Users/JosephYim/Desktop/";
 final boolean SameFile = true;
 
-final String BTtarget = "tty.MORRIS";
-//final String BTtarget = "tty.JOSEPH";
+//final String BTtarget = "tty.MORRIS";
+final String BTtarget = "tty.JOSEPH";
 //final String BTtarget = "tty.COLUMN";
 
 
@@ -24,12 +24,17 @@ void init() { // add tiles here
 
     //addOutputValueTile(Mailbox.u4, "u4");
     //addOutputValueTile(Mailbox.u5, "u5");
+    
+    addOutputValueTile(Mailbox.i5, "i5");
+    addOutputValueTile(Mailbox.i6, "i6");
+    
     //addOutputValueTile(Mailbox.u6, "u6");
     //addOutputValueTile(Mailbox.u7, "u7");
     //addLineBreak(); // break into next column
 
-    addOutputValueTile(Mailbox.i0, "i0");
+    addOutputValueTile(Mailbox.d0, "d0");
     addOutputValueTile(Mailbox.i1, "i1");
+    addOutputValueTile(Mailbox.f0, "batt");
 
     //addLineBreak(); // break into next column
 
@@ -39,13 +44,13 @@ void init() { // add tiles here
     //addInputIncDecTile(Mailbox.i0, "i0", 1, 1, 0);
     //addLineBreak(); // break into next column
 
-    //addChart(100, 5, 600, -1, 255); // << start a new chart, i.e. chart 1
+    //addChart(100, 5, 600, -1, 16); // << start a new chart, i.e. chart 1
 
     ////DataArray_double[Mailbox.d29.ordinal()] = 100;
     ////addLine(Mailbox.d29, "constant line", BLACK);
 
 
-    //addLine(Mailbox.f0, "echo 0", RED); // >> put into chart 1
+    //addLine(Mailbox.i5, "i", RED); // >> put into chart 1
     //addLine(60, "echo 1", BLUE); // >> put into chart 1
     ////addLine(Mailbox.f2, "echo 2", GREEN); // >> put into chart 1
     ////addLine(Mailbox.f3, "echo 3", TEAL); // >> put into chart 1
