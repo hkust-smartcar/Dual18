@@ -6,7 +6,6 @@
  */
 
 #define Master
-#define car1
 
 #ifdef Master
 
@@ -160,9 +159,9 @@ int main() {
 		forwardL = true;
 		forwardR = true;
 
-		middleServo = 1035;
+		middleServo = 1045;
 		leftServo = 1305;
-		rightServo = 750;
+		rightServo = 760;
 
 		mag.SetMag(1);
 	} else {
@@ -186,9 +185,9 @@ int main() {
 		forwardL = false;
 		forwardR = true;
 
-		middleServo = 850;
+		middleServo = 840;
 		leftServo = 1150;
-		rightServo = 550;
+		rightServo = 560;
 
 		mag.SetMag(2);
 
