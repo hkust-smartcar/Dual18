@@ -41,7 +41,7 @@ vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int b
 
 Corner find_min(vector<Corner>);
 
-vector<Corner>check_corner(const Byte* camBuffer, int topline, int bottomline, bool type);
+vector<Corner>check_corner(const Byte* camBuffer, int topline, int bottomline, bool type, vector<pair<int,int>> &edge);
 
 
 

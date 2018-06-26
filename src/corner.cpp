@@ -21,79 +21,18 @@ vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int b
 	vector<pair<int,int>> m_edge;
 
 	if(!type){//slave
-//		bool stop = false;
-//		for(int j = bottomline; j>topline; j--){//scan from left
-//			for(int i=1; i<78; i++){
-//				if(ret_cam_bit(1,j,camBuffer)==0){
-//					if((ret_cam_bit(i,j,camBuffer)!=ret_cam_bit(i+1,j,camBuffer))&&(ret_cam_bit(i,j,camBuffer)==0)){
-//						m_edge.push_back(make_pair(i,j));
-//						if(i<2){
-//							stop = true;
-//						}
-//						break;
-//					}
-//				}
-//				else
-//					break;
-//			}
-//			if(stop)
-//				break;
-//		}
-//		int search_from = 0;
-//		if(m_edge.size()>0)
-//			search_from = m_edge[m_edge.size()-1].first;
-		for(int i=1; i<=78; i++){// scan from bottom
-			for(int j = bottomline-1; j>topline; j--){
-				if(ret_cam_bit(i,bottomline-1,camBuffer)==0){
-					if((ret_cam_bit(i,j,camBuffer)!=ret_cam_bit(i,j-1,camBuffer))&&(ret_cam_bit(i,j,camBuffer)==0)){
-						bool repeat = false;
-						for(int k=0; k<m_edge.size();k++){
-							if((i==m_edge[k].first)&&(j==m_edge[k].second)){
-								repeat = true;
-								break;
-							}
-						}
-						if(repeat == false){
-							m_edge.push_back(make_pair(i,j));
-						}
-						break;
-					}
-				}
-				else
-					break;
-			}
-		}
-	}
-
-	else{
-//		bool stop = false;
-//		for(int j = bottomline; j>topline; j--){//scan from right
-//			for(int i=78; i>=1; i--){
-//				if(ret_cam_bit(79,j,camBuffer)==0){
-//					if((ret_cam_bit(i,j,camBuffer)!=ret_cam_bit(i-1,j,camBuffer))&&(ret_cam_bit(i,j,camBuffer)==0)){
-//						m_edge.push_back(make_pair(i,j));
-//						if(i>77){
-//							stop = true;
-//						}
-//						break;
-//					}
-//				}
-//				else
-//					break;
-//			}
-//			if(stop)
-//				break;
-//		}
-//		int search_from = 0;
-//		if(m_edge.size()>0)
-//			search_from = m_edge[m_edge.size()-1].first;
 		bool found = false;
-		for(int i=78; i>=1; i--){// scan from bottom
+		bool quit = false;
+		for(int i=1; i<=78; i++){// scan from bottom
 			for(int j = bottomline-1; j>topline; j--){
 				if(ret_cam_bit(i,bottomline-1,camBuffer)==0){
 					if((ret_cam_bit(i,j,camBuffer)!=ret_cam_bit(i,j-1,camBuffer))&&(ret_cam_bit(i,j,camBuffer)==0)){
 						found = true;
 						m_edge.push_back(make_pair(i,j));
+						if(j>=77){
+							quit = true;
+						}
+
 						break;
 					}
 					else{
@@ -107,14 +46,46 @@ vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int b
 				if(found)
 					break;
 			}
+			if(quit)
+				break;
+		}
+	}
+
+	else{
+		bool found = false;
+		bool quit = false;
+		for(int i=78; i>=1; i--){// scan from bottom
+			for(int j = bottomline-1; j>topline; j--){
+				if(ret_cam_bit(i,bottomline-1,camBuffer)==0){
+					if((ret_cam_bit(i,j,camBuffer)!=ret_cam_bit(i,j-1,camBuffer))&&(ret_cam_bit(i,j,camBuffer)==0)){
+						found = true;
+						m_edge.push_back(make_pair(i,j));
+						if(j>=77){
+							quit = true;
+						}
+
+						break;
+					}
+					else{
+						found = false;
+					}
+				}
+				else{
+					found = false;
+					break;
+				}
+				if(found)
+					break;
+			}
+			if(quit)
+				break;
 		}
 	}
 
 	return m_edge;
 }
 
-vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, bool type){
-	vector<std::pair<int,int>> edge{};
+vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, bool type, vector<pair<int,int>> &edge){
 	vector<Corner> m_corner;
 
 	std::vector<float> percentage;
@@ -128,12 +99,14 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 	if(type==true){
 		left_fail = check_if_fail(topline, bottomline, edge);
 		if(!left_fail){
+			edge.clear();
 			return m_corner;
 		}
 	}
 	else{
 		right_fail = check_if_fail(topline, bottomline, edge);
 		if(!right_fail){
+			edge.clear();
 			return m_corner;
 		}
 	}
@@ -155,7 +128,7 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 				}
 			}
 			percent = percent/49.0;
-			if ((percent<0.25)&&(percent>0.1)){
+			if ((percent<0.25)&&(percent>0.15)){
 				Corner temp(edge[i].first,edge[i].second, percent);
 				m_corner.push_back(temp);
 			}

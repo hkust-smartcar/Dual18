@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-#define Master
+//#define Master
 #define car1
 
 #ifdef Master
@@ -329,13 +329,15 @@ int main() {
 				float master_slope = 0;
 				float slave_slope = 0;
 				float midline_slope = 0;
+				bool left_fail = false;
 				slave_edge = m_master_bluetooth.get_m_edge();
+//				left_fail = check_left_edge(30, 60, camBuffer,master_edge);
 				vector<Corner> master_corner;
-				master_corner = check_corner(camBuffer, 30, 60, true);
+				master_corner = check_corner(camBuffer, 30, 60, true, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
-				master_slope = find_slope(master_edge);
-				slave_slope = find_slope(slave_edge);
+//				master_slope = find_slope(master_edge);
+//				slave_slope = find_slope(slave_edge);
 
 
 				//detect for crossroad
@@ -358,23 +360,18 @@ int main() {
 				}
 				//
 
-				if(((master_corner.size()==1)^(slave_corner.size()==1))&&(enter_crossroad == false)&&(enter_loop==false)){
-					if((master_corner.size()==1)&&(slave_slope>-0.6)){
-						midline = find_midline(master_edge, slave_edge);
-						buzz.SetBeep(true);
-						enter_loop = true;
+				if((master_corner.size()==1)^(slave_corner.size()==1)){
+					midline = find_midline(master_edge, slave_edge);
+					int tempx = slave_corner[0].get_xcoord();
+					int tempy = slave_corner[0].get_ycoord();
+					buzz.SetBeep(true);
+					enter_loop = true;
+					if ((menu.get_mode() != DualCar_Menu::Page::kStart) && menu.get_selected()){
+					menu.select_pressed();
 					}
-					else if((slave_corner.size()==1)&&(master_slope<0.6)){
-						midline = find_midline(master_edge, slave_edge);
-						buzz.SetBeep(true);
-						enter_loop = true;
-					}
-//					if ((menu.get_mode() != DualCar_Menu::Page::kStart) && menu.get_selected()){
-//					menu.select_pressed();
-//					}
 				}
 				else{
-					buzz.SetBeep(false);
+//					buzz.SetBeep(false);
 					enter_loop = false;
 				}
 
@@ -404,10 +401,10 @@ int main() {
 					}
 					if(isStraight){
 						angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
-						buzz.SetBeep(false);
+//						buzz.SetBeep(false);
 					}else{
 						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
-						buzz.SetBeep(true);
+//						buzz.SetBeep(true);
 					}
 				} else if (state == leave){
 					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0), mag.GetMag(0));
@@ -493,7 +490,7 @@ int main() {
 					}
 				} else{//not start, printing show value
 					Items item0("Master car1");
-					Items item1 (" ");
+					Items item1 ("M_sl", master_slope);
 					Items item2("loop", enter_loop);
 					Items item3("s_edge", slave_edge.size());
 					Items item4("Sv", servo.GetDegree());
@@ -511,7 +508,7 @@ int main() {
 
 					Items item22("left", mag.GetMag(0));
 					Items item23("right", mag.GetMag(1));
-					Items item24("time", lastTime % 100);
+					Items item24("", cycleTime);
 					Items item26("volt", batteryMeter.GetVoltage());
 
 
@@ -541,10 +538,10 @@ int main() {
 					mode2.add_items(&item20);
 					mode2.add_items(&item21);
 
-					mode3.add_items(&item22);
-					mode3.add_items(&item23);
+//					mode3.add_items(&item22);
+//					mode3.add_items(&item23);
 					mode3.add_items(&item24);
-					mode3.add_items(&item26);
+//					mode3.add_items(&item26);
 				}
 
 				menu.add_mode(&mode0);

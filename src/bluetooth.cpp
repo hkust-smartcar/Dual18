@@ -7,6 +7,8 @@
 #include "bluetooth.h"
 #include "corner.h"
 #include <vector>
+#define width 80
+#define height 60
 
 void M_Bluetooth::set_y_coord() {
 	m_edge.clear();
@@ -22,8 +24,10 @@ void M_Bluetooth::set_corner() {
 		int x_coord = buffer[i];
 		int y_coord = buffer[i + 1];
 		float percentage = buffer[i + 2] / 100.0;
-		Corner temp(x_coord, y_coord, percentage);
-		slave_corner.push_back(temp);
+		if((x_coord<width)&&(x_coord>=0)&&(y_coord>=0)&&(y_coord<height)){
+			Corner temp(x_coord, y_coord, percentage);
+			slave_corner.push_back(temp);
+		}
 	}
 	buffer.clear();
 }
