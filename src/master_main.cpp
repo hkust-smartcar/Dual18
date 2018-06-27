@@ -134,7 +134,7 @@ int main() {
 	float right_motor_pid[3] = { 0.0, 0.0, 0.0 };
 	float straight_servo_pd[2] = { 5500, 300000 };
 	float curve_servo_pd[2] = { 9300, 230000 };
-	float align_servo_pd[2];
+	float align_servo_pd[2] = {-6, 1};
 	bool forwardL = true, forwardR = true;
 	uint16_t middleServo = 1035, leftServo = 1305, rightServo = 750; // originally const
 
@@ -153,8 +153,8 @@ int main() {
 		curve_servo_pd[0] = 9300;
 		curve_servo_pd[1] = 230000;
 
-		align_servo_pd[0] = 0;
-		align_servo_pd[1] = 0;
+		align_servo_pd[0] = -6;
+		align_servo_pd[1] = 1;
 
 		forwardL = true;
 		forwardR = true;
@@ -167,11 +167,11 @@ int main() {
 	} else {
 		left_motor_pid[0] = 0.036;
 		left_motor_pid[1] = 0.003;
-		left_motor_pid[2] = 0.0004;
+		left_motor_pid[2] = 00004;
 
 		right_motor_pid[0] = 0.036;
 		right_motor_pid[1] = 0.003;
-		right_motor_pid[2] = 0.0004;
+		right_motor_pid[2] = 00004;
 
 		straight_servo_pd[0] = 5300;
 		straight_servo_pd[1] = 350000;
@@ -229,10 +229,8 @@ int main() {
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 12;
-	float loopSpeed = 4 * cycle, highSpeed = 5 * cycle, alignSpeed = 5 * cycle;
+	float loopSpeed = 4 * cycle, highSpeed = 6 * cycle, alignSpeed = 6 * cycle;
 	float speed = highSpeed;
-//	volatile
-	float alignTarget = 0.055;
 	float encoderLval, encoderRval;
 	float voltL, voltR;
 	int32_t powerL, powerR;
@@ -241,8 +239,8 @@ int main() {
 	DualCar_UART uart0(1); // << BT related
 	uart0.add(DualCar_UART::FLOAT::f0, &align_servo_pd[0], false);
 	uart0.add(DualCar_UART::FLOAT::f1, &align_servo_pd[1], false);
-	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, true);
-//	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
+	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, false);
+	//	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
 //	uart0.add(DualCar_UART::FLOAT::f1, &left_motor_pid[1], false);
 //	uart0.add(DualCar_UART::FLOAT::f2, &left_motor_pid[2], false);
 //
@@ -276,6 +274,11 @@ int main() {
 	Mode mode3(3);
 	Mode ClearMode(4);
 	//
+	//dotted lines
+	uint32_t accumulate_corner = 0;
+	uint8_t dot_time = 0;
+	bool is_dot_line = false;
+	bool start_count_corner = false;
 
 	//printing change value
 	Items item5("sr_kp", &straight_servo_pd[0], true);
@@ -300,9 +303,6 @@ int main() {
 	item16.set_increment(0.1);
 	item17.set_increment(0.1);
 	item18.set_increment(0.1);
-	//
-
-
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -317,7 +317,6 @@ int main() {
 		}
 		else if(state == Joystick::State::kUp){
 			menu.change_line(true);
-
 		}
 		else if(state == Joystick::State::kDown){
 			menu.change_line(false);
@@ -357,11 +356,11 @@ int main() {
 //				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 //			}
 //
-			uart0.RunEveryMS();
+//			uart0.RunEveryMS();
 			mag.TakeSample();
-
 			if (lastTime - on9lastMain >= cycle) {
 				x += 0.02;
+				dot_time++;
 				on9lastMain = lastTime;
 				const Byte* camBuffer = camera.LockBuffer();
 				camera.UnlockBuffer();
@@ -420,7 +419,7 @@ int main() {
 //				slave_slope = find_slope(slave_edge);
 
 
-//				//detect for crossroad
+				//detect for crossroad
 //				if((master_corner.size()==1)&&(slave_corner.size()==1)){
 //					enter_crossroad = true;
 //				}
@@ -438,18 +437,47 @@ int main() {
 //						enter_crossroad = false;
 //					}
 //				}
-//				//
+				//
+				if(((master_corner.size()>0)&&(slave_corner.size()>0))&&(start_count_corner==false)){
+					dot_time = 0;
+					start_count_corner = true;
+				}
+
+				if(start_count_corner){
+						if(dot_time==40){
+							start_count_corner = false;
+							dot_time = 0;
+							if(accumulate_corner>40){
+								is_dot_line = true;
+								led0.SetEnable(false);
+								buzz.SetBeep(true);
+							}
+							else{
+								is_dot_line = false;
+								led0.SetEnable(true);
+								buzz.SetBeep(false);
+							}
+							accumulate_corner = 0;
+						}
+						else{
+							accumulate_corner += master_corner.size();
+							accumulate_corner += slave_corner.size();
+						}
+					}
+
+
+
 
 				if(((master_corner.size()==1)^(slave_corner.size()==1))){
 					midline = find_midline(master_edge, slave_edge);
-					buzz.SetBeep(true);
+//					buzz.SetBeep(true);
 					enter_loop = true;
-					if ((menu.get_mode() != DualCar_Menu::Page::kStart) && menu.get_selected()){
-					menu.select_pressed();
-					}
+//					if ((menu.get_mode() != DualCar_Menu::Page::kStart) && menu.get_selected()){
+//					menu.select_pressed();
+//					}
 				}
 				else{
-					buzz.SetBeep(false);
+//					buzz.SetBeep(false);
 					enter_loop = false;
 				}
 
@@ -517,12 +545,12 @@ int main() {
 				if (angle > middleServo) {
 					float angleRatio = 0.0013 * (angle - middleServo);
 					float differential = angleRatio / (2 - angleRatio);
-//					left_motorPID.setDesiredVelocity(speed * (1 - differential));
-//					right_motorPID.setDesiredVelocity(speed * (1 + differential));
+					left_motorPID.setDesiredVelocity(speed * (1 - differential));
+					right_motorPID.setDesiredVelocity(speed * (1 + differential));
 //					left_motorPID.setDesiredVelocity(speed * sin(x));
 //					right_motorPID.setDesiredVelocity(speed * sin(x));
-					left_motorPID.setDesiredVelocity(speed);
-					right_motorPID.setDesiredVelocity(speed);
+//					left_motorPID.setDesiredVelocity(speed);
+//					right_motorPID.setDesiredVelocity(speed);
 				} else {
 					float angleRatio = 0.0013 * (middleServo - angle);
 					float differential = angleRatio / (2 - angleRatio);
@@ -530,11 +558,9 @@ int main() {
 					right_motorPID.setDesiredVelocity(speed * (1 - differential));
 //					left_motorPID.setDesiredVelocity(speed * sin(x));
 //					right_motorPID.setDesiredVelocity(speed * sin(x));
-					left_motorPID.setDesiredVelocity(speed);
-					right_motorPID.setDesiredVelocity(speed);
+//					left_motorPID.setDesiredVelocity(speed);
+//					right_motorPID.setDesiredVelocity(speed);
 				}
-
-				cycleTime = System::Time() - lastTime;
 
 				if (menu.get_mode() != DualCar_Menu::Page::kStart) {
 					encoderL.Update();
@@ -602,14 +628,13 @@ int main() {
 
 					Items item22("left", mag.GetMag(0));
 					Items item23("right", mag.GetMag(1));
-					Items item24("", cycleTime);
+					Items item24("is_dot", is_dot_line);
 					Items item26("volt", batteryMeter.GetVoltage());
 					Items item27("state", (int)state);
-					Items item28("t", alignTarget);
 					Items item29("l", mag.GetLinear(0));
+
 					Items item30("Ultra", UltrasonicSensor.getDistance());
-					Items item31("aP", align_servo_pd[0]);
-					Items item32("ad", align_servo_pd[1]);
+					Items item31("ac_cor", accumulate_corner);
 
 					mode0.add_items(&item0);
 					mode0.add_items(&item1);
@@ -637,16 +662,15 @@ int main() {
 					mode2.add_items(&item20);
 					mode2.add_items(&item21);
 
-					mode3.add_items(&item22);
-					mode3.add_items(&item23);
+//					mode3.add_items(&item22);
+//					mode3.add_items(&item23);
 					mode3.add_items(&item24);
 //					mode3.add_items(&item26);
-					mode3.add_items(&item27);
-					mode3.add_items(&item28);
-					mode3.add_items(&item29);
-					mode3.add_items(&item30);
+//					mode3.add_items(&item27);
+//					mode3.add_items(&item28);
+//					mode3.add_items(&item29);
+//					mode3.add_items(&item30);
 					mode3.add_items(&item31);
-					mode3.add_items(&item32);
 				}
 
 				menu.add_mode(&mode0);
@@ -718,6 +742,7 @@ int main() {
 				slave_edge.clear();
 				midline.clear();
 				master_corner.clear();
+				cycleTime = System::Time() - lastTime;
 			}
 		}
 	}
