@@ -454,7 +454,8 @@ int main() {
 						if(accumulate_corner>=4){
 							is_dot_line = true;
 							led0.SetEnable(false);
-							buzz.SetBeep(true);
+//							buzz.SetNote(523);
+//							buzz.SetBeep(true);
 							if(!approaching)
 								approaching = true;
 //							if(menu.get_selected()){
@@ -479,9 +480,6 @@ int main() {
 					}
 				}
 
-
-
-
 				if(((master_corner.size()==1)^(slave_corner.size()==1))){
 					midline = find_midline(master_edge, slave_edge);
 //					buzz.SetBeep(true);
@@ -494,7 +492,12 @@ int main() {
 //					buzz.SetBeep(false);
 					enter_loop = false;
 				}
-
+				if (mag.BigMag()){
+					buzz.SetNote(523);
+					buzz.SetBeep(true);
+				}else{
+					buzz.SetBeep(false);
+				}
 				if (cali) {
 					angle = middleServo;
 				} else if (state == normal) {
@@ -675,8 +678,8 @@ int main() {
 					mode2.add_items(&item20);
 					mode2.add_items(&item21);
 
-//					mode3.add_items(&item22);
-//					mode3.add_items(&item23);
+					mode3.add_items(&item22);
+					mode3.add_items(&item23);
 					mode3.add_items(&item24);
 //					mode3.add_items(&item26);
 //					mode3.add_items(&item27);

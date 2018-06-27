@@ -33,6 +33,7 @@ public:
 	bool noMagField();
 	bool SmallerThanE(uint8_t id, float t){return v[id] < emin[id/2]*t*multi[id/2];}
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id/2];}
+	bool BigMag(){return ((v[0]+v[1] > 150) && (v[0] > 100 || v[1] > 100));};
 	int Difference(uint8_t id0, uint8_t id1){return v[id0]-v[id1];}
 	void SetMag(uint8_t id);
 	float GetLinear(uint8_t pair_id);
