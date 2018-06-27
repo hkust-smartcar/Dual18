@@ -138,23 +138,24 @@ int main() {
 	bool forwardL = true, forwardR = true;
 	uint16_t middleServo = 1035, leftServo = 1305, rightServo = 750; // originally const
 
-	if (board.isCar1()) {
-		left_motor_pid[0] = 0.036;
-		left_motor_pid[1] = 0.003;
-		left_motor_pid[2] = 0.0;
 
-		right_motor_pid[0] = 0.034;
-		right_motor_pid[1] = 0.004;
-		right_motor_pid[2] = 0.0;
+	if (board.isCar1()) {
+		left_motor_pid[0] = 0.06;
+		left_motor_pid[1] = 0.002;
+		left_motor_pid[2] = 0.008;
+
+		right_motor_pid[0] = 0.05;
+		right_motor_pid[1] = 0.001;
+		right_motor_pid[2] = 0.008;
 
 		straight_servo_pd[0] = 5500;
-		straight_servo_pd[1] = 300000;
+		straight_servo_pd[1] = 200000;
 
-		curve_servo_pd[0] = 9300;
-		curve_servo_pd[1] = 230000;
+		curve_servo_pd[0] = 8900;
+		curve_servo_pd[1] = 150000;
 
-		align_servo_pd[0] = -6;
-		align_servo_pd[1] = 1;
+		align_servo_pd[0] = 0;
+		align_servo_pd[1] = 0;
 
 		forwardL = true;
 		forwardR = true;
@@ -165,19 +166,19 @@ int main() {
 
 		mag.SetMag(1);
 	} else {
-		left_motor_pid[0] = 0.036;
-		left_motor_pid[1] = 0.003;
-		left_motor_pid[2] = 00004;
+		left_motor_pid[0] = 0.06;
+		left_motor_pid[1] = 0.0004;
+		left_motor_pid[2] = 0.00008;
 
-		right_motor_pid[0] = 0.036;
-		right_motor_pid[1] = 0.003;
-		right_motor_pid[2] = 00004;
+		right_motor_pid[0] = 0.07;
+		right_motor_pid[1] = 0.0081;
+		right_motor_pid[2] = 0.00008;
 
-		straight_servo_pd[0] = 5300;
-		straight_servo_pd[1] = 350000;
+		straight_servo_pd[0] = 5500;
+		straight_servo_pd[1] = 200000;
 
-		curve_servo_pd[0] = 10500;
-		curve_servo_pd[1] = 200000;
+		curve_servo_pd[0] = 8200;
+		curve_servo_pd[1] = 150000;
 
 		align_servo_pd[0] = -6;
 		align_servo_pd[1] = 1;
@@ -192,7 +193,6 @@ int main() {
 		mag.SetMag(2);
 
 	}
-
 
 //#ifdef car1
 //	float left_motor_pid[3] = { 0.036, 0.003, 0.0 };
@@ -237,28 +237,32 @@ int main() {
 
 	// below sync data to the computer side
 	DualCar_UART uart0(1); // << BT related
-	uart0.add(DualCar_UART::FLOAT::f0, &align_servo_pd[0], false);
-	uart0.add(DualCar_UART::FLOAT::f1, &align_servo_pd[1], false);
-	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, false);
-	//	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
-//	uart0.add(DualCar_UART::FLOAT::f1, &left_motor_pid[1], false);
-//	uart0.add(DualCar_UART::FLOAT::f2, &left_motor_pid[2], false);
-//
-//	uart0.add(DualCar_UART::FLOAT::f3, &right_motor_pid[0], false);
-//	uart0.add(DualCar_UART::FLOAT::f4, &right_motor_pid[1], false);
-//	uart0.add(DualCar_UART::FLOAT::f5, &right_motor_pid[2], false);
-//
-//	uart0.add(DualCar_UART::FLOAT::f6, &straight_servo_pd[0], false);
-//	uart0.add(DualCar_UART::FLOAT::f7, &straight_servo_pd[1], false);
-//
-//	uart0.add(DualCar_UART::FLOAT::f8, &curve_servo_pd[0], false);
-//	uart0.add(DualCar_UART::FLOAT::f9, &curve_servo_pd[1], false);
-//
-//	uart0.add(DualCar_UART::FLOAT::f12, &encoderLval, true);
-//	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
+
+	//allignent
+//	uart0.add(DualCar_UART::FLOAT::f0, &align_servo_pd[0], false);
+//	uart0.add(DualCar_UART::FLOAT::f1, &align_servo_pd[1], false);
+//	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, true);
+	approaching = false;
+
+	// motor & servo pid
+	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
+	uart0.add(DualCar_UART::FLOAT::f1, &left_motor_pid[1], false);
+	uart0.add(DualCar_UART::FLOAT::f2, &left_motor_pid[2], false);
+
+	uart0.add(DualCar_UART::FLOAT::f3, &right_motor_pid[0], false);
+	uart0.add(DualCar_UART::FLOAT::f4, &right_motor_pid[1], false);
+	uart0.add(DualCar_UART::FLOAT::f5, &right_motor_pid[2], false);
+
+	uart0.add(DualCar_UART::FLOAT::f6, &straight_servo_pd[0], false);
+	uart0.add(DualCar_UART::FLOAT::f7, &straight_servo_pd[1], false);
+
+	uart0.add(DualCar_UART::FLOAT::f8, &curve_servo_pd[0], false);
+	uart0.add(DualCar_UART::FLOAT::f9, &curve_servo_pd[1], false);
+
+	uart0.add(DualCar_UART::FLOAT::f12, &encoderLval, true);
+	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
 //
 	uart0.parseValues();
-	//
 
 	DistanceModule UltrasonicSensor([](float distanceInCm) {
 		if (distanceInCm < 30) {
@@ -349,14 +353,14 @@ int main() {
 
 			lastTime = System::Time();
 
-			// bt send motor speed
-//			if (lastTime - on9lastSent > 50) {
-//				on9lastSent = lastTime;
-//				uart0.Send_float(DualCar_UART::FLOAT::f10, cycleTime);
-//				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
-//			}
-//
-//			uart0.RunEveryMS();
+//			 bt send motor speed
+			if (lastTime - on9lastSent > 50) {
+				on9lastSent = lastTime;
+				uart0.Send_float(DualCar_UART::FLOAT::f10, cycleTime);
+				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
+			}
+
+			uart0.RunEveryMS();
 			mag.TakeSample();
 			if (lastTime - on9lastMain >= cycle) {
 				x += 0.02;
@@ -492,7 +496,7 @@ int main() {
 						}else{
 							curveCounter = 0;
 						}
-						if(curveCounter >= 8 && isStraight){
+						if(curveCounter >= 3 && isStraight){
 							isStraight = false;
 						}
 					}
@@ -502,13 +506,13 @@ int main() {
 						}else{
 							straightCounter = 0;
 						}
-						if(straightCounter >= 60 && !isStraight){
+						if(straightCounter >= 25 && !isStraight){
 							isStraight = true;
 						}
 					}
-//					if (mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2)){
-//						angle = lastServo * 1.3;
-//					} else {
+					if (mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2)){
+						angle = lastServo * 1.2;
+					} else {
 						if(isStraight){
 							angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
 //							buzz.SetBeep(false);
@@ -516,8 +520,8 @@ int main() {
 							angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
 //							buzz.SetBeep(true);
 						}
-						lastServo = angle;
-//					}
+					}
+					lastServo = angle;
 				} else if (state == leave){
 					angle = leftServo;
 //					angle = servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
@@ -535,7 +539,6 @@ int main() {
 					angle = servoPIDAlignCurve.getPID(mag.GetEMax(0)*mag.GetMulti(0), mag.GetMag(0));
 //					angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
 				}
-
 				m_master_bluetooth.reset_m_edge();
 
 				angle += middleServo;
