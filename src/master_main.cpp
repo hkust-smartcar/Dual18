@@ -448,26 +448,36 @@ int main() {
 				}
 
 				if(start_count_corner){
-						if(dot_time==40){
-							start_count_corner = false;
-							dot_time = 0;
-							if(accumulate_corner>40){
-								is_dot_line = true;
-								led0.SetEnable(false);
-								buzz.SetBeep(true);
-							}
-							else{
-								is_dot_line = false;
-								led0.SetEnable(true);
-								buzz.SetBeep(false);
-							}
-							accumulate_corner = 0;
+					if(dot_time==10){
+						start_count_corner = false;
+						dot_time = 0;
+						if(accumulate_corner>=4){
+							is_dot_line = true;
+							led0.SetEnable(false);
+							buzz.SetBeep(true);
+							if(!approaching)
+								approaching = true;
+//							if(menu.get_selected()){
+//								menu.select_pressed();
+//							}
 						}
 						else{
-							accumulate_corner += master_corner.size();
-							accumulate_corner += slave_corner.size();
+							is_dot_line = false;
+							led0.SetEnable(true);
+							buzz.SetBeep(false);
 						}
+						accumulate_corner = 0;
 					}
+					else{
+						accumulate_corner += master_corner.size();
+						accumulate_corner += slave_corner.size();
+					}
+				}
+				else{
+					if(dot_time==10){
+						dot_time = 0;
+					}
+				}
 
 
 
@@ -631,7 +641,7 @@ int main() {
 
 					Items item22("left", mag.GetMag(0));
 					Items item23("right", mag.GetMag(1));
-					Items item24("is_dot", is_dot_line);
+					Items item24("", dot_time);
 					Items item26("volt", batteryMeter.GetVoltage());
 					Items item27("state", (int)state);
 					Items item29("l", mag.GetLinear(0));
