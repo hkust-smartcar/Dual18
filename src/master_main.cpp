@@ -590,7 +590,7 @@ int main() {
 							servoPIDStraight.resetdTerm();
 						}
 					}
-					if (mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2)){
+					if (mag.SmallerThanMin(0, 1.5) || mag.SmallerThanMin(1, 1.5)){
 						angle = lastServo * 1.2;
 					} else {
 						if(isStraight){
