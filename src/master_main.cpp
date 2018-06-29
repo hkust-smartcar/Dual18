@@ -153,7 +153,7 @@ int main() {
 		straight_servo_pd[0] = 5500;
 		straight_servo_pd[1] = 200000;
 
-		curve_servo_pd[0] = 8900;
+		curve_servo_pd[0] = 9200;
 		curve_servo_pd[1] = 150000;
 
 		align_servo_pd[0] = 0;
@@ -396,7 +396,7 @@ int main() {
 				if (state == normal && approaching) {
 					state = leave;
 					speed = alignSpeed;
-				} else if (state == leave && mag.SmallerThanE(0, 0.5) && mag.SmallerThanE(1, 1.2)) {
+				} else if (state == leave && mag.SmallerThanE(0, 0.5)) {
 					state = align;
 				} else if (state == align && mag.Difference(0, 1) < 10 && abs((int) angle - middleServo) < 50) {
 					state = side;
@@ -570,14 +570,21 @@ int main() {
 				//
 
 
-				if (cali) {
-					angle = middleServo;
+				if (cali || menu.get_mode() < DualCar_Menu::Page::kMag) {
+					angle = 0;
 				} else if (state == normal) {
 //					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-					float offset = 0.02;
+					float offset = 0.016;
 					if(mag.GetLinear(0) >= offset || mag.GetLinear(0) <= -offset){
-						isStraight = false;
-						servoPIDCurve.resetdTerm();
+						if(isStraight){
+							curveCounter++;
+						}else{
+							curveCounter = 0;
+						}
+						if(curveCounter >= 3 && isStraight){
+							isStraight = false;
+							servoPIDCurve.resetdTerm();
+						}
 					}
 					else{
 						if(!isStraight){
@@ -585,13 +592,13 @@ int main() {
 						}else{
 							straightCounter = 0;
 						}
-						if(straightCounter >= 25 && !isStraight){
+						if(straightCounter >= 20 && !isStraight){
 							isStraight = true;
 							servoPIDStraight.resetdTerm();
 						}
 					}
 					if (mag.SmallerThanMin(0, 1.5) || mag.SmallerThanMin(1, 1.5)){
-						angle = lastServo * 1.2;
+						angle = lastServo * 1.5;
 					} else {
 						if(isStraight){
 							angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
@@ -600,8 +607,8 @@ int main() {
 							angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
 //							buzz.SetBeep(true);
 						}
+						lastServo = angle;
 					}
-					lastServo = angle;
 				} else if (state == leave){
 					angle = leftServo;
 //					angle = servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
