@@ -156,8 +156,8 @@ int main() {
 		curve_servo_pd[0] = 10500;
 		curve_servo_pd[1] = 850000;
 
-		align_servo_pd[0] = 0;
-		align_servo_pd[1] = 0;
+		align_servo_pd[0] = -6;
+		align_servo_pd[1] = 1;
 
 		forwardL = true;
 		forwardR = true;
@@ -390,7 +390,9 @@ int main() {
 					right_motorPID.setDesiredVelocity(0);
 					menu.select_pressed();
 				}
-
+				if (lastTime-approachTime>100 && approaching){
+					approaching = false;
+				}
 				//for alignment
 				if (state == normal && approaching) {
 					state = leave;
@@ -472,10 +474,11 @@ int main() {
 						if(accumulate_corner>6){
 							is_dot_line = true;
 							led0.SetEnable(false);
-//							buzz.SetNote(523);
-//							buzz.SetBeep(true);
+							buzz.SetNote(440);
+							buzz.SetBeep(true);
 							if(!approaching)
 								approaching = true;
+								approachTime = lastTime;
 //							if(menu.get_selected()){
 //								menu.select_pressed();
 //							}
@@ -512,67 +515,67 @@ int main() {
 				}
 
 				//loop
-				master_slope = find_slope(master_edge);
-				if ((mag.BigMag())&&(right_loop==false)&&(left_loop == false)){
-					if(master_edge.size() > slave_edge.size()){
-						right_loop = true;
-						left_loop = false;
-					}
-					else{
-						right_loop = false;
-						left_loop = true;
-					}
-				}else{
-
-				}
-
-				if(right_loop){
-					slave_slope = find_slope(slave_edge);
-
-					if((master_corner.size()+slave_corner.size())==1){
-						camera_control = false;
-						right_loop = false;
-					}
-				}
-
-				else if(left_loop){
-					if(master_edge.size()>0){
-//						master_slope = find_slope(master_edge);
-
-						if((master_slope>0.45)&&(!adjust_midline_slope)){
-							if((left_loop)){
-								buzz.SetNote(523);
-//								buzz.SetBeep(true);
-								middle_slope = master_slope;
-								adjust_midline_slope = true;
-							}
-						}
-					}
-					if((adjust_midline_slope)){
-//							buzz.SetNote(523);
-//							buzz.SetBeep(true);
-							camera_control = true;
-//							float percentage = (master_slope - middle_slope)/middle_slope;
-							camera_angle = middle_slope*500;
-							camera_angle += middleServo;
-					}
-
-					if((slave_corner.size()==1)&&adjust_midline_slope&&master_edge.size()>5){
-//						buzz.SetBeep(false);
-
-						buzz.SetBeep(true);
-						camera_control = false;
-						left_loop = false;
-					}
-//					if(!camera_control)
-//						buzz.SetBeep(false);
-				}
-
-				else{
-//					master_slope = find_slope(master_edge);
-					buzz.SetBeep(false);
-					adjust_midline_slope = false;
-				}
+//				master_slope = find_slope(master_edge);
+//				if ((mag.BigMag())&&(right_loop==false)&&(left_loop == false)){
+//					if(master_edge.size() > slave_edge.size()){
+//						right_loop = true;
+//						left_loop = false;
+//					}
+//					else{
+//						right_loop = false;
+//						left_loop = true;
+//					}
+//				}else{
+//
+//				}
+//
+//				if(right_loop){
+//					slave_slope = find_slope(slave_edge);
+//
+//					if((master_corner.size()+slave_corner.size())==1){
+//						camera_control = false;
+//						right_loop = false;
+//					}
+//				}
+//
+//				else if(left_loop){
+//					if(master_edge.size()>0){
+////						master_slope = find_slope(master_edge);
+//
+//						if((master_slope>0.45)&&(!adjust_midline_slope)){
+//							if((left_loop)){
+//								buzz.SetNote(523);
+////								buzz.SetBeep(true);
+//								middle_slope = master_slope;
+//								adjust_midline_slope = true;
+//							}
+//						}
+//					}
+//					if((adjust_midline_slope)){
+////							buzz.SetNote(523);
+////							buzz.SetBeep(true);
+//							camera_control = true;
+////							float percentage = (master_slope - middle_slope)/middle_slope;
+//							camera_angle = middle_slope*500;
+//							camera_angle += middleServo;
+//					}
+//
+//					if((slave_corner.size()==1)&&adjust_midline_slope&&master_edge.size()>5){
+////						buzz.SetBeep(false);
+//
+//						buzz.SetBeep(true);
+//						camera_control = false;
+//						left_loop = false;
+//					}
+////					if(!camera_control)
+////						buzz.SetBeep(false);
+//				}
+//
+//				else{
+////					master_slope = find_slope(master_edge);
+//					buzz.SetBeep(false);
+//					adjust_midline_slope = false;
+//				}
 				//
 
 //				if(slave_corner.size()>0){
