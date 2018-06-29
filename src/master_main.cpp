@@ -169,18 +169,18 @@ int main() {
 		mag.SetMag(1);
 	} else {
 		left_motor_pid[0] = 0.06;
-		left_motor_pid[1] = 0.0004;
-		left_motor_pid[2] = 0.00008;
+		left_motor_pid[1] = 0.002;
+		left_motor_pid[2] = 0.008;
 
 		right_motor_pid[0] = 0.07;
-		right_motor_pid[1] = 0.0081;
-		right_motor_pid[2] = 0.00008;
+		right_motor_pid[1] = 0.002;
+		right_motor_pid[2] = 0.008;
 
 		straight_servo_pd[0] = 5500;
 		straight_servo_pd[1] = 200000;
 
-		curve_servo_pd[0] = 8200;
-		curve_servo_pd[1] = 150000;
+		curve_servo_pd[0] = 10000;
+		curve_servo_pd[1] = 950000;
 
 		align_servo_pd[0] = -6;
 		align_servo_pd[1] = 1;
@@ -434,13 +434,10 @@ int main() {
 
 				bool left_fail = false;
 				slave_edge = m_master_bluetooth.get_m_edge();
-//				left_fail = check_left_edge(30, 60, camBuffer,master_edge);
 				vector<Corner> master_corner;
 				master_corner = check_corner(camBuffer, 30, 60, true, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
-//				master_slope = find_slope(master_edge);
-//				slave_slope = find_slope(slave_edge);
 
 
 				//detect for crossroad
@@ -516,67 +513,63 @@ int main() {
 				}
 
 				//loop
-//				master_slope = find_slope(master_edge);
-//				if ((mag.BigMag())&&(right_loop==false)&&(left_loop == false)){
-//					if(master_edge.size() > slave_edge.size()){
-//						right_loop = true;
-//						left_loop = false;
-//					}
-//					else{
-//						right_loop = false;
-//						left_loop = true;
-//					}
-//				}else{
-//
-//				}
-//
-//				if(right_loop){
-//					slave_slope = find_slope(slave_edge);
-//
-//					if((master_corner.size()+slave_corner.size())==1){
-//						camera_control = false;
-//						right_loop = false;
-//					}
-//				}
-//
-//				else if(left_loop){
-//					if(master_edge.size()>0){
-////						master_slope = find_slope(master_edge);
-//
-//						if((master_slope>0.45)&&(!adjust_midline_slope)){
-//							if((left_loop)){
-//								buzz.SetNote(523);
-////								buzz.SetBeep(true);
-//								middle_slope = master_slope;
-//								adjust_midline_slope = true;
-//							}
-//						}
-//					}
-//					if((adjust_midline_slope)){
-////							buzz.SetNote(523);
-////							buzz.SetBeep(true);
-//							camera_control = true;
-////							float percentage = (master_slope - middle_slope)/middle_slope;
-//							camera_angle = middle_slope*500;
-//							camera_angle += middleServo;
-//					}
-//
-//					if((slave_corner.size()==1)&&adjust_midline_slope&&master_edge.size()>5){
-////						buzz.SetBeep(false);
-//
-//						buzz.SetBeep(true);
-//						camera_control = false;
-//						left_loop = false;
-//					}
-////					if(!camera_control)
-////						buzz.SetBeep(false);
-//				}
-//
-//				else{
-////					master_slope = find_slope(master_edge);
-//					buzz.SetBeep(false);
-//					adjust_midline_slope = false;
-//				}
+				master_slope = find_slope(master_edge);
+				if ((mag.BigMag())&&(right_loop==false)&&(left_loop == false)){
+					if(master_edge.size() > slave_edge.size()){
+						right_loop = true;
+						left_loop = false;
+					}
+					else{
+						right_loop = false;
+						left_loop = true;
+					}
+				}else{
+
+				}
+
+				if(right_loop){
+					slave_slope = find_slope(slave_edge);
+
+					if((master_corner.size()+slave_corner.size())==1){
+						camera_control = false;
+						right_loop = false;
+					}
+				}
+
+				else if(left_loop){
+					if(master_edge.size()>0){
+//						master_slope = find_slope(master_edge);
+						if((master_slope>0.7)&&(!adjust_midline_slope)){//car 1 0.7
+							if((left_loop)){
+								buzz.SetNote(523);
+								buzz.SetBeep(true);
+								middle_slope = master_slope;
+								adjust_midline_slope = true;
+							}
+						}
+					}
+					if((adjust_midline_slope)){
+							camera_control = true;
+//							float percentage = (master_slope - middle_slope)/middle_slope;
+							camera_angle = middle_slope*150;//car 1:150
+							camera_angle += middleServo;
+					}
+
+
+					if(((slave_corner.size()==1))&&adjust_midline_slope&&(camera_control)){
+						buzz.SetBeep(false);
+						camera_control = false;
+						left_loop = false;
+					}
+//					if(!camera_control)
+//						buzz.SetBeep(false);
+				}
+
+				else{
+//					master_slope = find_slope(master_edge);
+					buzz.SetBeep(false);
+					adjust_midline_slope = false;
+				}
 				//
 
 //				if(slave_corner.size()>0){
@@ -591,15 +584,15 @@ int main() {
 					if (mag.SmallerThanMin(0, 1.5) || mag.SmallerThanMin(1, 1.5)){
 						angle = lastServo;
 						if(!approaching){
-							buzz.SetNote(800);
-							buzz.SetBeep(true);
+//							buzz.SetNote(800);
+//							buzz.SetBeep(true);
 						}
 					} else {
 						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
 						lastServo = angle;
 						if(!approaching){
-							buzz.SetNote(520);
-							buzz.SetBeep(true);
+//							buzz.SetNote(520);
+//							buzz.SetBeep(true);
 						}
 					}
 				} else if (state == leave){

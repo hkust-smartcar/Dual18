@@ -165,10 +165,10 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 				i++;
 			}
 		}
-		if(m_corner.size()>0){
-			int is_breakpoint;
-			is_breakpoint =1;
-		}
+//		if(m_corner.size()>0){
+//			int is_breakpoint;
+//			is_breakpoint =1;
+//		}
 	return m_corner;
 }
 
