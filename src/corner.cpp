@@ -121,14 +121,18 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 	int dv = 4;
 	for (int i =0; i<edge.size(); i++){
 		float percent = 0;
-		if((edge[i].second>=top_line+dv)&&(edge[i].first>=du)&&(edge[i].first<80-du)&&(edge[i].second<bottom_line-dv)){
+
+		if((edge[i].second>=(top_line+dv))&&(edge[i].first>=du)&&(edge[i].first<(80-du))&&(edge[i].second<(bottom_line-dv))){
+			if(ret_cam_bit(edge[i].first-1,edge[i].second,camBuffer)==0&&ret_cam_bit(edge[i].first+1,edge[i].second,camBuffer)==0&&ret_cam_bit(edge[i].first,edge[i].second-1,camBuffer)==0&&ret_cam_bit(edge[i].first,edge[i].second+1,camBuffer)==0){
+				continue;
+			}
 			for(int j= edge[i].second-dv; j<=edge[i].second+dv; j++){
 				for(int k= edge[i].first-du; k<=edge[i].first+du; k++){
 					percent += (ret_cam_bit(k,j,camBuffer));
 				}
 			}
 			percent = percent/81.0;
-			if ((percent<0.26)&&(percent>0.15)){
+			if ((percent<0.24)&&(percent>0.15)){
 				Corner temp(edge[i].first,edge[i].second, percent);
 				m_corner.push_back(temp);
 			}
@@ -160,6 +164,10 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 			if (flag == 0){
 				i++;
 			}
+		}
+		if(m_corner.size()>0){
+			int is_breakpoint;
+			is_breakpoint =1;
 		}
 	return m_corner;
 }

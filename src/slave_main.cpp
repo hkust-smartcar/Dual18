@@ -183,6 +183,7 @@ int main() {
 				}
 
 
+
 				if(menu.get_mode()!=2){
 					Items item0 ("Slave");
 					Items item1("Sl", slave_slope);
@@ -242,6 +243,11 @@ int main() {
 						lcd.Clear();
 					}
 				}
+//				if(m_corner.size()>0){
+//					int is_breakpoint;
+//					is_breakpoint =1;
+//				}
+				m_corner.clear();
 				menu.clear();
 				mode0.clear();
 				mode1.clear();
