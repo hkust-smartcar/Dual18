@@ -574,16 +574,10 @@ int main() {
 					angle = middleServo;
 				} else if (state == normal) {
 //					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-					float offset = 0.015;
+					float offset = 0.02;
 					if(mag.GetLinear(0) >= offset || mag.GetLinear(0) <= -offset){
-						if(isStraight){
-							curveCounter++;
-						}else{
-							curveCounter = 0;
-						}
-						if(curveCounter >= 3 && isStraight){
-							isStraight = false;
-						}
+						isStraight = false;
+						servoPIDCurve.resetdTerm();
 					}
 					else{
 						if(!isStraight){
@@ -593,6 +587,7 @@ int main() {
 						}
 						if(straightCounter >= 25 && !isStraight){
 							isStraight = true;
+							servoPIDStraight.resetdTerm();
 						}
 					}
 					if (mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2)){

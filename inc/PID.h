@@ -28,6 +28,7 @@ public:
 	float getDesiredVelocty(){return desireVelocity;}
 	void setDesiredVelocity(float v){desireVelocity = v;}
 	float getdTerm(){return dTerm;}
+	void resetdTerm(){lastError = 0; dTerm = 0;}
 	uint32_t getdTime(){return dTime;}
 	virtual ~PID();
 private:
