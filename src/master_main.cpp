@@ -109,7 +109,7 @@ int main() {
 	float batteryVoltage = batteryMeter.GetVoltage();
 	PassiveBuzzer::Config config;
 	PassiveBuzzer buzz(config);
-	buzz.SetNote(523);
+	buzz.SetNote(522);
 	buzz.SetBeep(batteryVoltage < 7.4);
 
 	FutabaS3010 servo(myConfig::GetServoConfig());
