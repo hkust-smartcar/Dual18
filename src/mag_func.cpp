@@ -74,12 +74,12 @@ float Mag::GetMulti(uint8_t pair_id){
 		emin[0] = 52;
 		emax[0] = 55;
 	}else if (id == 2){
-		min[0] = 5;
-		min[1] = 5;
-		max[0] = 50;
-		max[1] = 50;
-		emin[0] = 22;
-		emax[0] = 26;
+		min[0] = 6;
+		min[1] = 8;
+		max[0] = 68;
+		max[1] = 67;
+		emin[0] = 48;
+		emax[0] = 51;
 	}
 	else{
 		min[0] = 5;
