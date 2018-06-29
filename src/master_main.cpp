@@ -598,7 +598,7 @@ int main() {
 						}
 					}
 					if (mag.SmallerThanMin(0, 1.5) || mag.SmallerThanMin(1, 1.5)){
-						angle = lastServo * 1.5;
+						angle = lastServo * 1.7;
 					} else {
 						if(isStraight){
 							angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
