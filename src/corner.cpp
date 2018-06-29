@@ -40,7 +40,7 @@ vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int b
 					}
 				}
 				else{
-					found = false;
+					quit = true;
 					break;
 				}
 				if(found)
@@ -71,7 +71,7 @@ vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int b
 					}
 				}
 				else{
-					found = false;
+					quit = true;
 					break;
 				}
 				if(found)
@@ -128,7 +128,7 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 				}
 			}
 			percent = percent/81.0;
-			if ((percent<0.25)&&(percent>0.15)){
+			if ((percent<0.26)&&(percent>0.15)){
 				Corner temp(edge[i].first,edge[i].second, percent);
 				m_corner.push_back(temp);
 			}
