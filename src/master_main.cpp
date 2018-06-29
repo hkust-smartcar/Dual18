@@ -390,25 +390,27 @@ int main() {
 					right_motorPID.setDesiredVelocity(0);
 					menu.select_pressed();
 				}
-				if (lastTime-approachTime>100 && approaching){
-					approaching = false;
-				}
 				//for alignment
 				if (state == normal && approaching) {
 					state = leave;
 					speed = alignSpeed;
-				} else if (state == leave && mag.SmallerThanE(0, 0.5) && mag.SmallerThanE(1, 1.2)) {
+					approachTime = lastTime;
+				} else if (state == leave && mag.SmallerThanE(0, 0.5)) {
 					state = align;
 				} else if (state == align && mag.Difference(0, 1) < 10 && abs((int) angle - middleServo) < 50) {
 					state = side;
-					approachTime = System::Time();
 				} else if (state == side && !approaching) {
-					state = back;
-					lastServo = -300;
-				} else if (state == back && !mag.SmallerThanE(0, 1)) {
 					state = normal;
+					lastServo = -100;
+//				} else if (state == back && !mag.SmallerThanE(0, 1)) {
+//					state = normal;
 //					speed = 0;
-					speed = highSpeed;
+//					speed = highSpeed;
+				}
+
+				if (lastTime-approachTime > 1000 && approaching){
+					approaching = false;
+					approachTime = lastTime;
 				}
 
 				servoPIDStraight.setkP(straight_servo_pd[0]);
@@ -476,9 +478,8 @@ int main() {
 							led0.SetEnable(false);
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
-							if(!approaching)
+							if(!approaching && (lastTime - approachTime >= 10000 || approachTime == 0))
 								approaching = true;
-								approachTime = lastTime;
 //							if(menu.get_selected()){
 //								menu.select_pressed();
 //							}
@@ -587,69 +588,29 @@ int main() {
 					angle = 0;
 				} else if (state == normal) {
 //					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-//					if (!mag.Straight()){
-//						if(isStraight){
-//							curveCounter++;
-//						}else{
-//							straightCounter = 0;
-//						}
-//						isStraight = false;
-//					}
-//					else if(mag.GetLinear(0) >= offset || mag.GetLinear(0) <= -offset){
-//						if(isStraight){
-//							curveCounter++;
-//						}else{
-//							straightCounter = 0;
-//						}
-//						if(curveCounter >= 1 && isStraight){
-//							isStraight = false;
-////								servoPIDCurve.resetdTerm();
-//						}
-//					}
-//					else{
-//						if(!isStraight){
-//							straightCounter++;
-//						}else{
-//							curveCounter = 0;
-//						}
-//						if(straightCounter >= 20 && !isStraight){
-//							isStraight = true;
-////							servoPIDStraight.resetdTerm();
-//						}
-//					}
 					if (mag.SmallerThanMin(0, 1.5) || mag.SmallerThanMin(1, 1.5)){
-						angle = lastServo * 1;
-						buzz.SetNote(800);
-						buzz.SetBeep(true);
+						angle = lastServo;
+						if(!approaching){
+							buzz.SetNote(800);
+							buzz.SetBeep(true);
+						}
 					} else {
 						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
-//						if(isStraight){
-//							angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
-//							buzz.SetNote(220);
-//							buzz.SetBeep(true);
-//						}else{
-//							angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
-//							buzz.SetNote(520);
-//							buzz.SetBeep(true);
-//						}
 						lastServo = angle;
+						if(!approaching){
+							buzz.SetNote(520);
+							buzz.SetBeep(true);
+						}
 					}
 				} else if (state == leave){
 					angle = leftServo;
 //					angle = servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
-//					angle = servoPIDCurve.getPID(alignTarget,mag.GetLinear(0));
 				} else if (state == align) {
 					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
-//					angle = servoPIDCurve.getPID(alignTarget,mag.GetLinear(0));
-//					if (!mag.SmallerThanMin(0, 3) && angle < 0) {
-//						angle = -angle;
-//					}
 				} else if (state == side){
 					angle = servoPIDAlignStraight.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
-//					angle = servoPIDStraight.getPID(alignTarget,mag.GetLinear(0));
 				} else if (state == back){
 					angle = servoPIDAlignCurve.getPID(mag.GetEMax(0)*mag.GetMulti(0), mag.GetMag(0));
-//					angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
 				}
 				m_master_bluetooth.reset_m_edge();
 
