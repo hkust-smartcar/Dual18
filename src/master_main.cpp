@@ -153,8 +153,8 @@ int main() {
 		straight_servo_pd[0] = 5500;
 		straight_servo_pd[1] = 200000;
 
-		curve_servo_pd[0] = 8900;
-		curve_servo_pd[1] = 150000;
+		curve_servo_pd[0] = 10500;
+		curve_servo_pd[1] = 850000;
 
 		align_servo_pd[0] = 0;
 		align_servo_pd[1] = 0;
@@ -195,7 +195,6 @@ int main() {
 		mag.SetMag(2);
 
 	}
-
 //#ifdef car1
 //	float left_motor_pid[3] = { 0.036, 0.003, 0.0 };
 //	float right_motor_pid[3] = { 0.034, 0.004, 0.0 };
@@ -244,8 +243,7 @@ int main() {
 	//allignent
 //	uart0.add(DualCar_UART::FLOAT::f0, &align_servo_pd[0], false);
 //	uart0.add(DualCar_UART::FLOAT::f1, &align_servo_pd[1], false);
-//	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, true);
-	approaching = false;
+	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, true);
 
 	// motor & servo pid
 	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
@@ -264,6 +262,7 @@ int main() {
 
 	uart0.add(DualCar_UART::FLOAT::f12, &encoderLval, true);
 	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
+
 //
 	uart0.parseValues();
 
@@ -370,7 +369,7 @@ int main() {
 //			 bt send motor speed
 			if (lastTime - on9lastSent > 50) {
 				on9lastSent = lastTime;
-				uart0.Send_float(DualCar_UART::FLOAT::f10, cycleTime);
+				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
 				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 			}
 
@@ -581,43 +580,57 @@ int main() {
 //					temp = 1;
 //				}
 
-				if (cali) {
-					angle = middleServo;
+				if (cali || menu.get_mode() < DualCar_Menu::Page::kMag) {
+					angle = 0;
 				} else if (state == normal) {
 //					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-					float offset = 0.015;
-					if(mag.GetLinear(0) >= offset || mag.GetLinear(0) <= -offset){
-						if(isStraight){
-							curveCounter++;
-						}else{
-							curveCounter = 0;
-						}
-						if(curveCounter >= 3 && isStraight){
-							isStraight = false;
-						}
-					}
-					else{
-						if(!isStraight){
-							straightCounter++;
-						}else{
-							straightCounter = 0;
-						}
-						if(straightCounter >= 25 && !isStraight){
-							isStraight = true;
-						}
-					}
-					if (mag.SmallerThanMin(0, 2) || mag.SmallerThanMin(1, 2)){
-						angle = lastServo * 1.2;
+//					if (!mag.Straight()){
+//						if(isStraight){
+//							curveCounter++;
+//						}else{
+//							straightCounter = 0;
+//						}
+//						isStraight = false;
+//					}
+//					else if(mag.GetLinear(0) >= offset || mag.GetLinear(0) <= -offset){
+//						if(isStraight){
+//							curveCounter++;
+//						}else{
+//							straightCounter = 0;
+//						}
+//						if(curveCounter >= 1 && isStraight){
+//							isStraight = false;
+////								servoPIDCurve.resetdTerm();
+//						}
+//					}
+//					else{
+//						if(!isStraight){
+//							straightCounter++;
+//						}else{
+//							curveCounter = 0;
+//						}
+//						if(straightCounter >= 20 && !isStraight){
+//							isStraight = true;
+////							servoPIDStraight.resetdTerm();
+//						}
+//					}
+					if (mag.SmallerThanMin(0, 1.5) || mag.SmallerThanMin(1, 1.5)){
+						angle = lastServo * 1;
+						buzz.SetNote(800);
+						buzz.SetBeep(true);
 					} else {
-						if(isStraight){
-							angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
-//							buzz.SetBeep(false);
-						}else{
-							angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
+						angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
+//						if(isStraight){
+//							angle = servoPIDStraight.getPID(0.0, mag.GetLinear(0));
+//							buzz.SetNote(220);
 //							buzz.SetBeep(true);
-						}
+//						}else{
+//							angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
+//							buzz.SetNote(520);
+//							buzz.SetBeep(true);
+//						}
+						lastServo = angle;
 					}
-					lastServo = angle;
 				} else if (state == leave){
 					angle = leftServo;
 //					angle = servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
@@ -636,6 +649,7 @@ int main() {
 //					angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
 				}
 				m_master_bluetooth.reset_m_edge();
+
 
 				angle += middleServo;
 				angle = max(rightServo, min(leftServo, angle));
@@ -778,7 +792,7 @@ int main() {
 					mode3.add_items(&item23);
 					mode3.add_items(&item24);
 //					mode3.add_items(&item26);
-//					mode3.add_items(&item27);
+					mode3.add_items(&item27);
 //					mode3.add_items(&item28);
 //					mode3.add_items(&item29);
 //					mode3.add_items(&item30);
