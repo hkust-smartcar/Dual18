@@ -291,34 +291,19 @@ int main() {
 	bool right_loop = false;
 	bool left_loop = false;
 	bool camera_control = false;//true for camera, false for mag
+	bool loop_phase[5] = {false, false, false, false, false};
 
 	//printing change value
-	Items item5("sr_kp", &straight_servo_pd[0], true);
-	Items item6("sr_kd", &straight_servo_pd[1], true);
-	Items item7("cr_kp", &curve_servo_pd[0], true);
-	Items item8("cr_kd", &curve_servo_pd[1], true);
-	item5.set_increment(100);
-	item6.set_increment(100);
-	item7.set_increment(100);
-	item8.set_increment(100);
+//	Items item5("sr_kp", &straight_servo_pd[0], true);
+//	Items item6("sr_kd", &straight_servo_pd[1], true);
+//	Items item7("cr_kp", &curve_servo_pd[0], true);
+//	Items item8("cr_kd", &curve_servo_pd[1], true);
+//	item5.set_increment(100);
+//	item6.set_increment(100);
+//	item7.set_increment(100);
+//	item8.set_increment(100);
 
-	Items item13("ml_kp", &left_motor_pid[0], true);
-	Items item14("ml_ki", &left_motor_pid[1], true);
-	Items item15("ml_kd", &left_motor_pid[2], true);
-	item13.set_increment(0.1);
-	item14.set_increment(0.1);
-	item15.set_increment(0.1);
 
-	Items item16("mr_kp", &right_motor_pid[0], true);
-	Items item17("mr_ki", &right_motor_pid[1], true);
-	Items item18("mr_kd", &right_motor_pid[2], true);
-	item16.set_increment(0.1);
-	item17.set_increment(0.1);
-	item18.set_increment(0.1);
-	Items item35("c_pi", &camera_pd[0], true);
-	Items item36("c_pd", &camera_pd[1], true);
-	item35.set_increment(10);
-	item36.set_increment(10);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -428,37 +413,9 @@ int main() {
 				right_motorPID.setkI(right_motor_pid[1]);
 				right_motorPID.setkD(right_motor_pid[2]);
 
-				float master_slope = 0;
-				float slave_slope = 0;
-				float midline_slope = 0;
-
-				bool left_fail = false;
-				slave_edge = m_master_bluetooth.get_m_edge();
 				vector<Corner> master_corner;
 				master_corner = check_corner(camBuffer, 30, 60, true, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
-
-
-
-				//detect for crossroad
-//				if((master_corner.size()==1)&&(slave_corner.size()==1)){
-//					enter_crossroad = true;
-//				}
-//
-//				else if((master_corner.size()==1)&&(slave_edge.size()<2)){
-//					enter_crossroad = true;
-//				}
-//
-//				else if((slave_corner.size()==1)&&(master_edge.size()<2)){
-//					enter_crossroad = true;
-//				}
-//
-//				if(enter_crossroad == true){
-//					if((master_corner.size()==0)&&(slave_corner.size()==0)){
-//						enter_crossroad = false;
-//					}
-//				}
-
 
 				//alignment
 				if(((master_corner.size()>0)&&(slave_corner.size()>0))&&(start_count_corner==false)){
@@ -477,9 +434,6 @@ int main() {
 							buzz.SetBeep(true);
 							if(!approaching && (lastTime - approachTime >= 10000 || approachTime == 0))
 								approaching = true;
-//							if(menu.get_selected()){
-//								menu.select_pressed();
-//							}
 						}
 						else{
 							is_dot_line = false;
@@ -498,84 +452,132 @@ int main() {
 						dot_time = 0;
 					}
 				}
-
-				if(((master_corner.size()==1)^(slave_corner.size()==1))){
-//					midline = find_midline(master_edge, slave_edge);
-//					buzz.SetBeep(true);
-//					enter_loop = true;
-//					if ((menu.get_mode() != DualCar_Menu::Page::kStart) && menu.get_selected()){
-//					menu.select_pressed();
-//					}
-				}
-				else{
-//					buzz.SetBeep(false);
-//					enter_loop = false;
-				}
-
-				//loop
-				master_slope = find_slope(master_edge);
-				if ((mag.BigMag())&&(right_loop==false)&&(left_loop == false)){
-					if(master_edge.size() > slave_edge.size()){
-						right_loop = true;
-						left_loop = false;
-					}
-					else{
-						right_loop = false;
-						left_loop = true;
-					}
-				}else{
-
-				}
-
-				if(right_loop){
-					slave_slope = find_slope(slave_edge);
-
-					if((master_corner.size()+slave_corner.size())==1){
-						camera_control = false;
-						right_loop = false;
-					}
-				}
-
-				else if(left_loop){
-					if(master_edge.size()>0){
-//						master_slope = find_slope(master_edge);
-						if((master_slope>0.7)&&(!adjust_midline_slope)){//car 1 0.7
-							if((left_loop)){
-								buzz.SetNote(523);
-								buzz.SetBeep(true);
-								middle_slope = master_slope;
-								adjust_midline_slope = true;
-							}
-						}
-					}
-					if((adjust_midline_slope)){
-							camera_control = true;
-//							float percentage = (master_slope - middle_slope)/middle_slope;
-							camera_angle = middle_slope*150;//car 1:150
-							camera_angle += middleServo;
-					}
-
-
-					if(((slave_corner.size()==1))&&adjust_midline_slope&&(camera_control)){
-						buzz.SetBeep(false);
-						camera_control = false;
-						left_loop = false;
-					}
-//					if(!camera_control)
-//						buzz.SetBeep(false);
-				}
-
-				else{
-//					master_slope = find_slope(master_edge);
-					buzz.SetBeep(false);
-					adjust_midline_slope = false;
-				}
 				//
 
-//				if(slave_corner.size()>0){
-//					int temp = 0;
-//					temp = 1;
+
+				//loop
+
+				float master_slope = 0;
+				float slave_slope = 0;
+				int slave_edge_size = m_master_bluetooth.get_edge_size();
+				master_slope = find_slope(master_edge);
+				slave_slope = m_master_bluetooth.get_m_slope();
+				if((mag.BigMag())&&(loop_phase[0]==false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)){
+					loop_phase[0] = true;
+					if(master_edge.size() > slave_edge_size)
+						right_loop = true;
+					else
+						right_loop = false;
+				}
+				if(loop_phase[0]==true){
+					if(right_loop){
+						if((slave_edge_size>0)&&(slave_slope<0.7)){
+							buzz.SetNote(523);
+							buzz.SetBeep(true);
+							middle_slope = master_slope;
+							loop_phase[0] = false;
+							loop_phase[1] = true;
+						}
+					}
+					else{
+						if((master_edge.size()>0)&&(master_slope>0.7)){//the slope when the car is place on the biggest loop's middle
+							buzz.SetNote(523);
+							buzz.SetBeep(true);
+							middle_slope = master_slope;
+							loop_phase[0] = false;
+							loop_phase[1] = true;
+						}
+					}
+				}
+				else if(loop_phase[1] == true){
+					if(right_loop){
+					}
+					else{
+						camera_control = true;
+						camera_angle = middle_slope*150;//car 1:150
+						camera_angle += middleServo;
+						if(slave_edge_size<2){
+							loop_phase[1] = false;
+							loop_phase[2] = true;
+						}
+					}
+				}
+				else if(loop_phase[2] == true){
+					if(right_loop){
+
+					}
+					else{
+						if((slave_edge_size>0)||(slave_corner.size()==1)){
+							buzz.SetBeep(false);
+							loop_phase[2] = false;
+							loop_phase[3] = true;
+						}
+					}
+				}
+				else if(loop_phase[3] == true){
+					if(right_loop){
+
+					}
+					else{
+						camera_control = false;
+						right_loop = false;
+						loop_phase[3] = false;
+					}
+				}
+
+
+//				if ((mag.BigMag())&&(right_loop==false)&&(left_loop == false)){
+//					if(master_edge.size() > slave_edge_size){
+//						right_loop = true;
+//						left_loop = false;
+//					}
+//					else{
+//						right_loop = false;
+//						left_loop = true;
+//					}
+//				}else{
+//
 //				}
+//
+//				if(right_loop){
+//					if((master_corner.size()+slave_corner.size())==1){
+//						camera_control = false;
+//						right_loop = false;
+//					}
+//				}
+//
+//				else if(left_loop){
+//					if(master_edge.size()>0){
+////						master_slope = find_slope(master_edge);
+//						if((master_slope>0.7)&&(!adjust_midline_slope)){//car 1 0.7
+//							if((left_loop)){
+//								buzz.SetNote(523);
+//								buzz.SetBeep(true);
+//								middle_slope = master_slope;
+//								adjust_midline_slope = true;
+//							}
+//						}
+//					}
+//					if((adjust_midline_slope)){
+//							camera_control = true;
+//							camera_angle = middle_slope*150;//car 1:150
+//							camera_angle += middleServo;
+//					}
+//
+//
+//					if(((slave_corner.size()==1))&&adjust_midline_slope&&(camera_control)){
+//						buzz.SetBeep(false);
+//						camera_control = false;
+//						left_loop = false;
+//					}
+//				}
+//
+//				else{
+//					buzz.SetBeep(false);
+//					adjust_midline_slope = false;
+//				}
+//
+
 
 				if (cali || menu.get_mode() < DualCar_Menu::Page::kMag) {
 					angle = 0;
@@ -688,75 +690,68 @@ int main() {
 
 					Items item0(s);
 					Items item1 ("M_sl", master_slope);
-					Items item2("mid_sl", middle_slope);
-					Items item3("s_edge", slave_edge.size());
-					Items item4("Sv", servo.GetDegree());
-//					Items item4("Sv", camera_angle);
-					Items item25("corner", master_corner.size());
+					Items item2("S_sl", m_master_bluetooth.get_m_slope());
+					Items item3("Sv", servo.GetDegree());
+					Items item4("M_cor", master_corner.size());
+					Items item5("S_cor", slave_corner.size());
+
+					Items item6("cam_con", camera_control);
+					Items item7("r_loop", right_loop);
+					Items item8("p0", loop_phase[0]);
+					Items item9("p1", loop_phase[1]);
+					Items item10("p2", loop_phase[2]);
+					Items item26("p3", loop_phase[3]);
+					Items item24("M_es",master_edge.size());
+					Items item25("S_es", slave_edge_size);
+
+					Items item11("speed", speed);
+					Items item12("r_en", encoderRval);
+					Items item13("l_en", encoderLval);
+					Items item14("lines", menu.get_line());
+					Items item15("selected", menu.get_selected());
 
 
-					Items item9("r_en", encoderRval);
-					Items item10("l_en", encoderLval);
-					Items item11("lines", menu.get_line());
-					Items item12("selected", menu.get_selected());
 
-					Items item19("speed", speed);
-					Items item20("lines", menu.get_line());
-					Items item21("selected", menu.get_selected());
+					Items item16("left", mag.GetMag(0));
+					Items item17("right", mag.GetMag(1));
+					Items item18("", dot_time);
+					Items item19("volt", batteryMeter.GetVoltage());
+					Items item20("state", (int)state);
+					Items item21("l", mag.GetLinear(0));
+					Items item22("Ultra", UltrasonicSensor.getDistance());
+					Items item23("ac_cor", accumulate_corner);
 
-					Items item22("left", mag.GetMag(0));
-					Items item23("right", mag.GetMag(1));
-					Items item24("", dot_time);
-					Items item26("volt", batteryMeter.GetVoltage());
-					Items item27("state", (int)state);
-					Items item29("l", mag.GetLinear(0));
-
-					Items item30("Ultra", UltrasonicSensor.getDistance());
-					Items item31("ac_cor", accumulate_corner);
-					Items item32("cam_con", camera_control);
-					Items item33("r_loop", right_loop);
-					Items item34("l_loop", left_loop);
 
 					mode0.add_items(&item0);
 					mode0.add_items(&item1);
 					mode0.add_items(&item2);
 					mode0.add_items(&item3);
 					mode0.add_items(&item4);
-					mode0.add_items(&item25);
+					mode0.add_items(&item5);
 
-					mode1.add_items(&item5);
 					mode1.add_items(&item6);
 					mode1.add_items(&item7);
 					mode1.add_items(&item8);
 					mode1.add_items(&item9);
 					mode1.add_items(&item10);
-					mode1.add_items(&item11);
-					mode1.add_items(&item12);
+					mode1.add_items(&item26);
+					mode1.add_items(&item24);
+					mode1.add_items(&item25);
 
+					mode2.add_items(&item11);
+					mode2.add_items(&item12);
 					mode2.add_items(&item13);
 					mode2.add_items(&item14);
 					mode2.add_items(&item15);
-					mode2.add_items(&item16);
-					mode2.add_items(&item17);
-					mode2.add_items(&item18);
-					mode2.add_items(&item19);
-					mode2.add_items(&item20);
-					mode2.add_items(&item21);
 
-					mode3.add_items(&item35);
-					mode3.add_items(&item36);
+					mode3.add_items(&item16);
+					mode3.add_items(&item17);
+					mode3.add_items(&item18);
+					mode3.add_items(&item19);
+					mode3.add_items(&item20);
+					mode3.add_items(&item21);
 					mode3.add_items(&item22);
 					mode3.add_items(&item23);
-					mode3.add_items(&item24);
-//					mode3.add_items(&item26);
-					mode3.add_items(&item27);
-//					mode3.add_items(&item28);
-//					mode3.add_items(&item29);
-//					mode3.add_items(&item30);
-					mode3.add_items(&item31);
-					mode3.add_items(&item32);
-					mode3.add_items(&item33);
-					mode3.add_items(&item34);
 				}
 
 				menu.add_mode(&mode0);

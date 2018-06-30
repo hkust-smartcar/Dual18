@@ -28,7 +28,7 @@ using libsc::System;
 using namespace std;
 
 enum Informations {
-	edge = 100, fail_on_turn, corner, end, unclear
+	edge = 200, slope, corner, edge_size, end, unclear
 };
 
 //class Package {
@@ -62,9 +62,13 @@ public:
 											buffer.clear();
 											information_types = Informations::edge;
 										}
-										if((*buff==Informations::fail_on_turn)&&(buffer.size()==0)) {
+										if((*buff==Informations::slope)&&(buffer.size()==0)) {
 											buffer.clear();
-											information_types = Informations::fail_on_turn;
+											information_types = Informations::slope;
+										}
+										if((*buff==Informations::edge_size)&&(buffer.size()==0)) {
+											buffer.clear();
+											information_types = Informations::edge_size;
 										}
 										if((*buff==Informations::corner)&&(buffer.size()==0)) {
 											buffer.clear();
@@ -94,43 +98,61 @@ public:
 											}
 										}
 
-										else if((information_types == Informations::fail_on_turn)) {
+										else if((information_types == Informations::slope)) {
 											this->buffer.push_back(*buff);
 											if(((*buff)==Informations::end)) {
-												fail_on_turn = buffer[2];
+												m_slope = 0;
+												int size = buffer[1];
+												if(buffer.size() == size) {
+													if(buffer[3]==true){
+														m_slope = (-1)*buffer[2]/10.0;
+													}
+													else{
+														m_slope = (-1)*buffer[2]/100.0;
+													}
+												}
+												else{
+													m_slope = 0;
+												}
 												buffer.clear();
 											}
-											else{
+										}
+
+										else if((information_types == Informations::edge_size)) {
+											this->buffer.push_back(*buff);
+											if(((*buff)==Informations::end)) {
+												edge_size = 0;
+												int size = buffer[1];
+												if(buffer.size() == size) {
+													edge_size  = buffer[2];
+												}
+												else{
+													edge_size = 0;
+												}
 												buffer.clear();
 											}
 										}
 
 										else if(information_types == Informations::corner) {
 											this->buffer.push_back(*buff);
-
-											int temp = 0;
-											temp = *buff;
-											reset_slave_corner();
 											if(((*buff)==Informations::end)) {
+												slave_corner.clear();
 												int size = 3*buffer[1]+3;
 												if(size!=3) {
 													corner_size = buffer[1];
 													if(buffer.size() == size) {
-														reset_slave_corner();
+														slave_corner.clear();
 														set_corner();
-														buffer.clear();
 													}
 													else{
-														reset_slave_corner();
-														buffer.clear();
+														slave_corner.clear();
 													}
 												}
 												else {
-													reset_slave_corner();
-													buffer.clear();
+													slave_corner.clear();
 												}
+												buffer.clear();
 											}
-
 										}
 
 										else {
@@ -153,8 +175,8 @@ public:
 		return m_edge;
 	}
 
-	bool get_fail_on_turn() {
-		return fail_on_turn;
+	float get_m_slope() {
+		return m_slope;
 	}
 
 	vector<Corner> get_slave_corner() {
@@ -163,13 +185,12 @@ public:
 
 	int get_corner_size(){return corner_size;}
 
+	int get_edge_size(){return edge_size;}
+
 	void reset_m_edge() {
 		m_edge.clear();
 	}
 
-	void reset_slave_corner() {
-		slave_corner.clear();
-	}
 
 private:
 	JyMcuBt106 m_bt;
@@ -177,10 +198,12 @@ private:
 	int information_types = Informations::unclear;
 	int how_many_lines = 0;
 	int corner_size = 0;
-	bool fail_on_turn = 0;
+	int edge_size = 0;
+	float m_slope = 0;
 	std::vector<int> y_coord();
 	std::vector<std::pair<int, int>> m_edge;
 	vector<Corner> slave_corner;
+
 };
 
 class S_Bluetooth {
@@ -191,7 +214,8 @@ public:
 	;
 
 	void send_edge(std::vector<std::pair<int, int>> input_vector);
-	void send_info(bool fail_or_not);
+	void send_slope(float m_slope);
+	void send_edge_size(int edge_size);
 	void send_corner(vector<Corner> slave_corner);
 private:
 	JyMcuBt106 m_bt;

@@ -60,13 +60,38 @@ void S_Bluetooth::send_edge(std::vector<std::pair<int, int>> slave_edge) {
 	}
 }
 
-void S_Bluetooth::send_info(bool fail_or_not) {
-	int size = 4;
-	Byte *buffer = new Byte[size];
-	buffer[0] = Informations::fail_on_turn;
+void S_Bluetooth::send_slope(float m_slope) {
+	int size = 5;
+	Byte* buffer = new Byte[size];
+	buffer[0] = Informations::slope;
 	buffer[1] = size;
-	buffer[2] = fail_or_not;
-	buffer[3] = Informations::end;
+	if(m_slope<0){
+		m_slope *= -1;
+	}
+
+	if(m_slope<1.9){
+		buffer[2] = m_slope*100;
+		buffer[3] = false;
+	}
+
+	else if(m_slope>1.9){
+		buffer[2] = m_slope*10;
+		buffer[3] = true;
+	}
+
+	buffer[size-1] = Informations::end;
+
+	m_bt.SendBuffer(buffer, size);
+	delete[] buffer;
+}
+
+void S_Bluetooth::send_edge_size(int edge_size) {
+	int size = 4;
+	Byte* buffer = new Byte[size];
+	buffer[0] = Informations::edge_size;
+	buffer[1] = size;
+	buffer[2] = edge_size;
+	buffer[size-1] = Informations::end;
 
 	m_bt.SendBuffer(buffer, size);
 	delete[] buffer;
@@ -74,7 +99,7 @@ void S_Bluetooth::send_info(bool fail_or_not) {
 
 void S_Bluetooth::send_corner(vector<Corner> slave_corner) {
 	if (slave_corner.size() == 0) {
-		Byte *buffer = new Byte[3];
+		Byte* buffer = new Byte[3];
 		buffer[0] = Informations::corner;
 		buffer[1] = 0;
 		buffer[2] = Informations::end;
@@ -85,16 +110,14 @@ void S_Bluetooth::send_corner(vector<Corner> slave_corner) {
 	if (slave_corner.size() > 0) {
 		int size = 3 * slave_corner.size() + 3;
 		int num_of_corner = slave_corner.size();
-		Byte *buffer = new Byte[size];
+		Byte* buffer = new Byte[size];
 		buffer[0] = Informations::corner;
 		buffer[1] = num_of_corner;
 		buffer[size - 1] = Informations::end;
 		for (int i = 0; i < num_of_corner; i++) {
 			buffer[2 + 3 * i] = slave_corner[i].get_xcoord();
 			buffer[3 + 3 * i] = slave_corner[i].get_ycoord();
-			buffer[4 + 3 * i] = (uint8_t) (slave_corner[i].get_percentage())
-					* 100;
-
+			buffer[4 + 3 * i] = (uint8_t) (slave_corner[i].get_percentage())* 100;
 		}
 
 		m_bt.SendBuffer(buffer, size);
