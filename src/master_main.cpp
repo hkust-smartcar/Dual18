@@ -213,7 +213,7 @@ int main() {
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 12;
-	float loopSpeed = 4 * cycle, highSpeed = 6 * cycle, alignSpeed = 6 * cycle;
+	float loopSpeed = 4 * cycle, highSpeed = 7.5 * cycle, alignSpeed = 6 * cycle;
 	float speed = highSpeed;
 	float encoderLval, encoderRval;
 	float voltL, voltR;
@@ -407,7 +407,7 @@ int main() {
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
 				//alignment
-				if(((master_corner.size()>0)&&(slave_corner.size()>0))&&(start_count_corner==false)){
+				if(((master_corner.size()>0) || (slave_corner.size()>0))&&(start_count_corner==false)){
 					dot_time = 0;
 					start_count_corner = true;
 				}
