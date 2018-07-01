@@ -140,7 +140,6 @@ int main() {
 	bool forwardL = true, forwardR = true;
 	uint16_t middleServo = 1035, leftServo = 1305, rightServo = 750; // originally const
 
-
 	if (board.isCar1()) {
 		left_motor_pid[0] = 0.06;
 		left_motor_pid[1] = 0.005;
@@ -153,7 +152,7 @@ int main() {
 		straight_servo_pd[0] = 5500;
 		straight_servo_pd[1] = 200000;
 
-		curve_servo_pd[0] = 10800;
+		curve_servo_pd[0] = 11200;
 		curve_servo_pd[1] = 780000;
 
 		align_servo_pd[0] = -6;
@@ -169,18 +168,18 @@ int main() {
 		mag.SetMag(1);
 	} else {
 		left_motor_pid[0] = 0.06;
-		left_motor_pid[1] = 0.002;
-		left_motor_pid[2] = 0.008;
+		left_motor_pid[1] = 0.0004;
+		left_motor_pid[2] = 0.00008;
 
 		right_motor_pid[0] = 0.07;
-		right_motor_pid[1] = 0.002;
-		right_motor_pid[2] = 0.008;
+		right_motor_pid[1] = 0.0081;
+		right_motor_pid[2] = 0.00008;
 
 		straight_servo_pd[0] = 5500;
 		straight_servo_pd[1] = 200000;
 
-		curve_servo_pd[0] = 10000;
-		curve_servo_pd[1] = 950000;
+		curve_servo_pd[0] = 8200;
+		curve_servo_pd[1] = 150000;
 
 		align_servo_pd[0] = -6;
 		align_servo_pd[1] = 1;
@@ -195,35 +194,18 @@ int main() {
 		mag.SetMag(2);
 
 	}
-//#ifdef car1
-//	float left_motor_pid[3] = { 0.036, 0.003, 0.0 };
-//	float right_motor_pid[3] = { 0.034, 0.004, 0.0 };
-//	float straight_servo_pd[2] = { 5500, 300000 };
-//	float curve_servo_pd[2] = { 9300, 230000 };
-//	bool forwardL = true, forwardR = true;
-//	const uint16_t middleServo = 1035, leftServo = 1305, rightServo = 750;
-//	mag.SetMag(1);
-//#endif
-//#ifdef car2
-//	float left_motor_pid[3] = { 0.036, 0.003, 0.00004};
-//	float right_motor_pid[3] = { 0.036, 0.003, 0.00004 };
-//	float straight_servo_pd[2] = { 5300, 350000 };
-//	float curve_servo_pd[2] = { 10500, 200000 };
-//	bool forwardL = false, forwardR = true;
-//	const uint16_t middleServo = 850, leftServo = 1150, rightServo = 550;
-//	mag.SetMag(2);
-//#endif
 
 	typedef enum {
 		normal = 0,
 		leave,
-		align,
+		stop,
 		side,
 		back
 	} carState;
 	carState state = normal;
 	uint32_t lastTime = 0, approachTime = 0;
-	bool approaching = false, cali = false;
+	bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false;
+	bool cali = false;
 
 	float angle = middleServo;
 	float camera_angle = middleServo;
@@ -244,6 +226,9 @@ int main() {
 //	uart0.add(DualCar_UART::FLOAT::f0, &align_servo_pd[0], false);
 //	uart0.add(DualCar_UART::FLOAT::f1, &align_servo_pd[1], false);
 	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, true);
+	uart0.add(DualCar_UART::BOOLEAN::b1, &firstArrived, true);
+	uart0.add(DualCar_UART::BOOLEAN::b2, &secondArrived, true);
+
 
 	// motor & servo pid
 	uart0.add(DualCar_UART::FLOAT::f0, &left_motor_pid[0], false);
@@ -266,9 +251,13 @@ int main() {
 //
 	uart0.parseValues();
 
-	DistanceModule UltrasonicSensor([](float distanceInCm) {
+	DistanceModule UltrasonicSensor([&buzz, &approaching](float distanceInCm) {
 		if (distanceInCm < 30) {
-			// what to do when it's below 30 cm
+			buzz.SetNote(1040);
+			buzz.SetBeep(true);
+			if(approaching){
+				approaching = false;
+			}
 		}
 	});
 
@@ -375,27 +364,27 @@ int main() {
 					right_motorPID.setDesiredVelocity(0);
 					menu.select_pressed();
 				}
+
 				//for alignment
 				if (state == normal && approaching) {
 					state = leave;
 					speed = alignSpeed;
 					approachTime = lastTime;
-				} else if (state == leave && mag.SmallerThanE(0, 0.5)) {
-					state = align;
-				} else if (state == align && mag.Difference(0, 1) < 10 && abs((int) angle - middleServo) < 50) {
+				} else if (state == leave && mag.SmallerThanE(0, 0.5) && mag.SmallerThanE(1, 1.0)) {
+					if (isFirst){
+						state = stop;
+						speed = 0;
+					} else {
+						state = side;
+						secondArrived = true;//set 2arrived to true
+					}
+				} else if (state == stop && secondArrived){
 					state = side;
+					speed = alignSpeed;
 				} else if (state == side && !approaching) {
 					state = normal;
+					speed = highSpeed;
 					lastServo = -100;
-//				} else if (state == back && !mag.SmallerThanE(0, 1)) {
-//					state = normal;
-//					speed = 0;
-//					speed = highSpeed;
-				}
-
-				if (lastTime-approachTime > 1000 && approaching){
-					approaching = false;
-					approachTime = lastTime;
 				}
 
 				servoPIDStraight.setkP(straight_servo_pd[0]);
@@ -592,13 +581,13 @@ int main() {
 				}
 				//
 
-
 				if (cali || menu.get_mode() < DualCar_Menu::Page::kMag) {
 					angle = 0;
 				} else if (state == normal) {
 //					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
 					if (mag.SmallerThanMin(0, 1.42) || mag.SmallerThanMin(1, 1.42)){
 						angle = lastServo;
+						lastServo = angle;
 						if(!approaching){
 //							buzz.SetNote(800);
 //							buzz.SetBeep(true);
@@ -612,14 +601,18 @@ int main() {
 						}
 					}
 				} else if (state == leave){
-					angle = leftServo;
-//					angle = servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
-				} else if (state == align) {
-					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
+					angle = 400;
+				} else if (state == stop){
+					angle = -400;
 				} else if (state == side){
-					angle = servoPIDAlignStraight.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
-				} else if (state == back){
-					angle = servoPIDAlignCurve.getPID(mag.GetEMax(0)*mag.GetMulti(0), mag.GetMag(0));
+					if (mag.SmallerThanMin(0, 1.5)){
+						angle = servoPIDAlignStraight.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
+						buzz.SetBeep(false);
+					} else{
+						angle = 2 * servoPIDAlignStraight.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
+						buzz.SetNote(100);
+						buzz.SetBeep(true);
+					}
 				}
 				m_master_bluetooth.reset_m_edge();
 
