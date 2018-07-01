@@ -143,18 +143,18 @@ int main() {
 
 	if (board.isCar1()) {
 		left_motor_pid[0] = 0.06;
-		left_motor_pid[1] = 0.002;
-		left_motor_pid[2] = 0.008;
+		left_motor_pid[1] = 0.005;
+		left_motor_pid[2] = 0.01;
 
 		right_motor_pid[0] = 0.05;
-		right_motor_pid[1] = 0.001;
-		right_motor_pid[2] = 0.008;
+		right_motor_pid[1] = 0.005;
+		right_motor_pid[2] = 0.01;
 
 		straight_servo_pd[0] = 5500;
 		straight_servo_pd[1] = 200000;
 
-		curve_servo_pd[0] = 10500;
-		curve_servo_pd[1] = 850000;
+		curve_servo_pd[0] = 10800;
+		curve_servo_pd[1] = 780000;
 
 		align_servo_pd[0] = -6;
 		align_servo_pd[1] = 1;
@@ -291,7 +291,7 @@ int main() {
 	bool right_loop = false;
 	bool left_loop = false;
 	bool camera_control = false;//true for camera, false for mag
-	bool loop_phase[5] = {false, false, false, false, false};
+	bool loop_phase[6] = {false, false, false, false, false, false};
 
 	//printing change value
 //	Items item5("sr_kp", &straight_servo_pd[0], true);
@@ -354,7 +354,7 @@ int main() {
 //			 bt send motor speed
 			if (lastTime - on9lastSent > 50) {
 				on9lastSent = lastTime;
-				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
+				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getdTime());
 				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 			}
 
@@ -462,7 +462,7 @@ int main() {
 				int slave_edge_size = m_master_bluetooth.get_edge_size();
 				master_slope = find_slope(master_edge);
 				slave_slope = m_master_bluetooth.get_m_slope();
-				if((mag.BigMag())&&(loop_phase[0]==false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)){
+				if((mag.BigMag())&&(loop_phase[0]==false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)&&(loop_phase[4]==false)&&(loop_phase[5]==false)){
 					loop_phase[0] = true;
 					if(master_edge.size() > slave_edge_size)
 						right_loop = true;
@@ -471,10 +471,10 @@ int main() {
 				}
 				if(loop_phase[0]==true){
 					if(right_loop){
-						if((slave_edge_size>0)&&(slave_slope<0.7)){
+						if((slave_edge_size>0)&&(slave_slope<-0.7)){
 							buzz.SetNote(523);
 							buzz.SetBeep(true);
-							middle_slope = master_slope;
+							middle_slope = slave_slope;
 							loop_phase[0] = false;
 							loop_phase[1] = true;
 						}
@@ -491,10 +491,17 @@ int main() {
 				}
 				else if(loop_phase[1] == true){
 					if(right_loop){
+						camera_control = true;
+						camera_angle = middle_slope*180;//car 1:150
+						camera_angle += middleServo;
+						if(master_edge.size()<2){
+							loop_phase[1] = false;
+							loop_phase[2] = true;
+						}
 					}
 					else{
 						camera_control = true;
-						camera_angle = middle_slope*150;//car 1:150
+						camera_angle = middle_slope*180;//car 1:150
 						camera_angle += middleServo;
 						if(slave_edge_size<2){
 							loop_phase[1] = false;
@@ -504,7 +511,11 @@ int main() {
 				}
 				else if(loop_phase[2] == true){
 					if(right_loop){
-
+						if((master_edge.size()>0)||(master_corner.size()==1)){
+							buzz.SetBeep(false);
+							loop_phase[2] = false;
+							loop_phase[3] = true;
+						}
 					}
 					else{
 						if((slave_edge_size>0)||(slave_corner.size()==1)){
@@ -516,67 +527,46 @@ int main() {
 				}
 				else if(loop_phase[3] == true){
 					if(right_loop){
-
+						camera_control = false;
+						loop_phase[3] = false;
+						loop_phase[4] = true;
+						lastServo = -400;
 					}
 					else{
 						camera_control = false;
-						right_loop = false;
 						loop_phase[3] = false;
+						loop_phase[4] = true;
+						lastServo = 400;
+					}
+				}
+				else if(loop_phase[4] == true){
+					if(right_loop){
+						if(mag.BigMag()){
+							loop_phase[4] = false;
+							loop_phase[5] = true;
+						}
+					}
+					else{
+						if(mag.BigMag()){
+							loop_phase[4] = false;
+							loop_phase[5] = true;
+						}
 					}
 				}
 
-
-//				if ((mag.BigMag())&&(right_loop==false)&&(left_loop == false)){
-//					if(master_edge.size() > slave_edge_size){
-//						right_loop = true;
-//						left_loop = false;
-//					}
-//					else{
-//						right_loop = false;
-//						left_loop = true;
-//					}
-//				}else{
-//
-//				}
-//
-//				if(right_loop){
-//					if((master_corner.size()+slave_corner.size())==1){
-//						camera_control = false;
-//						right_loop = false;
-//					}
-//				}
-//
-//				else if(left_loop){
-//					if(master_edge.size()>0){
-////						master_slope = find_slope(master_edge);
-//						if((master_slope>0.7)&&(!adjust_midline_slope)){//car 1 0.7
-//							if((left_loop)){
-//								buzz.SetNote(523);
-//								buzz.SetBeep(true);
-//								middle_slope = master_slope;
-//								adjust_midline_slope = true;
-//							}
-//						}
-//					}
-//					if((adjust_midline_slope)){
-//							camera_control = true;
-//							camera_angle = middle_slope*150;//car 1:150
-//							camera_angle += middleServo;
-//					}
-//
-//
-//					if(((slave_corner.size()==1))&&adjust_midline_slope&&(camera_control)){
-//						buzz.SetBeep(false);
-//						camera_control = false;
-//						left_loop = false;
-//					}
-//				}
-//
-//				else{
-//					buzz.SetBeep(false);
-//					adjust_midline_slope = false;
-//				}
-//
+				else if(loop_phase[5] == true){
+					if(right_loop){
+						if(slave_corner.size()==1){
+							loop_phase[5] = false;
+						}
+					}
+					else{
+						if(master_corner.size()==1){
+							loop_phase[5] = false;
+						}
+					}
+				}
+				//
 
 
 				if (cali || menu.get_mode() < DualCar_Menu::Page::kMag) {
@@ -700,26 +690,28 @@ int main() {
 					Items item8("p0", loop_phase[0]);
 					Items item9("p1", loop_phase[1]);
 					Items item10("p2", loop_phase[2]);
-					Items item26("p3", loop_phase[3]);
-					Items item24("M_es",master_edge.size());
-					Items item25("S_es", slave_edge_size);
+					Items item11("p3", loop_phase[3]);
+					Items item12("p4", loop_phase[4]);
+					Items item13("p5", loop_phase[5]);
+					Items item14("M_es",master_edge.size());
+					Items item15("S_es", slave_edge_size);
 
-					Items item11("speed", speed);
-					Items item12("r_en", encoderRval);
-					Items item13("l_en", encoderLval);
-					Items item14("lines", menu.get_line());
-					Items item15("selected", menu.get_selected());
+					Items item16("speed", speed);
+					Items item17("r_en", encoderRval);
+					Items item18("l_en", encoderLval);
+					Items item19("lines", menu.get_line());
+					Items item20("selected", menu.get_selected());
 
 
 
-					Items item16("left", mag.GetMag(0));
-					Items item17("right", mag.GetMag(1));
-					Items item18("", dot_time);
-					Items item19("volt", batteryMeter.GetVoltage());
-					Items item20("state", (int)state);
-					Items item21("l", mag.GetLinear(0));
-					Items item22("Ultra", UltrasonicSensor.getDistance());
-					Items item23("ac_cor", accumulate_corner);
+					Items item21("left", mag.GetMag(0));
+					Items item22("right", mag.GetMag(1));
+					Items item23("", dot_time);
+					Items item24("volt", batteryMeter.GetVoltage());
+					Items item25("state", (int)state);
+					Items item26("l", mag.GetLinear(0));
+					Items item27("Ultra", UltrasonicSensor.getDistance());
+					Items item28("ac_cor", accumulate_corner);
 
 
 					mode0.add_items(&item0);
@@ -734,24 +726,26 @@ int main() {
 					mode1.add_items(&item8);
 					mode1.add_items(&item9);
 					mode1.add_items(&item10);
-					mode1.add_items(&item26);
-					mode1.add_items(&item24);
-					mode1.add_items(&item25);
+					mode1.add_items(&item11);
+					mode1.add_items(&item12);
+					mode1.add_items(&item13);
+					mode1.add_items(&item14);
+					mode1.add_items(&item15);
 
-					mode2.add_items(&item11);
-					mode2.add_items(&item12);
-					mode2.add_items(&item13);
-					mode2.add_items(&item14);
-					mode2.add_items(&item15);
+					mode2.add_items(&item16);
+					mode2.add_items(&item17);
+					mode2.add_items(&item18);
+					mode2.add_items(&item19);
+					mode2.add_items(&item20);
 
-					mode3.add_items(&item16);
-					mode3.add_items(&item17);
-					mode3.add_items(&item18);
-					mode3.add_items(&item19);
-					mode3.add_items(&item20);
 					mode3.add_items(&item21);
 					mode3.add_items(&item22);
 					mode3.add_items(&item23);
+					mode3.add_items(&item24);
+					mode3.add_items(&item25);
+					mode3.add_items(&item26);
+					mode3.add_items(&item27);
+					mode3.add_items(&item28);
 				}
 
 				menu.add_mode(&mode0);
