@@ -291,7 +291,7 @@ int main() {
 	bool right_loop = false;
 	bool left_loop = false;
 	bool camera_control = false;//true for camera, false for mag
-	bool loop_phase[6] = {false, false, false, false, false, false};
+	bool loop_phase[7] = {false, false, false, false, false, false, false};
 
 	//printing change value
 //	Items item5("sr_kp", &straight_servo_pd[0], true);
@@ -462,7 +462,7 @@ int main() {
 				int slave_edge_size = m_master_bluetooth.get_edge_size();
 				master_slope = find_slope(master_edge);
 				slave_slope = m_master_bluetooth.get_m_slope();
-				if((mag.BigMag())&&(loop_phase[0]==false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)&&(loop_phase[4]==false)&&(loop_phase[5]==false)){
+				if((mag.BigMag())&&(loop_phase[0]==false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)&&(loop_phase[4]==false)&&(loop_phase[5]==false)&&(loop_phase[6]==false)){
 					loop_phase[0] = true;
 					if(master_edge.size() > slave_edge_size)
 						right_loop = true;
@@ -471,19 +471,13 @@ int main() {
 				}
 				if(loop_phase[0]==true){
 					if(right_loop){
-						if((slave_edge_size>0)&&(slave_slope<-0.7)){
-							buzz.SetNote(523);
-							buzz.SetBeep(true);
-							middle_slope = slave_slope;
+						if((slave_edge_size>0)){
 							loop_phase[0] = false;
 							loop_phase[1] = true;
 						}
 					}
 					else{
-						if((master_edge.size()>0)&&(master_slope>0.7)){//the slope when the car is place on the biggest loop's middle
-							buzz.SetNote(523);
-							buzz.SetBeep(true);
-							middle_slope = master_slope;
+						if((master_edge.size()>0)){//the slope when the car is place on the biggest loop's middle
 							loop_phase[0] = false;
 							loop_phase[1] = true;
 						}
@@ -491,19 +485,21 @@ int main() {
 				}
 				else if(loop_phase[1] == true){
 					if(right_loop){
-						camera_control = true;
-						camera_angle = middle_slope*180;//car 1:150
-						camera_angle += middleServo;
-						if(master_edge.size()<2){
+						if(slave_edge_size<8){
+							middle_slope = slave_slope;
+							buzz.SetNote(523);
+							buzz.SetBeep(true);
+							camera_control = true;
 							loop_phase[1] = false;
 							loop_phase[2] = true;
 						}
 					}
 					else{
-						camera_control = true;
-						camera_angle = middle_slope*180;//car 1:150
-						camera_angle += middleServo;
-						if(slave_edge_size<2){
+						if(master_edge.size()<8){
+							middle_slope = master_slope;
+							buzz.SetNote(523);
+							buzz.SetBeep(true);
+							camera_control = true;
 							loop_phase[1] = false;
 							loop_phase[2] = true;
 						}
@@ -511,15 +507,27 @@ int main() {
 				}
 				else if(loop_phase[2] == true){
 					if(right_loop){
-						if((master_edge.size()>0)||(master_corner.size()==1)){
-							buzz.SetBeep(false);
+						if(slave_slope<-0.9){
+							camera_angle = middle_slope*250;
+						}
+						else{
+							camera_angle = middle_slope*300;//car 1:180
+						}
+						camera_angle += middleServo;
+						if(master_edge.size()<2){
 							loop_phase[2] = false;
 							loop_phase[3] = true;
 						}
 					}
 					else{
-						if((slave_edge_size>0)||(slave_corner.size()==1)){
-							buzz.SetBeep(false);
+						if(slave_slope>0.9){
+							camera_angle = middle_slope*150;
+						}
+						else{
+							camera_angle = middle_slope*180;//car 1:180
+						}
+						camera_angle += middleServo;
+						if(slave_edge_size<2){
 							loop_phase[2] = false;
 							loop_phase[3] = true;
 						}
@@ -527,42 +535,58 @@ int main() {
 				}
 				else if(loop_phase[3] == true){
 					if(right_loop){
-						camera_control = false;
-						loop_phase[3] = false;
-						loop_phase[4] = true;
-						lastServo = -400;
+						if((master_edge.size()>0)||(master_corner.size()==1)){
+							buzz.SetBeep(false);
+							loop_phase[3] = false;
+							loop_phase[4] = true;
+						}
 					}
 					else{
-						camera_control = false;
-						loop_phase[3] = false;
-						loop_phase[4] = true;
-						lastServo = 400;
+						if((slave_edge_size>0)||(slave_corner.size()==1)){
+							buzz.SetBeep(false);
+							loop_phase[3] = false;
+							loop_phase[4] = true;
+						}
 					}
 				}
 				else if(loop_phase[4] == true){
 					if(right_loop){
+						camera_control = false;
+						loop_phase[4] = false;
+						loop_phase[5] = true;
+						lastServo = -400;
+					}
+					else{
+						camera_control = false;
+						loop_phase[4] = false;
+						loop_phase[5] = true;
+						lastServo = 400;
+					}
+				}
+				else if(loop_phase[5] == true){
+					if(right_loop){
 						if(mag.BigMag()){
-							loop_phase[4] = false;
-							loop_phase[5] = true;
+							loop_phase[5] = false;
+							loop_phase[6] = true;
 						}
 					}
 					else{
 						if(mag.BigMag()){
-							loop_phase[4] = false;
-							loop_phase[5] = true;
+							loop_phase[5] = false;
+							loop_phase[6] = true;
 						}
 					}
 				}
 
-				else if(loop_phase[5] == true){
+				else if(loop_phase[6] == true){
 					if(right_loop){
 						if(slave_corner.size()==1){
-							loop_phase[5] = false;
+							loop_phase[6] = false;
 						}
 					}
 					else{
 						if(master_corner.size()==1){
-							loop_phase[5] = false;
+							loop_phase[6] = false;
 						}
 					}
 				}
@@ -573,7 +597,7 @@ int main() {
 					angle = 0;
 				} else if (state == normal) {
 //					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-					if (mag.SmallerThanMin(0, 1.5) || mag.SmallerThanMin(1, 1.5)){
+					if (mag.SmallerThanMin(0, 1.42) || mag.SmallerThanMin(1, 1.42)){
 						angle = lastServo;
 						if(!approaching){
 //							buzz.SetNote(800);
