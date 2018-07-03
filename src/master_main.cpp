@@ -420,6 +420,10 @@ int main() {
 							buzz.SetBeep(true);
 							if(!approaching && (lastTime - approachTime >= 10000 || approachTime == 0))
 								approaching = true;
+								if (!firstArrived){
+									isFirst = true;
+									firstArrived = true;//send 1 to true
+								}
 						}
 						else{
 							is_dot_line = false;
@@ -591,6 +595,8 @@ int main() {
 				if(mag.BigMag()&&(loop_phase[0] == false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)&&(loop_phase[4]==false)
 						&&(loop_phase[5]==false)&&(loop_phase[6]==false)){
 					if(slave_edge_size<master_edge.size()){
+						buzz.SetNote(262);
+						buzz.SetBeep(true);
 						right_loop = true;
 					}
 					else{
@@ -602,7 +608,12 @@ int main() {
 				}
 				if(loop_phase[0]==true){
 					if(right_loop){
-
+						if((slave_edge_size>40)||(s_edge_xmid<30)){
+							buzz.SetNote(523);
+							buzz.SetBeep(true);
+							loop_phase[0] = false;
+							loop_phase[1] = true;
+						}
 					}
 					else{
 						if((master_edge.size()>40)||(m_edge_xmid>60)){
@@ -615,7 +626,13 @@ int main() {
 				}
 				else if(loop_phase[1] == true){
 					if(right_loop){
-
+						if(slave_slope<-0.7){
+							camera_control = true;
+							buzz.SetNote(494);
+							buzz.SetBeep(true);
+							loop_phase[1] = false;
+							loop_phase[2] = true;
+						}
 					}
 					else{
 						if(master_slope>0.7){
@@ -629,16 +646,30 @@ int main() {
 				}
 				else if(loop_phase[2]==true){
 					if(right_loop){
-
-					}
-					else{
-						if(m_edge_xmid<40){
-							float difference = (mid_xmid - m_edge_xmid)/80.0;
+						if(s_edge_xmid>40){
+							float difference = (mid_xmid - s_edge_xmid)/80.0;
 							if(difference<0.2){
 								camera_angle = middleServo + difference*450;
 							}
 							else{
 								camera_angle = middleServo + difference*550;
+							}
+							buzz.SetNote(440);
+							buzz.SetBeep(true);
+						}
+						if(((master_edge.size()<3))){
+							loop_phase[2] = false;
+							loop_phase[3] = true;
+						}
+					}
+					else{
+						if(m_edge_xmid<40){
+							float difference = (mid_xmid - m_edge_xmid)/80.0;
+							if(difference<0.2){
+								camera_angle = middleServo + difference*450;//constant that differ for the angle it turns
+							}
+							else{
+								camera_angle = middleServo + difference*550;//constant that differ for the angle it turns
 							}
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
@@ -651,16 +682,30 @@ int main() {
 				}
 				else if(loop_phase[3]==true){
 					if(right_loop){
-
+						if(s_edge_xmid>40){
+							float difference = (mid_xmid - s_edge_xmid)/80.0;
+							if(difference<0.2){
+								camera_angle = middleServo + difference*450;//constant that differ for the angle it turns
+							}
+							else{
+								camera_angle = middleServo + difference*550;//constant that differ for the angle it turns
+							}
+							buzz.SetNote(350);
+							buzz.SetBeep(true);
+						}
+						if(((slave_edge_size>3)&&(s_edge_xmid<30))||(slave_corner.size()==1)){
+							loop_phase[3] = false;
+							loop_phase[4] = true;
+						}
 					}
 					else{
 						if(m_edge_xmid<40){
 							float difference = (mid_xmid - m_edge_xmid)/80.0;
 							if(difference<0.2){
-								camera_angle = middleServo + difference*500;
+								camera_angle = middleServo + difference*450;
 							}
 							else{
-								camera_angle = middleServo + difference*600;
+								camera_angle = middleServo + difference*550;
 							}
 							buzz.SetNote(350);
 							buzz.SetBeep(true);
@@ -673,7 +718,12 @@ int main() {
 				}
 				else if(loop_phase[4]==true){
 					if(right_loop){
-
+						camera_control = false;
+						buzz.SetNote(494);
+						buzz.SetBeep(true);
+						loop_phase[4]=false;
+						loop_phase[5]=true;
+						lastServo = -400;
 					}
 					else{
 						camera_control = false;
