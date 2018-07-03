@@ -128,6 +128,7 @@ public:
 		kServoPD,
 		kMotorPID,
 		kMag,
+		kBT,
 		kStart
 	} Page;
 
