@@ -4,3 +4,4 @@
 .cproject
 obj/*
 bin/*
+.DS_Store
