@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define slave
+#define slave
 
 #ifdef slave
 
@@ -178,7 +178,14 @@ int main() {
 //				m_slave_bluetooth.send_edge(m_slave_vector);
 				m_slave_bluetooth.send_slope(slave_slope);
 				m_slave_bluetooth.send_corner(m_corner);
-				m_slave_bluetooth.send_edge_size(m_slave_vector.size());
+				m_slave_bluetooth.send_int_data(m_slave_vector.size(), Informations::edge_size);
+				if(m_slave_vector.size()>0){
+					m_slave_bluetooth.send_int_data(m_slave_vector[m_slave_vector.size()/2].first, Informations::edge_xmid);
+				}
+				else{
+					m_slave_bluetooth.send_int_data(0, Informations::edge_xmid);
+				}
+
 //				}
 
 
@@ -190,12 +197,17 @@ int main() {
 //					Items item3("line", menu.get_line());
 					Items item2("corner", m_corner.size());
 					Items item3("S_es", m_slave_vector.size());
+					Items item4("xmid", m_slave_vector[m_slave_vector.size()/2].first);
+					Items item5("xmid", 0);
 
 					mode0.add_items(&item0);
 					mode0.add_items(&item1);
 					mode0.add_items(&item2);
 					mode0.add_items(&item3);
-//					mode0.add_items(&item4);
+					if(m_slave_vector.size()>0)
+						mode0.add_items(&item4);
+					else
+						mode0.add_items(&item5);
 
 				}
 

@@ -96,20 +96,20 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 
 	edge = check_corner_edge(camBuffer, topline, bottomline, type);
 
-	if(type==true){
-		left_fail = check_if_fail(topline, bottomline, edge);
-		if(!left_fail){
-			edge.clear();
-			return m_corner;
-		}
-	}
-	else{
-		right_fail = check_if_fail(topline, bottomline, edge);
-		if(!right_fail){
-			edge.clear();
-			return m_corner;
-		}
-	}
+//	if(type==true){
+//		left_fail = check_if_fail(topline, bottomline, edge);
+//		if(!left_fail){
+//			edge.clear();
+//			return m_corner;
+//		}
+//	}
+//	else{
+//		right_fail = check_if_fail(topline, bottomline, edge);
+//		if(!right_fail){
+//			edge.clear();
+//			return m_corner;
+//		}
+//	}
 
 
 //		for(int i=0; i<edge.size(); i++){
@@ -117,8 +117,8 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 //			m_corner.push_back(temp);
 //		}
 
-	int du = 4;
-	int dv = 4;
+	int du = 3;
+	int dv = 3;
 	for (int i =0; i<edge.size(); i++){
 		float percent = 0;
 
@@ -131,8 +131,8 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 					percent += (ret_cam_bit(k,j,camBuffer));
 				}
 			}
-			percent = percent/81.0;
-			if ((percent<0.24)&&(percent>0.15)){
+			percent = percent/49.0;
+			if ((percent<0.26)&&(percent>0.15)){
 				Corner temp(edge[i].first,edge[i].second, percent);
 				m_corner.push_back(temp);
 			}
