@@ -461,7 +461,7 @@ int main() {
 				master_slope = find_slope(master_edge);
 				slave_slope = m_master_bluetooth.get_m_slope();
 				if(mag.BigMag()&&(loop_phase[0] == false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)&&(loop_phase[4]==false)
-						&&(loop_phase[5]==false)&&(loop_phase[6]==false)){
+						&&(loop_phase[5]==false)&&(loop_phase[6]==false)&&(in_loop==false)){
 					if(slave_edge_size<master_edge.size()){
 						buzz.SetNote(587);
 						buzz.SetBeep(true);
@@ -473,6 +473,7 @@ int main() {
 						right_loop = false;
 					}
 					loop_phase[0] = true;
+					in_loop = true;
 				}
 				if(loop_phase[0]==true){
 					if(right_loop){
@@ -626,6 +627,7 @@ int main() {
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
 							loop_phase[6] = false;
+							in_loop = false;
 						}
 					}
 					else{
@@ -633,6 +635,7 @@ int main() {
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
 							loop_phase[6] = false;
+							in_loop = false;
 						}
 					}
 				}
