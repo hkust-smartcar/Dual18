@@ -248,6 +248,8 @@ int main() {
 	uart0.add(DualCar_UART::FLOAT::f12, &encoderLval, true);
 	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
 
+	uart0.add(DualCar_UART::FLOAT::f20, &speed, false);
+
 //
 	uart0.parseValues();
 
