@@ -124,8 +124,8 @@ int main() {
 	PID servoPIDLoop(14500, 880000);
 	PID servoPIDCurve(5500, 1); //4825,0.5
 	PID servoPIDAlignCurve(-6, 1);
-    PID servoPIDAlignStraight(-6,1);
-    PID cameraPID(0,0);
+	PID servoPIDAlignStraight(-6,1);
+	PID cameraPID(0,0);
 	PID left_motorPID(0, 0, 0, &encoderL, false);
 	PID right_motorPID(0, 0, 0, &encoderR, true);
 
@@ -225,9 +225,11 @@ int main() {
 	//allignent
 //	uart0.add(DualCar_UART::FLOAT::f0, &align_servo_pd[0], false);
 //	uart0.add(DualCar_UART::FLOAT::f1, &align_servo_pd[1], false);
-	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, true);
-	uart0.add(DualCar_UART::BOOLEAN::b1, &firstArrived, true);
-	uart0.add(DualCar_UART::BOOLEAN::b2, &secondArrived, true);
+
+	// joseph: chnaged the 3 below to false, better send implicitly
+	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, false);
+	uart0.add(DualCar_UART::BOOLEAN::b1, &firstArrived, false);
+	uart0.add(DualCar_UART::BOOLEAN::b2, &secondArrived, false);
 
 
 	// motor & servo pid
@@ -250,20 +252,17 @@ int main() {
 
 	uart0.add(DualCar_UART::FLOAT::f20, &speed, false);
 
-//
 	uart0.parseValues();
+
+	bool USsent = false;
 
 	DistanceModule UltrasonicSensor([&](float distanceInCm) {
 		if (distanceInCm < 30) {
-			buzz.SetNote(1040);
-			buzz.SetBeep(true);
 			if(approaching){
 				approaching = false;
 				firstArrived = false;
 				secondArrived = false;
-//				uart0.Send_bool(DualCar_UART::BOOLEAN::b0, false);
-//				uart0.Send_bool(DualCar_UART::BOOLEAN::b1, false);
-//				uart0.Send_bool(DualCar_UART::BOOLEAN::b2, false);
+				USsent = true;
 			}
 		}
 	});
@@ -274,7 +273,8 @@ int main() {
 	Mode mode1(1);
 	Mode mode2(2);
 	Mode mode3(3);
-	Mode ClearMode(4);
+	Mode mode4(4);
+	Mode ClearMode(5);
 	//
 	//dotted lines
 	uint32_t accumulate_corner = 0;
@@ -343,12 +343,26 @@ int main() {
 				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 			}
 
+			if (USsent) {
+				// moved away from ultrasonic sensor trig
+				// feeling bad to put so many stuff in an interrupt
+
+				buzz.SetNote(1040);
+				buzz.SetBeep(true);
+
+				uart0.Send_bool(DualCar_UART::BOOLEAN::b0, false);
+				uart0.Send_bool(DualCar_UART::BOOLEAN::b1, false);
+				uart0.Send_bool(DualCar_UART::BOOLEAN::b2, false);
+				USsent = false;
+			}
+
 			uart0.RunEveryMS();
 			led0.SetEnable(!approaching);
 			led1.SetEnable(!isFirst);
 			led2.SetEnable(!firstArrived);
 			led3.SetEnable(!secondArrived);
 			mag.TakeSample();
+
 			if (lastTime - on9lastMain >= cycle) {
 				x += 0.02;
 				dot_time++;
@@ -752,7 +766,7 @@ int main() {
 							encoderR.Update();
 						}
 					}
-				} else{//not start, printing show value
+				} else{ //not start, printing show value
 					char *s = "";
 					if (board.isCar1()) {
 						s = "Master car1";
@@ -784,8 +798,6 @@ int main() {
 					Items item19("lines", menu.get_line());
 					Items item20("selected", menu.get_selected());
 
-
-
 					Items item21("left", mag.GetMag(0));
 					Items item22("right", mag.GetMag(1));
 					Items item23("", dot_time);
@@ -795,6 +807,18 @@ int main() {
 					Items item27("Ultra", UltrasonicSensor.getDistance());
 					Items item28("ac_cor", accumulate_corner);
 
+					// show if its connected
+					// 1: yes, 0: no
+					Items item29("BTconn", uart0.isConnected());
+
+					// show the run time of the client in ms
+					Items item30("BTtime", uart0.receivedElpasedTime);
+
+					// show the receive buffer of this
+					Items item31("RxSize", uart0.RxBuffer.size());
+
+					// show the send buffer of this
+					Items item32("SeSize", uart0.SendImmediate.size());
 
 					mode0.add_items(&item0);
 					mode0.add_items(&item1);
@@ -828,12 +852,18 @@ int main() {
 					mode3.add_items(&item26);
 					mode3.add_items(&item27);
 					mode3.add_items(&item28);
+
+					mode4.add_items(&item29);
+					mode4.add_items(&item30);
+					mode4.add_items(&item31);
+					mode4.add_items(&item32);
 				}
 
 				menu.add_mode(&mode0);
 				menu.add_mode(&mode1);
 				menu.add_mode(&mode2);
 				menu.add_mode(&mode3);
+				menu.add_mode(&mode4);
 				menu.add_mode(&ClearMode);
 
 
