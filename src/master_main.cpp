@@ -820,6 +820,9 @@ int main() {
 					// show the send buffer of this
 					Items item32("SeSize", uart0.SendImmediate.size());
 
+					Items item33("getst", uart0.getsth);
+					Items item34("sdsth", uart0.sendsth);
+
 					mode0.add_items(&item0);
 					mode0.add_items(&item1);
 					mode0.add_items(&item2);
@@ -857,6 +860,8 @@ int main() {
 					mode4.add_items(&item30);
 					mode4.add_items(&item31);
 					mode4.add_items(&item32);
+					mode4.add_items(&item33);
+					mode4.add_items(&item34);
 				}
 
 				menu.add_mode(&mode0);

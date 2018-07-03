@@ -40,9 +40,12 @@
 //#define MORRIS_USING
 
 #ifdef K60
+#include "libbase/k60/cmsis/mk60f15.h"
 #include <libbase/k60/mcg.h>
 #include <libbase/k60/uart.h>
 #include <libsc/system.h>
+#include "libbase/k60/pin.h"
+#include "libbase/k60/pinout.h"
 
 #include <libbase/k60/mcg.h>
 #include <libsc/system.h>
@@ -67,7 +70,7 @@ using std::vector;
 #define REPEAT_SEND_MS 100
 #define LOCAL_BUFFER_MAX 8
 #define BUFFER_SENT_MAX 80
-#define CHECK_VALUE_PER 20
+#define CHECK_VALUE_PER 50
 #define CONNECTION_LOST_TOLERANCE 3
 // buffer size will determine the max len of the string
 // keep it between 8 to 64
@@ -288,12 +291,14 @@ public:
 	 *
 	 */
 
+	uint32_t getsth = 0;
+	uint32_t sendsth = 0;
+
 #ifdef K60
 	DualCar_UART(const uint8_t &BT_id = 0, const Uart::Config::BaudRate &_BaudRate = Uart::Config::BaudRate::k115200) :
 			bt(GetBluetoothConfig(BT_id, _BaudRate, [&](const Byte *data, const size_t size) {
-				if (size == 1) {
-				} // it is put here to remve the warning
-					RxBuffer.push_back(*data);
+					RxBuffer.emplace_back(*data);
+					getsth++;
 					return true;
 				})), SendCooling(0) {
 #else
@@ -595,6 +600,8 @@ public:
 			*(pkgPtr + 3) = SendImmediate[0].Data_1;
 
 			SendImmediate.erase(SendImmediate.begin());
+
+			sendsth++;
 
 #ifdef K60
 			bt.SendBuffer(pkgPtr, 4);
@@ -1110,7 +1117,6 @@ public:
 		config.baud_rate = _BaudRate;
 		config.id = _id;
 		config.rx_isr = isr;
-		config.tx_buf_size = 43;
 		return config;
 	}
 #endif
