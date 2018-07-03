@@ -68,7 +68,7 @@ using std::vector;
 #define LOCAL_BUFFER_MAX 8
 #define BUFFER_SENT_MAX 80
 #define CHECK_VALUE_PER 20
-#define CONNECTION_LOST_TOLERANCE 2
+#define CONNECTION_LOST_TOLERANCE 3
 // buffer size will determine the max len of the string
 // keep it between 8 to 64
 
@@ -295,7 +295,7 @@ public:
 				} // it is put here to remve the warning
 					RxBuffer.push_back(*data);
 					return true;
-				})), SendCooling(0), needAck(true) {
+				})), SendCooling(0) {
 #else
 		DualCar_UART(const uint8_t &BT_id = 0) :
 		SendCooling(0), needAck(true) {
@@ -361,10 +361,6 @@ public:
 			DataCaller_bool.push_back(nullptr);
 #endif
 		}
-
-#ifdef DEBUG
-		needAck = false;
-#endif
 	}
 
 	/*
@@ -388,8 +384,6 @@ public:
 	uint32_t lastSent = 0;
 	uint8_t booleanT;
 
-	uint8_t lastSentGuard = 0;
-
 	void RunEveryMS() {
 		xd++;
 		BUFFER_SENT = 4;
@@ -401,7 +395,7 @@ public:
 #endif
 		SendCooling = SendCooling == 0 ? 0 : SendCooling - 1;
 
-		if ((RunEveryMS_StartTime - lastSent) >= 1000) {
+		if ((RunEveryMS_StartTime - lastSent) >= 700) {
 			lastSent = RunEveryMS_StartTime;
 			uint32_t timeNow = RunEveryMS_StartTime;
 
@@ -887,7 +881,6 @@ public:
 
 	uint32_t RunEveryMS_StartTime;
 	uint8_t SendCooling;
-	bool needAck;
 	uint16_t receivedElpasedTime = 0;
 	uint8_t isConnectedTimeOut = 0;
 
