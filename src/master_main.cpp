@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define Master
+#define Master
 
 #ifdef Master
 
@@ -404,7 +404,7 @@ int main() {
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
 				//alignment
-				if(((master_corner.size()>0) || (slave_corner.size()>0))&&(start_count_corner==false)){
+				if(((master_corner.size()>0) && (slave_corner.size()>0))&&(start_count_corner==false)){
 					dot_time = 0;
 					start_count_corner = true;
 				}
