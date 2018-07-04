@@ -263,6 +263,7 @@ int main() {
 				firstArrived = false;
 				secondArrived = false;
 				USsent = true;
+
 			}
 		}
 	});
@@ -400,6 +401,7 @@ int main() {
 					state = normal;
 					speed = highSpeed;
 					lastServo = -100;
+					approachTime = lastTime;
 				}
 
 				servoPIDLoop.setkP(loop_servo_pd[0]);
@@ -686,7 +688,11 @@ int main() {
 					} else if (state == leave){
 						angle = 400;
 					} else if (state == stop){
-						angle = -400;
+						if (isFirst){
+							angle = -400;
+						} else {
+							angle = -150;
+						}
 					} else if (state == side){
 						if (mag.SmallerThanMin(0, 1.5)){
 							angle = servoPIDAlignStraight.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
