@@ -25,11 +25,11 @@ float PID::getPID(){
 	 }
 	 currentError = desireVelocity - currentVelocity ;
 	 accumulateError += currentError;
-//	 if (accumulateError > 300){
-//		 accumulateError = 300;
-//	 }else if (accumulateError < -300){
-//		 accumulateError = -300;
-//	 }
+	 if (accumulateError > 150){
+		 accumulateError = 150;
+	 }else if (accumulateError < -150){
+		 accumulateError = -150;
+	 }
 	 output = kP*currentError + kI*accumulateError + kD*(currentError - lastError);
 	 lastTime = currentTime;
 	 lastError = currentError;

@@ -124,7 +124,6 @@ int main() {
 	PID servoPIDLoop(14500, 880000);
 	PID servoPIDCurve(5500, 1); //4825,0.5
 	PID servoPIDAlignCurve(-6, 1);
-	PID servoPIDAlignStraight(-6,1);
 	PID cameraPID(0,0);
 	PID left_motorPID(0, 0, 0, &encoderL, false);
 	PID right_motorPID(0, 0, 0, &encoderR, true);
@@ -155,8 +154,8 @@ int main() {
 		curve_servo_pd[0] = 11200;
 		curve_servo_pd[1] = 780000;
 
-		align_servo_pd[0] = -6;
-		align_servo_pd[1] = 1;
+		align_servo_pd[0] = -5;
+		align_servo_pd[1] = -17;
 
 		forwardL = true;
 		forwardR = true;
@@ -168,21 +167,21 @@ int main() {
 		mag.SetMag(1);
 	} else {
 		left_motor_pid[0] = 0.06;
-		left_motor_pid[1] = 0.0004;
-		left_motor_pid[2] = 0.00008;
+		left_motor_pid[1] = 0.005;
+		left_motor_pid[2] = 0.01;
 
-		right_motor_pid[0] = 0.07;
-		right_motor_pid[1] = 0.0081;
-		right_motor_pid[2] = 0.00008;
+		right_motor_pid[0] = 0.05;
+		right_motor_pid[1] = 0.005;
+		right_motor_pid[2] = 0.01;
 
 		loop_servo_pd[0] = 14500;
 		loop_servo_pd[1] = 880000;
 
-		curve_servo_pd[0] = 8200;
-		curve_servo_pd[1] = 150000;
+		curve_servo_pd[0] = 9300;
+		curve_servo_pd[1] = 780000;
 
-		align_servo_pd[0] = -6;
-		align_servo_pd[1] = 1;
+		align_servo_pd[0] = -5;
+		align_servo_pd[1] = -17;
 
 		forwardL = false;
 		forwardR = true;
@@ -199,6 +198,7 @@ int main() {
 		normal = 0,
 		leave,
 		stop,
+		align,
 		side,
 		back
 	} carState;
@@ -213,7 +213,7 @@ int main() {
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 12;
-	float loopSpeed = 4 * cycle, highSpeed = 8 * cycle, alignSpeed = 6 * cycle;
+	float loopSpeed = 4 * cycle, highSpeed = 6 * cycle, alignSpeed = 5 * cycle;
 	float speed = highSpeed;
 	float encoderLval, encoderRval;
 	float voltL, voltR;
@@ -230,6 +230,7 @@ int main() {
 	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, false);
 	uart0.add(DualCar_UART::BOOLEAN::b1, &firstArrived, false);
 	uart0.add(DualCar_UART::BOOLEAN::b2, &secondArrived, false);
+	uart0.add(DualCar_UART::BOOLEAN::b3, &isFirst, false);
 
 
 	// motor & servo pid
@@ -247,6 +248,9 @@ int main() {
 	uart0.add(DualCar_UART::FLOAT::f8, &curve_servo_pd[0], false);
 	uart0.add(DualCar_UART::FLOAT::f9, &curve_servo_pd[1], false);
 
+	uart0.add(DualCar_UART::FLOAT::f14, &align_servo_pd[0], false);
+	uart0.add(DualCar_UART::FLOAT::f15, &align_servo_pd[1], false);
+
 	uart0.add(DualCar_UART::FLOAT::f12, &encoderLval, true);
 	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
 
@@ -262,8 +266,9 @@ int main() {
 				approaching = false;
 				firstArrived = false;
 				secondArrived = false;
+				isFirst = false;
 				USsent = true;
-
+				approachTime = lastTime;
 			}
 		}
 	});
@@ -282,6 +287,7 @@ int main() {
 	uint8_t dot_time = 0;
 	bool is_dot_line = false;
 	bool start_count_corner = false;
+	bool rubbishJoseph = true;//two car
 
 	//for loop ver2
 	float loop_control_const = 85;
@@ -331,6 +337,21 @@ int main() {
 	float middle_slope = 0;
 	bool adjust_midline_slope = false;
 
+	//initialize
+	servoPIDLoop.setkP(loop_servo_pd[0]);
+	servoPIDLoop.setkD(loop_servo_pd[1]);
+	servoPIDCurve.setkP(curve_servo_pd[0]);
+	servoPIDCurve.setkD(curve_servo_pd[1]);
+	servoPIDAlignCurve.setkP(align_servo_pd[0]);
+	servoPIDAlignCurve.setkD(align_servo_pd[1]);
+	cameraPID.setkP(camera_pd[0]);
+	cameraPID.setkD(camera_pd[1]);
+	left_motorPID.setkP(left_motor_pid[0]);
+	left_motorPID.setkI(left_motor_pid[1]);
+	left_motorPID.setkD(left_motor_pid[2]);
+	right_motorPID.setkP(right_motor_pid[0]);
+	right_motorPID.setkI(right_motor_pid[1]);
+	right_motorPID.setkD(right_motor_pid[2]);
 
 	while (1) {
 		if (System::Time() != lastTime) {
@@ -354,6 +375,7 @@ int main() {
 				uart0.Send_bool(DualCar_UART::BOOLEAN::b0, false);
 				uart0.Send_bool(DualCar_UART::BOOLEAN::b1, false);
 				uart0.Send_bool(DualCar_UART::BOOLEAN::b2, false);
+				uart0.Send_bool(DualCar_UART::BOOLEAN::b3, false);
 				USsent = false;
 			}
 
@@ -383,8 +405,6 @@ int main() {
 				//for alignment
 				if (state == normal && approaching) {
 					state = leave;
-					speed = alignSpeed;
-					approachTime = lastTime;
 				} else if (state == leave && mag.SmallerThanE(0, 0.5) && mag.SmallerThanE(1, 1.0)) {
 					if (isFirst){
 						state = stop;
@@ -397,27 +417,32 @@ int main() {
 				} else if (state == stop && secondArrived){
 					state = side;
 					speed = alignSpeed;
+					approachTime = lastTime;
+				} else if (state == align && mag.Difference(0, 1) < 10 && abs((int) angle - middleServo) < 50){
+					state = side;
+					approachTime = lastTime;
 				} else if (state == side && !approaching) {
 					state = normal;
 					speed = highSpeed;
 					lastServo = -100;
-					approachTime = lastTime;
 				}
 
-				servoPIDLoop.setkP(loop_servo_pd[0]);
-				servoPIDLoop.setkD(loop_servo_pd[1]);
-				servoPIDCurve.setkP(curve_servo_pd[0]);
-				servoPIDCurve.setkD(curve_servo_pd[1]);
-				servoPIDAlignCurve.setkP(align_servo_pd[0]);
-				servoPIDAlignCurve.setkD(align_servo_pd[1]);
-				cameraPID.setkP(camera_pd[0]);
-				cameraPID.setkD(camera_pd[1]);
-				left_motorPID.setkP(left_motor_pid[0]);
-				left_motorPID.setkI(left_motor_pid[1]);
-				left_motorPID.setkD(left_motor_pid[2]);
-				right_motorPID.setkP(right_motor_pid[0]);
-				right_motorPID.setkI(right_motor_pid[1]);
-				right_motorPID.setkD(right_motor_pid[2]);
+				if (!rubbishJoseph){
+					servoPIDLoop.setkP(loop_servo_pd[0]);
+					servoPIDLoop.setkD(loop_servo_pd[1]);
+					servoPIDCurve.setkP(curve_servo_pd[0]);
+					servoPIDCurve.setkD(curve_servo_pd[1]);
+					servoPIDAlignCurve.setkP(align_servo_pd[0]);
+					servoPIDAlignCurve.setkD(align_servo_pd[1]);
+					cameraPID.setkP(camera_pd[0]);
+					cameraPID.setkD(camera_pd[1]);
+					left_motorPID.setkP(left_motor_pid[0]);
+					left_motorPID.setkI(left_motor_pid[1]);
+					left_motorPID.setkD(left_motor_pid[2]);
+					right_motorPID.setkP(right_motor_pid[0]);
+					right_motorPID.setkI(right_motor_pid[1]);
+					right_motorPID.setkD(right_motor_pid[2]);
+				}
 
 				vector<Corner> master_corner;
 				master_corner = check_corner(camBuffer, 30, 60, true, master_edge);
@@ -435,20 +460,21 @@ int main() {
 						dot_time = 0;
 						if(accumulate_corner>6){
 							is_dot_line = true;
-							led0.SetEnable(false);
+//							led0.SetEnable(false);
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
-							if(!approaching && (lastTime - approachTime >= 10000 || approachTime == 0))
+							if(!approaching && (lastTime - approachTime >= 15000 || approachTime == 0))
+								approachTime = lastTime;
 								approaching = true;
-								if (!firstArrived){
+								if (!firstArrived && !secondArrived && !isFirst){
+									uart0.Send_bool(DualCar_UART::BOOLEAN::b1, true);
 									isFirst = true;
 									firstArrived = true;
-									uart0.Send_bool(DualCar_UART::BOOLEAN::b1, true);
 								}
 						}
 						else{
 							is_dot_line = false;
-							led0.SetEnable(true);
+//							led0.SetEnable(true);
 //							buzz.SetBeep(false);
 						}
 						accumulate_corner = 0;
@@ -686,22 +712,33 @@ int main() {
 							}
 						}
 					} else if (state == leave){
-						angle = 400;
-					} else if (state == stop){
 						if (isFirst){
-							angle = -400;
+							angle = 400;
 						} else {
-							angle = -100;
+							angle = 150;
 						}
+					} else if (state == align){
+						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
+					} else if (state == stop){
+						angle = -400;
 					} else if (state == side){
-						if (mag.SmallerThanMin(0, 1.5)){
-							angle = servoPIDAlignStraight.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
-							buzz.SetBeep(false);
-						} else{
-							angle = 2 * servoPIDAlignStraight.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
+//						if (!mag.SmallerThanMin(0, 2.0) && mag.SmallerThanE(1, 0.67)){
+						if (!mag.SmallerThanMin(0, 2.0) && mag.GetSum(0) > 60){
+							angle = 3 * servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
 							buzz.SetNote(100);
 							buzz.SetBeep(true);
+						} else{
+							angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
+							buzz.SetBeep(false);
 						}
+//						if (mag.SmallerThanMin(0, 2.0) || !mag.SmallerThanE(1, 0.6)){
+//							angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
+//							buzz.SetBeep(false);
+//						} else{
+//							angle = 3 * servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
+//							buzz.SetNote(100);
+//							buzz.SetBeep(true);
+//						}
 					}
 
 					angle += middleServo;
@@ -742,23 +779,28 @@ int main() {
 
 				if (menu.get_mode() == DualCar_Menu::Page::kStart){
 					if (menu.get_selected()) {
+						batteryVoltage = batteryMeter.GetVoltage();
 						voltR = right_motorPID.getPID();
 						voltL = left_motorPID.getPID();
 						powerR = voltR/batteryVoltage*1000;
 						powerL = voltL/batteryVoltage*1000;
+						if(right_motorPID.getcurrentVelocity()  < -200 || left_motorPID.getcurrentVelocity() < -200){
+							int a = 0;
+							a++;
+						}
 						if (powerR > 0) {
 							right_motor.SetClockwise(forwardR);
-							right_motor.SetPower(powerR);
+							right_motor.SetPower(min(powerR,1000));
 						} else {
 							right_motor.SetClockwise(!forwardR);
-							right_motor.SetPower(-powerR);
+							right_motor.SetPower(min(-powerR,1000));
 						}
 						if (powerL > 0) {
 							left_motor.SetClockwise(forwardL);
-							left_motor.SetPower(powerL);
+							left_motor.SetPower(min(powerL,1000));
 						} else {
 							left_motor.SetClockwise(!forwardL);
-							left_motor.SetPower(-powerL);
+							left_motor.SetPower(min(-powerL,1000));
 						}
 					} else {
 						left_motorPID.setDesiredVelocity(0);

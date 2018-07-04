@@ -44,6 +44,7 @@ public:
 	uint8_t GetMax(uint8_t id){return max[id];}
 	uint8_t GetEMin(uint8_t id){return emin[id];}
 	uint8_t GetEMax(uint8_t id){return emax[id];}
+	uint8_t GetSum(uint8_t id){return v[id*2]+v[id*2+1];}
 
 private:
 	Adc mag0;
