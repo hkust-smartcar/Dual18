@@ -691,7 +691,7 @@ int main() {
 						if (isFirst){
 							angle = -400;
 						} else {
-							angle = -150;
+							angle = -100;
 						}
 					} else if (state == side){
 						if (mag.SmallerThanMin(0, 1.5)){
