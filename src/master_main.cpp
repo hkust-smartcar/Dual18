@@ -86,6 +86,7 @@ inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
 
 //main
 int main() {
+
 	System::Init();
 
 	BoardID board;
@@ -144,11 +145,11 @@ int main() {
 
 	if (board.isCar1()) {
 		left_motor_pid[0] = 0.06;
-		left_motor_pid[1] = 0.005;
+		left_motor_pid[1] = 0.01;
 		left_motor_pid[2] = 0.01;
 
 		right_motor_pid[0] = 0.05;
-		right_motor_pid[1] = 0.005;
+		right_motor_pid[1] = 0.01;
 		right_motor_pid[2] = 0.01;
 
 		loop_servo_pd[0] = 14500;
@@ -172,8 +173,8 @@ int main() {
 		loop_slope = 0.75;
 		loopRsmall = 500;
 		loopRbig = 550;
-		loopLsmall = 450;
-		loopLbig = 500;
+		loopLsmall = 400;
+		loopLbig = 450;
 
 	} else {
 	    left_motor_pid[0] = 0.06;
@@ -219,7 +220,7 @@ int main() {
 	} carState;
 	carState state = normal;
 	uint32_t lastTime = 0, approachTime = 0;
-	bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false;
+	bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false;
 	bool cali = false;
 
 	float angle = middleServo;
@@ -228,7 +229,7 @@ int main() {
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 12;
-	float loopSpeed = 4 * cycle, highSpeed = 8 * cycle, alignSpeed = 5 * cycle;
+	float loopSpeed = 4 * cycle, highSpeed = 7 * cycle, alignSpeed = 4 * cycle;
 	float speed = highSpeed;
 	float encoderLval, encoderRval;
 	float voltL, voltR;
@@ -247,6 +248,7 @@ int main() {
 	uart0.add(DualCar_UART::BOOLEAN::b1, &firstArrived, false);
 	uart0.add(DualCar_UART::BOOLEAN::b2, &secondArrived, false);
 	uart0.add(DualCar_UART::BOOLEAN::b3, &isFirst, false);
+	uart0.add(DualCar_UART::BOOLEAN::b4, &USsent, false);
 
 
 	// motor & servo pid
@@ -274,7 +276,6 @@ int main() {
 
 	uart0.parseValues();
 
-	bool USsent = false;
 
 	DistanceModule UltrasonicSensor([&](float distanceInCm) {
 		if (distanceInCm < 30) {
@@ -283,7 +284,7 @@ int main() {
 				firstArrived = false;
 				secondArrived = false;
 				isFirst = false;
-				USsent = true;
+				uart0.Send_bool(DualCar_UART::BOOLEAN::b4, true);
 				approachTime = lastTime;
 			}
 		}
@@ -303,7 +304,7 @@ int main() {
 	uint8_t dot_time = 0;
 	bool is_dot_line = false;
 	bool start_count_corner = false;
-	bool rubbishJoseph = false;//two car
+	bool rubbishJoseph = true;//two car
 
 	//for loop ver2
 	float loop_control_const = 85;
@@ -343,7 +344,6 @@ int main() {
 
 	int32_t on9lastSent = 0;
 	int32_t on9lastMain = 0;
-	float x = 0;
 	vector<Corner> slave_corner;
 
 
@@ -390,11 +390,12 @@ int main() {
 				buzz.SetNote(1040);
 				buzz.SetBeep(true);
 
-				uart0.Send_bool(DualCar_UART::BOOLEAN::b0, false);
-				uart0.Send_bool(DualCar_UART::BOOLEAN::b1, false);
-				uart0.Send_bool(DualCar_UART::BOOLEAN::b2, false);
-				uart0.Send_bool(DualCar_UART::BOOLEAN::b3, false);
+				approaching = false;
+				isFirst = false;
+				firstArrived = false;
+				secondArrived = false;
 				USsent = false;
+				approachTime = lastTime;
 			}
 
 			uart0.RunEveryMS();
@@ -405,7 +406,6 @@ int main() {
 			mag.TakeSample();
 
 			if (lastTime - on9lastMain >= cycle) {
-				x += 0.02;
 				dot_time++;
 				on9lastMain = lastTime;
 				const Byte* camBuffer = camera.LockBuffer();
@@ -414,7 +414,7 @@ int main() {
 				if (cali) {
 					mag.Calibrate();
 				}
-				if (mag.noMagField() && !approaching && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
+				if (mag.noMagField() && state == normal && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
 					left_motorPID.setDesiredVelocity(0);
 					right_motorPID.setDesiredVelocity(0);
 					menu.select_pressed();
@@ -441,6 +441,13 @@ int main() {
 					approachTime = lastTime;
 				} else if (state == side && !approaching) {
 					state = normal;
+					if (isFirst || firstArrived || secondArrived){
+						isFirst = false;
+						firstArrived = false;
+						secondArrived = false;
+						lcd.SetRegion(Lcd::Rect(0,0,100,100));
+						lcd.FillColor(0xFF00);
+					}
 					speed = highSpeed;
 					lastServo = -100;
 				}
@@ -482,12 +489,11 @@ int main() {
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
 							if(!approaching && (lastTime - approachTime >= 15000 || approachTime == 0)){
-								approachTime = lastTime;
 								approaching = true;
-								if (!firstArrived && !secondArrived && !isFirst){
-									uart0.Send_bool(DualCar_UART::BOOLEAN::b1, true);
+								if (!firstArrived){
 									isFirst = true;
 									firstArrived = true;
+									uart0.Send_bool(DualCar_UART::BOOLEAN::b1, true);
 								}
 							}
 						}
@@ -521,7 +527,7 @@ int main() {
 				int slave_edge_size = m_master_bluetooth.get_edge_size();
 				master_slope = find_slope(master_edge);
 				slave_slope = m_master_bluetooth.get_m_slope();
-				if(mag.BigMag()&&(loop_phase[0] == false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)&&(loop_phase[4]==false)
+				if(mag.BigMag(board.isCar1())&&(loop_phase[0] == false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)&&(loop_phase[4]==false)
 						&&(loop_phase[5]==false)&&(loop_phase[6]==false)&&(in_loop==false)){
 					if(slave_edge_size<master_edge.size()){
 						buzz.SetNote(587);
@@ -557,7 +563,7 @@ int main() {
 				else if(loop_phase[1] == true){
 					if(right_loop){
 						if(slave_slope<-loop_slope){// can change
-							camera_control = true;
+//							camera_control = true;
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
 							loop_phase[1] = false;
@@ -566,7 +572,7 @@ int main() {
 					}
 					else{
 						if(master_slope>loop_slope){//can change
-							camera_control = true;
+//							camera_/trol = true;
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
 							loop_phase[1] = false;
@@ -577,6 +583,7 @@ int main() {
 				else if(loop_phase[2]==true){
 					if(right_loop){
 						if(s_edge_xmid>40){
+							camera_control = true;
 							float difference = (mid_xmid - s_edge_xmid)/80.0;
 							if(difference<0.2){
 								camera_angle = difference*loopRsmall;
@@ -596,6 +603,7 @@ int main() {
 					}
 					else{
 						if(m_edge_xmid<40){
+							camera_control = true;
 							float difference = (mid_xmid - m_edge_xmid)/80.0;
 							if(difference<0.2){
 								camera_angle = difference*loopLsmall;
@@ -872,31 +880,37 @@ int main() {
 					Items item18("l_en", encoderLval);
 					Items item19("lines", menu.get_line());
 					Items item20("selected", menu.get_selected());
+					Items item21("", dot_time);
+					Items item22("Ultra", UltrasonicSensor.getDistance());
 
-					Items item21("left", mag.GetMag(0));
-					Items item22("right", mag.GetMag(1));
-					Items item23("", dot_time);
-					Items item24("volt", batteryMeter.GetVoltage());
-					Items item25("state", (int)state);
-					Items item26("l", mag.GetLinear(0));
-					Items item27("Ultra", UltrasonicSensor.getDistance());
-					Items item28("ac_cor", accumulate_corner);
+
+					Items item23("left", mag.GetMag(0));
+					Items item24("right", mag.GetMag(1));
+					Items item25("m2", mag.GetMag(2));
+					Items item26("m3", mag.GetMag(3));
+					Items item27("m4", mag.GetMag(4));
+					Items item28("m5", mag.GetMag(5));
+					Items item29("l", mag.GetLinear(0));
+					Items item30("ac_cor", accumulate_corner);
 
 					// show if its connected
 					// 1: yes, 0: no
-					Items item29("BTconn", uart0.isConnected());
+					Items item31("BTconn", uart0.isConnected());
 
 					// show the run time of the client in ms
-					Items item30("BTtime", uart0.receivedElpasedTime);
+					Items item32("BTtime", uart0.receivedElpasedTime);
 
 					// show the receive buffer of this
-					Items item31("RxSize", uart0.RxBuffer.size());
+					Items item33("RxSize", uart0.RxBuffer.size());
 
 					// show the send buffer of this
-					Items item32("SeSize", uart0.SendImmediate.size());
+					Items item34("SeSize", uart0.SendImmediate.size());
 
-					Items item33("getst", uart0.getsth);
-					Items item34("sdsth", uart0.sendsth);
+					Items item35("getst", uart0.getsth);
+					Items item36("sdsth", uart0.sendsth);
+					Items item37("volt", batteryMeter.GetVoltage());
+					Items item38("state", (int)state);
+
 
 					mode0.add_items(&item0);
 					mode0.add_items(&item1);
@@ -921,22 +935,26 @@ int main() {
 					mode2.add_items(&item18);
 					mode2.add_items(&item19);
 					mode2.add_items(&item20);
+					mode2.add_items(&item21);
+					mode2.add_items(&item22);
 
-					mode3.add_items(&item21);
-					mode3.add_items(&item22);
 					mode3.add_items(&item23);
 					mode3.add_items(&item24);
 					mode3.add_items(&item25);
 					mode3.add_items(&item26);
 					mode3.add_items(&item27);
 					mode3.add_items(&item28);
+					mode3.add_items(&item29);
+					mode3.add_items(&item30);
 
-					mode4.add_items(&item29);
-					mode4.add_items(&item30);
 					mode4.add_items(&item31);
 					mode4.add_items(&item32);
 					mode4.add_items(&item33);
 					mode4.add_items(&item34);
+					mode4.add_items(&item35);
+					mode4.add_items(&item36);
+					mode4.add_items(&item37);
+					mode4.add_items(&item38);
 				}
 
 				menu.add_mode(&mode0);

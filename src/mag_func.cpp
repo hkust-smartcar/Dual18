@@ -91,3 +91,7 @@ float Mag::GetMulti(uint8_t pair_id){
 	}
 	multi[0] = 50.0/(emin[0]+emax[0])*2;
  }
+
+float Mag::GetAllign(){
+	return 1.0/(v[0*2]+40)-1.0/(v[0*2+1] + 10);
+}

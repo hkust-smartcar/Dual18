@@ -33,13 +33,14 @@ public:
 	bool noMagField();
 	bool SmallerThanE(uint8_t id, float t){return v[id] < emin[id/2]*t*multi[id/2];}
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id/2];}
-	bool BigMag(){return ((v[0]+v[1] > 145) && (v[0] > 65 || v[1] > 65));};
-	bool BigMagExit(){return ((v[0]+v[1] > 130) && (v[0] > 65 || v[1] > 65));};
+	bool BigMag(bool car1){return ((v[0]+v[1] > 160) || (v[0]+v[1] > 140) && (v[0] > 65 || v[1] > 65) && (car1 && v[5] < 15 || !car1 && v[5] < 20));};
+	bool BigMagExit(){return ((v[0]+v[1] > 110) && (v[0] > 67 || v[1] > 67));};
 	bool isBigStraight(){return (linear[0] > -0.005 && linear[0] < 0.005);};
 	int Difference(uint8_t id0, uint8_t id1){return v[id0]-v[id1];}
 	void SetMag(uint8_t id);
 	float GetLinear(uint8_t pair_id);
 	float GetMulti(uint8_t pair_id);
+	float GetAllign();
 	uint8_t GetMag(uint8_t id){return v[id];}
 	uint8_t GetMin(uint8_t id){return min[id];}
 	uint8_t GetMax(uint8_t id){return max[id];}
@@ -57,7 +58,7 @@ private:
 	uint16_t sum[6] = {0};
 	uint8_t filterCounter = 0;
 	uint8_t v[6] ={255};
-	float multi[3] = {1.0}, linear[3] = {0};
+	float multi[3] = {1.0,1.0,1.0}, linear[3] = {0};
 	uint8_t min[6] = {15}, max[6] = {0},
 			emin[3] = {255}, emax[3] = {0};
 };
