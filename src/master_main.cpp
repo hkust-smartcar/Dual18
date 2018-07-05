@@ -139,6 +139,9 @@ int main() {
 	bool forwardL = true, forwardR = true;
 	uint16_t middleServo = 1035, leftServo = 1305, rightServo = 750; // originally const
 
+	float loop_slope;
+	int loopLsmall, loopLbig, loopRsmall, loopRbig;
+
 	if (board.isCar1()) {
 		left_motor_pid[0] = 0.06;
 		left_motor_pid[1] = 0.005;
@@ -149,10 +152,10 @@ int main() {
 		right_motor_pid[2] = 0.01;
 
 		loop_servo_pd[0] = 14500;
-		loop_servo_pd[1] = 880000;
+		loop_servo_pd[1] = 400000;
 
 		curve_servo_pd[0] = 11200;
-		curve_servo_pd[1] = 780000;
+		curve_servo_pd[1] = 750000;
 
 		align_servo_pd[0] = -5;
 		align_servo_pd[1] = -17;
@@ -165,20 +168,27 @@ int main() {
 		rightServo = 760;
 
 		mag.SetMag(1);
+
+		loop_slope = 0.75;
+		loopRsmall = 500;
+		loopRbig = 550;
+		loopLsmall = 450;
+		loopLbig = 500;
+
 	} else {
-		left_motor_pid[0] = 0.06;
-		left_motor_pid[1] = 0.005;
-		left_motor_pid[2] = 0.01;
+	    left_motor_pid[0] = 0.06;
+	    left_motor_pid[1] = 0.015;
+	    left_motor_pid[2] = 0.01;
 
-		right_motor_pid[0] = 0.05;
-		right_motor_pid[1] = 0.005;
-		right_motor_pid[2] = 0.01;
+	    right_motor_pid[0] = 0.05;
+	    right_motor_pid[1] = 0.02;
+	    right_motor_pid[2] = 0.01;
 
-		loop_servo_pd[0] = 14500;
-		loop_servo_pd[1] = 880000;
+	    loop_servo_pd[0] = 14500;
+	    loop_servo_pd[1] = 350000;
 
-		curve_servo_pd[0] = 9300;
-		curve_servo_pd[1] = 780000;
+	    curve_servo_pd[0] = 11200;
+	    curve_servo_pd[1] = 800000;
 
 		align_servo_pd[0] = -5;
 		align_servo_pd[1] = -17;
@@ -187,11 +197,16 @@ int main() {
 		forwardR = true;
 
 		middleServo = 840;
-		leftServo = 1150;
+		leftServo = 1130;
 		rightServo = 560;
 
 		mag.SetMag(2);
 
+		loop_slope = 0.5;
+		loopRsmall = 550;
+		loopRbig = 600;
+		loopLsmall = 550;
+		loopLbig = 600;
 	}
 
 	typedef enum {
@@ -213,11 +228,12 @@ int main() {
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 12;
-	float loopSpeed = 4 * cycle, highSpeed = 6 * cycle, alignSpeed = 5 * cycle;
+	float loopSpeed = 4 * cycle, highSpeed = 8 * cycle, alignSpeed = 5 * cycle;
 	float speed = highSpeed;
 	float encoderLval, encoderRval;
 	float voltL, voltR;
 	int32_t powerL, powerR;
+
 
 	// below sync data to the computer side
 	DualCar_UART uart0(1); // << BT related
@@ -287,7 +303,7 @@ int main() {
 	uint8_t dot_time = 0;
 	bool is_dot_line = false;
 	bool start_count_corner = false;
-	bool rubbishJoseph = true;//two car
+	bool rubbishJoseph = false;//two car
 
 	//for loop ver2
 	float loop_control_const = 85;
@@ -361,8 +377,10 @@ int main() {
 //			 bt send motor speed
 			if (lastTime - on9lastSent > 50) {
 				on9lastSent = lastTime;
-				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getdTime());
+				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
 				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
+//				uart0.Send_float(DualCar_UART::FLOAT::f12, mag.GetMag(0));
+//				uart0.Send_float(DualCar_UART::FLOAT::f13, mag.GetMag(1));
 			}
 
 			if (USsent) {
@@ -463,7 +481,7 @@ int main() {
 //							led0.SetEnable(false);
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
-							if(!approaching && (lastTime - approachTime >= 15000 || approachTime == 0))
+							if(!approaching && (lastTime - approachTime >= 15000 || approachTime == 0)){
 								approachTime = lastTime;
 								approaching = true;
 								if (!firstArrived && !secondArrived && !isFirst){
@@ -471,6 +489,7 @@ int main() {
 									isFirst = true;
 									firstArrived = true;
 								}
+							}
 						}
 						else{
 							is_dot_line = false;
@@ -537,7 +556,7 @@ int main() {
 				}
 				else if(loop_phase[1] == true){
 					if(right_loop){
-						if(slave_slope<-0.7){
+						if(slave_slope<-loop_slope){// can change
 							camera_control = true;
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
@@ -546,7 +565,7 @@ int main() {
 						}
 					}
 					else{
-						if(master_slope>0.7){
+						if(master_slope>loop_slope){//can change
 							camera_control = true;
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
@@ -560,10 +579,12 @@ int main() {
 						if(s_edge_xmid>40){
 							float difference = (mid_xmid - s_edge_xmid)/80.0;
 							if(difference<0.2){
-								camera_angle = middleServo + difference*550;
+								camera_angle = difference*loopRsmall;
+//								camera_angle = 0.9*difference*loopRsmall + 0.1*lastServo;
 							}
 							else{
-								camera_angle = middleServo + difference*600;
+								camera_angle = difference*loopRbig;
+//								camera_angle = 0.9*difference*loopRbig + 0.1*lastServo;
 							}
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
@@ -577,10 +598,12 @@ int main() {
 						if(m_edge_xmid<40){
 							float difference = (mid_xmid - m_edge_xmid)/80.0;
 							if(difference<0.2){
-								camera_angle = middleServo + difference*450;//constant that differ for the angle it turns
+								camera_angle = difference*loopLsmall;
+//								camera_angle = 0.9*difference*loopLsmall + 0.1*lastServo;
 							}
 							else{
-								camera_angle = middleServo + difference*550;//constant that differ for the angle it turns
+								camera_angle = difference*loopLbig;
+//								camera_angle = 0.9*difference*loopLbig + 0.1*lastServo;
 							}
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
@@ -596,13 +619,16 @@ int main() {
 						if(s_edge_xmid>40){
 							float difference = (mid_xmid - s_edge_xmid)/80.0;
 							if(difference<0.2){
-								camera_angle = middleServo + difference*500;//constant that differ for the angle it turns
+								camera_angle = difference*loopRsmall;
+//								camera_angle = 0.9*difference*loopRsmall + 0.1*lastServo;
 							}
 							else{
-								camera_angle = middleServo + difference*600;//constant that differ for the angle it turns
+								camera_angle = difference*loopRbig;
+//								camera_angle = 0.9*difference*loopRbig + 0.1*lastServo;
 							}
 							buzz.SetNote(370);
 							buzz.SetBeep(true);
+							lastServo = camera_angle;
 						}
 						if(((master_edge.size()>3)&&(m_edge_xmid>60))||(master_corner.size()==1)){
 							loop_phase[3] = false;
@@ -613,13 +639,16 @@ int main() {
 						if(m_edge_xmid<40){
 							float difference = (mid_xmid - m_edge_xmid)/80.0;
 							if(difference<0.2){
-								camera_angle = middleServo + difference*450;
+								camera_angle = difference*loopLsmall;
+//								camera_angle = 0.9*difference*loopLsmall + 0.1*lastServo;
 							}
 							else{
-								camera_angle = middleServo + difference*550;
+								camera_angle = difference*loopLbig;
+//								camera_angle = 0.9*difference*loopLbig + 0.1*lastServo;
 							}
 							buzz.SetNote(370);
 							buzz.SetBeep(true);
+							lastServo = camera_angle;
 						}
 						if(((slave_edge_size>3)&&(s_edge_xmid<30))||(slave_corner.size()==1)){
 							loop_phase[3] = false;
@@ -634,7 +663,6 @@ int main() {
 						buzz.SetBeep(true);
 						loop_phase[4]=false;
 						loop_phase[5]=true;
-						lastServo = -400;
 					}
 					else{
 						camera_control = false;
@@ -642,12 +670,11 @@ int main() {
 						buzz.SetBeep(true);
 						loop_phase[4]=false;
 						loop_phase[5]=true;
-						lastServo = 400;
 					}
 				}
 				else if(loop_phase[5]==true){
 					if(right_loop){
-						if(mag.BigMag()){
+						if(mag.BigMagExit()){
 							buzz.SetNote(494);
 							buzz.SetBeep(true);
 							loop_phase[5] = false;
@@ -655,7 +682,7 @@ int main() {
 						}
 					}
 					else{
-						if(mag.BigMag()){
+						if(mag.BigMagExit()){
 							buzz.SetNote(494);
 							buzz.SetBeep(true);
 							loop_phase[5] = false;
@@ -665,7 +692,7 @@ int main() {
 				}
 				else if(loop_phase[6]==true){
 					if(right_loop){
-						if((!mag.BigMag())&&(mag.isBigStraight())){
+						if((!mag.BigMagExit())&&(mag.isBigStraight())){
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
 							loop_phase[6] = false;
@@ -673,7 +700,7 @@ int main() {
 						}
 					}
 					else{
-						if(!mag.BigMag()&&(mag.isBigStraight())){
+						if(!mag.BigMagExit()&&(mag.isBigStraight())){
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
 							loop_phase[6] = false;
@@ -693,12 +720,12 @@ int main() {
 							angle = lastServo;
 						} else {
 							angle = servoPIDLoop.getPID(0.0, mag.GetLinear(0));
+							lastServo = angle;
 						}
 					} else if (state == normal) {
 	//					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
 						if (mag.SmallerThanMin(0, 1.42) || mag.SmallerThanMin(1, 1.42)){
 							angle = lastServo;
-							lastServo = angle;
 							if(!approaching){
 	//							buzz.SetNote(800);
 	//							buzz.SetBeep(true);
@@ -747,7 +774,7 @@ int main() {
 					servo.SetDegree(angle);
 				}
 				else{
-					servo.SetDegree(camera_angle);
+					servo.SetDegree(min(max(camera_angle+middleServo,rightServo),leftServo));
 				}
 
 				if (angle > middleServo) {
