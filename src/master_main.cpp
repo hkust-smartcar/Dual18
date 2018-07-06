@@ -6,7 +6,7 @@
  */
 
 #define Master
-
+//combined
 #ifdef Master
 
 #include <cmath>
