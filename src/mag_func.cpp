@@ -48,7 +48,8 @@ void Mag::Calibrate(){
 bool Mag::noMagField(){
 	bool b = true;
 	for (int i = 0; i < 6; i++){
-		b = b && (v[i] < min[i]*1.75*multi[i]);
+		if (i != 2 && i != 3)
+			b = b && (v[i] < min[i]*1.75*multi[i]);
 	}
 	return b;
 }
@@ -68,8 +69,8 @@ float Mag::GetMulti(uint8_t id){
 
 		min[Mag::magPos::y_left] = 7;
 		min[Mag::magPos::y_right] = 6;
-		max[Mag::magPos::y_left] = 68;
-		max[Mag::magPos::y_right] = 59;
+		max[Mag::magPos::y_left] = 67;
+		max[Mag::magPos::y_right] = 57;
 	}else if (id == 2){
 		min[Mag::magPos::x_left] = 7;
 		min[Mag::magPos::x_right] = 7;
@@ -78,10 +79,10 @@ float Mag::GetMulti(uint8_t id){
 		emin = 40;
 		emax = 43;
 
-		min[Mag::magPos::y_left] = 10;
+		min[Mag::magPos::y_left] = 9;
 		min[Mag::magPos::y_right] = 8;
-		max[Mag::magPos::y_left] = 82;
-		max[Mag::magPos::y_right] = 85;
+		max[Mag::magPos::y_left] = 80;
+		max[Mag::magPos::y_right] = 87;
 	}
 	multi[Mag::magPos::x_left] = 50.0/(emin+emax)*2;
 	multi[Mag::magPos::x_right] = 50.0/(emin+emax)*2;
@@ -100,4 +101,9 @@ bool Mag::isLoop(){
 
 bool Mag::unlikelyCrossRoad(){
 	return (v[Mag::magPos::y_left] < 18 && v[Mag::magPos::y_right] < 18);
+}
+
+bool Mag::outLoop(){
+	return ((v[Mag::magPos::x_left] > max[Mag::magPos::x_left] * 0.9 && v[Mag::magPos::y_left] > max[Mag::magPos::y_left]) * 0.9 ||
+			(v[Mag::magPos::x_right] > max[Mag::magPos::x_right] * 0.9 && v[Mag::magPos::y_right] > max[Mag::magPos::y_right] * 0.9));
 }
