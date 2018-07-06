@@ -1034,7 +1034,6 @@ int main() {
 				midline.clear();
 				master_corner.clear();
 				cycleTime = System::Time() - lastTime;
-				buzz.SetBeep(0);
 			}
 		}
 	}
