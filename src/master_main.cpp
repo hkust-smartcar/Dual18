@@ -147,12 +147,12 @@ int main() {
 
 	if (board.isCar1()) {
 		left_motor_pid[0] = 0.06;
-		left_motor_pid[1] = 0.01;
-		left_motor_pid[2] = 0.01;
+		left_motor_pid[1] = 0.015;
+		left_motor_pid[2] = 0.02;
 
 		right_motor_pid[0] = 0.05;
-		right_motor_pid[1] = 0.01;
-		right_motor_pid[2] = 0.01;
+		right_motor_pid[1] = 0.02;
+		right_motor_pid[2] = 0.02;
 
 		loop_servo_pd[0] = 14500;
 		loop_servo_pd[1] = 400000;
@@ -493,7 +493,7 @@ int main() {
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
 				//alignment
-				if((master_corner.size()>0 && slave_corner.size()>0) && mag.unlikelyCrossRoad() && !start_count_corner){
+				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()!=0)&& (slave_corner.size()!=0) && mag.unlikelyCrossRoad() && !start_count_corner){
 					dot_time = 0;
 					start_count_corner = true;
 				}
@@ -502,7 +502,7 @@ int main() {
 					if(dot_time==10){
 						start_count_corner = false;
 						dot_time = 0;
-						if(accumulate_corner>6){
+						if(accumulate_corner>4){
 							is_dot_line = true;
 //							led0.SetEnable(false);sb
 							buzz.SetBeep(true);

@@ -47,7 +47,7 @@ void Mag::Calibrate(){
 
 bool Mag::noMagField(){
 	bool b = true;
-	for (int i = 0; i < 2; i++){
+	for (int i = 0; i < 6; i++){
 		b = b && (v[i] < min[i]*1.75*multi[i]);
 	}
 	return b;
@@ -95,7 +95,7 @@ float Mag::GetAllign(){
 
 bool Mag::isLoop(){
 	return ((v[Mag::magPos::x_left]+v[Mag::magPos::x_right] > (max[Mag::magPos::x_left]+max[Mag::magPos::x_right])*multi[Mag::magPos::x_left]) ||
-			(v[Mag::magPos::x_left] > 68 && v[Mag::magPos::x_right] > 68 && v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 50));
+			(v[Mag::magPos::x_left] > 68 && v[Mag::magPos::x_right] > 68 && v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 40));
 }
 
 bool Mag::unlikelyCrossRoad(){

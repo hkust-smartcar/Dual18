@@ -367,7 +367,7 @@ vector<pair<int,int>> Edge::check_edge(const Byte* camBuffer, int topline, int b
 		uint8_t start_point_j = bottom_line;
 		if(ret_cam_bit(1, bottom_line,camBuffer)==0){//white
 			for(int j = bottom_line; j>top_line; j--){
-				for(int i=1; i<79; i++){
+				for(int i=1; i<78; i++){
 					if((ret_cam_bit(i, j,camBuffer)!=(ret_cam_bit(i+1, j,camBuffer)))&&(ret_cam_bit(i, j,camBuffer)==0)){
 						start_point_i = i;
 						start_point_j = j;
