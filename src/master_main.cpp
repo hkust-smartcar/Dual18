@@ -129,6 +129,8 @@ int main() {
 	PID left_motorPID(0, 0, 0, &encoderL, false);
 	PID right_motorPID(0, 0, 0, &encoderR, true);
 
+	Edge left_edge(false);
+
 	//pid value
 
 	float left_motor_pid[3] = { 0.0, 0.0, 0.0 };
@@ -238,10 +240,6 @@ int main() {
 
 	// below sync data to the computer side
 	DualCar_UART uart0(1); // << BT related
-
-	//allignent
-//	uart0.add(DualCar_UART::FLOAT::f0, &align_servo_pd[0], false);
-//	uart0.add(DualCar_UART::FLOAT::f1, &align_servo_pd[1], false);
 
 	// joseph: chnaged the 3 below to false, better send implicitly
 	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, false);
@@ -406,6 +404,12 @@ int main() {
 			mag.TakeSample();
 
 			if (lastTime - on9lastMain >= cycle) {
+				lcd.SetRegion(Lcd::Rect(100,100,10,10));
+				if (mag.isLoop()){
+					lcd.FillColor(0xFF00);
+				}else {
+					lcd.FillColor(0x0000);
+				}
 				dot_time++;
 				on9lastMain = lastTime;
 				const Byte* camBuffer = camera.LockBuffer();
@@ -468,9 +472,9 @@ int main() {
 					right_motorPID.setkI(right_motor_pid[1]);
 					right_motorPID.setkD(right_motor_pid[2]);
 				}
-
+				master_edge = left_edge.check_edge(camBuffer, 30, 60);
 				vector<Corner> master_corner;
-				master_corner = check_corner(camBuffer, 30, 60, true, master_edge);
+				master_corner = check_corner(camBuffer, 30, 60, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
 				//alignment
@@ -485,8 +489,7 @@ int main() {
 						dot_time = 0;
 						if(accumulate_corner>6){
 							is_dot_line = true;
-//							led0.SetEnable(false);
-							buzz.SetNote(440);
+//							led0.SetEnable(false);sb
 							buzz.SetBeep(true);
 							if(!approaching && (lastTime - approachTime >= 15000 || approachTime == 0)){
 								approaching = true;
@@ -527,7 +530,7 @@ int main() {
 				int slave_edge_size = m_master_bluetooth.get_edge_size();
 				master_slope = find_slope(master_edge);
 				slave_slope = m_master_bluetooth.get_m_slope();
-				if(mag.BigMag(board.isCar1())&&(loop_phase[0] == false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)&&(loop_phase[4]==false)
+				if(mag.isLoop() &&(loop_phase[0] == false)&&(loop_phase[1]==false)&&(loop_phase[2]==false)&&(loop_phase[3]==false)&&(loop_phase[4]==false)
 						&&(loop_phase[5]==false)&&(loop_phase[6]==false)&&(in_loop==false)){
 					if(slave_edge_size<master_edge.size()){
 						buzz.SetNote(587);
@@ -748,7 +751,7 @@ int main() {
 						}
 					} else if (state == leave){
 						if (isFirst){
-							angle = 400;
+							angle = 150;
 						} else {
 							angle = 150;
 						}
@@ -766,14 +769,6 @@ int main() {
 							angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
 							buzz.SetBeep(false);
 						}
-//						if (mag.SmallerThanMin(0, 2.0) || !mag.SmallerThanE(1, 0.6)){
-//							angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
-//							buzz.SetBeep(false);
-//						} else{
-//							angle = 3 * servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
-//							buzz.SetNote(100);
-//							buzz.SetBeep(true);
-//						}
 					}
 
 					angle += middleServo;
@@ -819,10 +814,6 @@ int main() {
 						voltL = left_motorPID.getPID();
 						powerR = voltR/batteryVoltage*1000;
 						powerL = voltL/batteryVoltage*1000;
-						if(right_motorPID.getcurrentVelocity()  < -200 || left_motorPID.getcurrentVelocity() < -200){
-							int a = 0;
-							a++;
-						}
 						if (powerR > 0) {
 							right_motor.SetClockwise(forwardR);
 							right_motor.SetPower(min(powerR,1000));

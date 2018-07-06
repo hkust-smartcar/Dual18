@@ -93,6 +93,8 @@ int main() {
 	Led led2(myConfig::GetLedConfig(2));
 	Led led3(myConfig::GetLedConfig(3));
 
+	Edge right_edge(true);
+
 	led0.SetEnable(1);
 	led1.SetEnable(1);
 	led2.SetEnable(1);
@@ -169,8 +171,9 @@ int main() {
 
 				float slave_slope;
 				bool right_fail;
+				m_slave_vector = right_edge.check_edge(camBuffer, 30, 60);
 				vector<Corner> m_corner;
-				m_corner = check_corner(camBuffer, 30, 60, false, m_slave_vector);
+				m_corner = check_corner(camBuffer, 30, 60, m_slave_vector);
 				slave_slope = find_slope(m_slave_vector);
 				send_ms++;
 //				if(send_ms%2==0) {

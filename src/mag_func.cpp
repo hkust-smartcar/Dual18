@@ -19,7 +19,7 @@ void Mag::TakeSample(){
 
 void Mag::Update(){
 	for (int i = 0; i < 6; i++){
-		v[i] = multi[i/2] * sum[i] / filterCounter;
+		v[i] = multi[i] * sum[i] / filterCounter;
 		sum[i] = 0;
 	}
 	filterCounter = 0;
@@ -52,7 +52,7 @@ void Mag::Calibrate(){
 bool Mag::noMagField(){
 	bool b = true;
 	for (int i = 0; i < 2; i++){
-		b = b && (v[i] < min[i]*1.5*multi[i/2]);
+		b = b && (v[i] < min[i]*1.75*multi[i]);
 	}
 	return b;
 }
@@ -61,8 +61,8 @@ float Mag::GetLinear(uint8_t pair_id){
 	return linear[pair_id];
 }
 
-float Mag::GetMulti(uint8_t pair_id){
-	return multi[pair_id];
+float Mag::GetMulti(uint8_t id){
+	return multi[id];
 }
 
  void Mag::SetMag(uint8_t id){
@@ -78,6 +78,10 @@ float Mag::GetMulti(uint8_t pair_id){
 		min[1] = 9;
 		max[0] = 50;
 		max[1] = 51;
+		min[4] = 8;
+		min[5] = 10;
+		max[4] = 73;
+		max[5] = 58;
 		emin[0] = 32;
 		emax[0] = 34;
 	}
@@ -90,8 +94,15 @@ float Mag::GetMulti(uint8_t pair_id){
 		emax[0] = 26;
 	}
 	multi[0] = 50.0/(emin[0]+emax[0])*2;
+	multi[1] = 50.0/(emin[0]+emax[0])*2;
+	multi[4] = 80.0/max[4];
+	multi[5] = 80.0/max[5];
  }
 
 float Mag::GetAllign(){
 	return 1.0/(v[0*2]+40)-1.0/(v[0*2+1] + 10);
+}
+
+bool Mag::isLoop(){
+	return ((v[0]+v[1] > (max[0]+max[1])*multi[0]) || (v[0] > 60 && v[1] > 60 && v[4]+v[5] < 50));
 }

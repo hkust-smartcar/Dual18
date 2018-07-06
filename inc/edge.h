@@ -21,25 +21,39 @@ using namespace std;
 
 class Edge{
 public:
+	enum Direction{
+		Up, UpRight, Right, DownRight, Down, DownLeft, Left, UpLeft
+	};
 
-	vector<pair<int,int>> check_left_edge(const Byte* camBuffer);
+	Edge(bool clockwise):type(clockwise){
+		for(int j=0; j<30; j++){
+			for(int i=0; i<80; i++){
+				traveled[i][j]=0;
+			}
+		}
+	}
 
-	vector<pair<int,int>> check_right_edge(const Byte* camBuffer);
+	void traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, const Byte* camBuffer);
 
-	vector<pair<int,int>> check_edge(const Byte* camBuffer);
+	void traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, const Byte* camBuffer);
+
+
+	vector<pair<int,int>>check_edge(const Byte* camBuffer, int topline, int bottomline);
+
+	void reset_traveled(){
+		for(int j=0; j<30; j++){
+			for(int i=0; i<80; i++){
+				traveled[i][j]=0;
+			}
+		}
+	}
 
 private:
+	bool traveled[80][30];//30 rolls
+	bool type;
 	vector<pair<int,int>> m_edge;
 };
 
-
-bool check_if_fail(int topline, int bottomline, vector<pair<int,int>> intput_vector);
-
-vector<pair<int,int>>check_edge(const Byte* camBuffer);
-
-bool check_left_edge(int topline, int bottomline, const Byte* camBuffer, vector<pair<int,int>> &edge_coord);
-
-bool check_right_edge(int topline, int bottomline, const Byte* camBuffer, vector<pair<int,int>> &edge_coord);
 
 
 

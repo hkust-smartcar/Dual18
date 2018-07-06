@@ -29,168 +29,363 @@ bool check_if_fail(int topline, int bottomline, vector<pair<int,int>> intput_vec
 	return !fail;
 
 }
+void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, const Byte* camBuffer){
+	uint8_t wrong_way1 = 0;
+	uint8_t wrong_way2 = 0;
+	uint8_t wrong_way3 = 0;
+	uint8_t start_point = 0;
+	uint8_t end_point = 0;
 
-
-bool check_left_edge(int topline, int bottomline,const Byte* camBuffer, vector<pair<int,int>> &edge_coord){
-	int top_line = topline;//20
-	bool fail = true;
-	int bottom_line = bottomline;//60
-	bool stop = false;
-	int amount=0;
-	for(int i=bottom_line-2; i>top_line-10; i--){
-		for(int p=2; p<50; p++){
-			amount += ret_cam_bit(p,i,camBuffer);
-		}
+	if((ycoord>58)||(ycoord<=30)||(xcoord<2)||(xcoord>77)){
+		return;
 	}
-	if(amount>3){
-		for(int i=bottom_line-2; i>top_line; i--){
-			for(int p=79; p>2; p--){
-				if(ret_cam_bit(79,i,camBuffer)==0){
-					if((ret_cam_bit(p,i,camBuffer) != ret_cam_bit(p-1,i,camBuffer))&&(ret_cam_bit(p,i,camBuffer)==0)){
-						edge_coord.emplace_back(std::make_pair(p,i));
-						if(p>77){
-							stop = true;
-						}
-						break;
-					}
-				}
-				else
-					break;
-			}
-			if(stop==true){
-				break;
-			}
+
+
+	if((last_direction_from==Direction::Up)){//Up = 0
+		wrong_way1 = Direction::UpLeft;
+		wrong_way2 = Direction::Up;
+		wrong_way3 = Direction::UpRight;
+	}
+	else{
+		wrong_way1 = last_direction_from-1;
+		wrong_way2 = last_direction_from;
+		wrong_way3 = last_direction_from+1;
+		if(last_direction_from==Direction::UpLeft){
+			wrong_way3 = 0;
 		}
 	}
 
-	if(edge_coord.size()<3){
-			int num_black=0;
-			for(int i=60; i<80;i++){
-				for(int j=56; j<60; j++){
-					num_black += ret_cam_bit(i,j,camBuffer);
-				}
-			}
-			if(num_black<2){
-				return false;
-			}
-			else{
-				return true;
-			}
+	if(last_direction_from<=4){
+		start_point = last_direction_from+3;
+	}
+	else{
+		if(last_direction_from==5){
+			start_point = Direction::Up;
 		}
-
-
-	std::vector<float> temp;
-	temp = linear_regression(edge_coord);
-	float variation=0;
-	for(int i=0; i<edge_coord.size(); i++){
-		float desire_x = 1.0*(edge_coord[i].second-temp[0])/temp[1];
-		variation += (abs(edge_coord[i].first - (int)desire_x))^2;
-	}
-	variation = variation/edge_coord.size();
-
-	if((variation>7)){
-		return fail;
-	}
-
-//
-	return !fail;
-}
-
-bool check_right_edge(int topline, int bottomline, const Byte* camBuffer, vector<pair<int,int>> &edge_coord){
-	int top_line = topline;//20
-	bool fail = true;
-	int bottom_line = bottomline;//60
-	edge_coord.clear();
-	bool stop = false;
-	int amount = 0;
-	for(int i=bottom_line-2; i>top_line-10; i--){
-		for(int p=30; p<78; p++){
-			amount += ret_cam_bit(p,i,camBuffer);
+		else if(last_direction_from==6){
+			start_point = Direction::UpRight;
 		}
-	}
-	if(amount>3){
-		for(int i=bottom_line-2; i>top_line; i--){
-			for(int p=1; p<78; p++){
-				if(ret_cam_bit(0,i,camBuffer)==0){
-					if((ret_cam_bit(p,i,camBuffer) != ret_cam_bit(p-1,i,camBuffer))&&(ret_cam_bit(p,i,camBuffer)==1)){
-						edge_coord.push_back(make_pair(p,i));
-						if(p<2){
-							stop = true;
-						}
-						break;
-					}
-				}
-				else
-					break;
-			}
-			if(stop==true){
-				break;
-			}
+		else if(last_direction_from==7){
+			start_point = Direction::Right;
 		}
 	}
 
-	if(edge_coord.size()<3){
-		int num_black=0;
-		for(int i=0; i<3;i++){
-			for(int j=56; j<60; j++){
-				num_black += ret_cam_bit(i,j,camBuffer);
-			}
+	end_point = start_point -1;
+	if(start_point == Direction::Up){
+		end_point = Direction::UpLeft;
+	}
+	for(int i=start_point; ; i++){
+		if(i>7){
+			i-=8;
 		}
-		if(num_black<2){
-			return false;
+		if((i==wrong_way1)||(i==wrong_way2)||(i==wrong_way3)){
+			continue;
 		}
 		else{
-			return true;
-		}
-	}
-
-	std::vector<float> temp;
-	temp = linear_regression(edge_coord);
-	float variation=0;
-	for(int i=0; i<edge_coord.size(); i++){
-		float desire_x = 1.0*(edge_coord[i].second-temp[0])/temp[1];
-		variation += (abs(edge_coord[i].first - (int)desire_x))^2;
-	}
-	variation = variation/edge_coord.size();
-
-	if((variation>7)){
-		return fail;
-	}
-
-
-
-	return !fail;
-
-}
-
-vector<pair<int,int>> Edge::check_left_edge(const Byte* camBuffer){
-	vector<pair<int,int>> edge;
-	int black_sum =0;
-	for(int j=55; j<60; j++){
-		for(int i=0; i<80; i++){
-			black_sum = ret_cam_bit(i,j,camBuffer);
-		}
-	}
-
-	if(black_sum<5){ //on turn
-		int init_x = 0;
-		for(int j=58; j>40; j--){
-			if(ret_cam_bit(78,j,camBuffer)==0){
-				for(int i=78; i>0; i--){
-					if(ret_cam_bit(i,j,camBuffer) != ret_cam_bit(i-1,j,camBuffer)){
-						edge.push_back(make_pair(i,j));
-						break;
+			if(i==Direction::Right){
+				uint8_t tempx = xcoord+1;
+				uint8_t tempy = ycoord;
+				if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx, tempy+1, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+					if(!traveled[tempx][tempy-30]){
+						traveled[tempx][tempy-30] = true;
+						m_edge.push_back(make_pair(tempx,tempy));
+						traveling_right(tempx, tempy, Direction::Left, camBuffer);
 					}
 				}
 			}
-			else{
-				break;
+			else if(i==Direction::UpRight){
+				uint8_t tempx = xcoord+1;
+				uint8_t tempy = ycoord-1;
+				if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx, tempy+1, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+					if(!traveled[tempx][tempy-30]){
+						traveled[tempx][tempy-30] = true;
+						m_edge.push_back(make_pair(tempx,tempy));
+						traveling_right(tempx, tempy, Direction::DownLeft, camBuffer);
+					}
+				}
 			}
+			else if(i==Direction::Up){
+				uint8_t tempx = xcoord;
+				uint8_t tempy = ycoord-1;
+				if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx+1, tempy, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+					if(!traveled[tempx][tempy-30]){
+						traveled[tempx][tempy-30] = true;
+						m_edge.push_back(make_pair(tempx,tempy));
+						traveling_right(tempx, tempy, Direction::Down, camBuffer);
+					}
+				}
+			}
+			else if(i==Direction::UpLeft){
+				uint8_t tempx = xcoord-1;
+				uint8_t tempy = ycoord-1;
+				if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx+1, tempy, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+					if(!traveled[tempx][tempy-30]){
+						traveled[tempx][tempy-30] = true;
+						m_edge.push_back(make_pair(tempx,tempy));
+						traveling_right(tempx, tempy, Direction::DownRight, camBuffer);
+					}
+				}
+			}
+			else if(i==Direction::Left){
+				uint8_t tempx = xcoord-1;
+				uint8_t tempy = ycoord;
+				if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx, tempy-1, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+					if(!traveled[tempx][tempy-30]){
+						traveled[tempx][tempy-30] = true;
+						m_edge.push_back(make_pair(tempx,tempy));
+						traveling_right(tempx, tempy, Direction::Right, camBuffer);
+					}
+				}
+			}
+			else if(i==Direction::DownLeft){
+				uint8_t tempx = xcoord-1;
+				uint8_t tempy = ycoord+1;
+				if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx, tempy-1, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+					if(!traveled[tempx][tempy-30]){
+						traveled[tempx][tempy-30] = true;
+						m_edge.push_back(make_pair(tempx,tempy));
+						traveling_right(tempx, tempy, Direction::UpRight, camBuffer);
+					}
+				}
+			}
+			else if(i==Direction::Down){
+				uint8_t tempx = xcoord;
+				uint8_t tempy = ycoord+1;
+				if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx-1, tempy, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+					if(!traveled[tempx][tempy-30]){
+						traveled[tempx][tempy-30] = true;
+						m_edge.push_back(make_pair(tempx,tempy));
+						traveling_right(tempx, tempy, Direction::Up, camBuffer);
+					}
+				}
+			}
+			else if(i==Direction::DownRight){
+				uint8_t tempx = xcoord+1;
+				uint8_t tempy = ycoord+1;
+				if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx-1, tempy, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+					if(!traveled[tempx][tempy-30]){
+						traveled[tempx][tempy-30] = true;
+						m_edge.push_back(make_pair(tempx,tempy));
+						traveling_right(tempx, tempy, Direction::UpLeft, camBuffer);
+					}
+				}
+			}
+		}
+		if(i==end_point){
+			return;
+		}
+	}
+	return;
+}
+
+
+void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, const Byte* camBuffer){
+		uint8_t wrong_way1 = 0;
+		uint8_t wrong_way2 = 0;
+		uint8_t wrong_way3 = 0;
+		uint8_t start_point = 0;
+		uint8_t end_point = 0;
+
+		if((ycoord>58)||(ycoord<=30)||(xcoord<2)||(xcoord>77)){
+			return;
+		}
+
+
+		if((last_direction_from==Direction::Up)){//Up = 0
+			wrong_way1 = Direction::UpLeft;
+			wrong_way2 = Direction::Up;
+			wrong_way3 = Direction::UpRight;
+		}
+		else{
+			wrong_way1 = last_direction_from-1;
+			wrong_way2 = last_direction_from;
+			wrong_way3 = last_direction_from+1;
+			if(last_direction_from==Direction::UpLeft){
+				wrong_way3 = 0;
+			}
+		}
+
+		if(last_direction_from>=3){
+			start_point = last_direction_from-3;
+		}
+		else{
+			if(last_direction_from==2){
+				start_point = Direction::UpLeft;
+			}
+			else if(last_direction_from==1){
+				start_point = Direction::Left;
+			}
+			else if(last_direction_from==0){
+				start_point = Direction::DownLeft;
+			}
+		}
+
+		end_point = start_point +1;
+		if(start_point == Direction::UpLeft){
+			end_point = Direction::Up;
+		}
+		for(int i=start_point; ; i--){
+			if(i<0){
+				i+=8;
+			}
+			if((i==wrong_way1)||(i==wrong_way2)||(i==wrong_way3)){
+				continue;
+			}
+			else{
+				if(i==Direction::Right){
+					uint8_t tempx = xcoord+1;
+					uint8_t tempy = ycoord;
+					if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx, tempy-1, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+						if(!traveled[tempx][tempy-30]){
+							traveled[tempx][tempy-30] = true;
+							m_edge.push_back(make_pair(tempx,tempy));
+							traveling_left(tempx, tempy, Direction::Left, camBuffer);
+						}
+					}
+				}
+				else if(i==Direction::UpRight){
+					uint8_t tempx = xcoord+1;
+					uint8_t tempy = ycoord-1;
+					if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx-1, tempy, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+						if(!traveled[tempx][tempy-30]){
+							traveled[tempx][tempy-30] = true;
+							m_edge.push_back(make_pair(tempx,tempy));
+							traveling_left(tempx, tempy, Direction::DownLeft, camBuffer);
+						}
+					}
+				}
+				else if(i==Direction::Up){
+					uint8_t tempx = xcoord;
+					uint8_t tempy = ycoord-1;
+					if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx-1, tempy, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+						if(!traveled[tempx][tempy-30]){
+							traveled[tempx][tempy-30] = true;
+							m_edge.push_back(make_pair(tempx,tempy));
+							traveling_left(tempx, tempy, Direction::Down, camBuffer);
+						}
+					}
+				}
+				else if(i==Direction::UpLeft){
+					uint8_t tempx = xcoord-1;
+					uint8_t tempy = ycoord-1;
+					if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx, tempy+1, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+						if(!traveled[tempx][tempy-30]){
+							traveled[tempx][tempy-30] = true;
+							m_edge.push_back(make_pair(tempx,tempy));
+							traveling_left(tempx, tempy, Direction::DownRight, camBuffer);
+						}
+					}
+				}
+				else if(i==Direction::Left){
+					uint8_t tempx = xcoord-1;
+					uint8_t tempy = ycoord;
+					if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx, tempy+1, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+						if(!traveled[tempx][tempy-30]){
+							traveled[tempx][tempy-30] = true;
+							m_edge.push_back(make_pair(tempx,tempy));
+							traveling_left(tempx, tempy, Direction::Right, camBuffer);
+						}
+					}
+				}
+				else if(i==Direction::DownLeft){
+					uint8_t tempx = xcoord-1;
+					uint8_t tempy = ycoord+1;
+					if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx+1, tempy, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+						if(!traveled[tempx][tempy-30]){
+							traveled[tempx][tempy-30] = true;
+							m_edge.push_back(make_pair(tempx,tempy));
+							traveling_left(tempx, tempy, Direction::UpRight, camBuffer);
+						}
+					}
+				}
+				else if(i==Direction::Down){
+					uint8_t tempx = xcoord;
+					uint8_t tempy = ycoord+1;
+					if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx+1, tempy, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+						if(!traveled[tempx][tempy-30]){
+							traveled[tempx][tempy-30] = true;
+							m_edge.push_back(make_pair(tempx,tempy));
+							traveling_left(tempx, tempy, Direction::Up, camBuffer);
+						}
+					}
+				}
+				else if(i==Direction::DownRight){
+					uint8_t tempx = xcoord+1;
+					uint8_t tempy = ycoord+1;
+					if((ret_cam_bit(tempx, tempy, camBuffer)!=ret_cam_bit(tempx, tempy-1, camBuffer))&&(ret_cam_bit(tempx, tempy,camBuffer)==0)){
+						if(!traveled[tempx][tempy-30]){
+							traveled[tempx][tempy-30] = true;
+							m_edge.push_back(make_pair(tempx,tempy));
+							traveling_left(tempx, tempy, Direction::UpLeft, camBuffer);
+						}
+					}
+				}
+			}
+			if(i==end_point){
+				return;
+			}
+		}
+	return;
+}
+
+
+vector<pair<int,int>> Edge::check_edge(const Byte* camBuffer, int topline, int bottomline){
+	m_edge.clear();
+	reset_traveled();
+	uint8_t top_line = topline;
+	uint8_t bottom_line = bottomline;
+	if(bottomline>=59)
+		{bottom_line = 58;}
+	if(!type){
+		bool found = false;
+		uint8_t start_point_i = 78;
+		uint8_t start_point_j = bottom_line;
+		if(ret_cam_bit(78, bottom_line,camBuffer)==0){//white
+			for(int j = bottom_line; j>top_line; j--){
+				for(int i=78; i>1; i--){
+					if((ret_cam_bit(i, j,camBuffer)!=(ret_cam_bit(i-1, j,camBuffer)))&&(ret_cam_bit(i, j,camBuffer)==0)){
+						start_point_i = i;
+						start_point_j = j;
+						m_edge.clear();
+						m_edge.push_back(make_pair(start_point_i,start_point_j));
+						found = true;
+						break;
+					}
+				}
+				if(found)
+					break;
+			}
+			traveling_left(start_point_i, start_point_j, Direction::Down, camBuffer);
+		}
+		else{
+			return m_edge;
 		}
 	}
 	else{
-
+		bool found = false;
+		uint8_t start_point_i = 1;
+		uint8_t start_point_j = bottom_line;
+		if(ret_cam_bit(1, bottom_line,camBuffer)==0){//white
+			for(int j = bottom_line; j>top_line; j--){
+				for(int i=1; i<79; i++){
+					if((ret_cam_bit(i, j,camBuffer)!=(ret_cam_bit(i+1, j,camBuffer)))&&(ret_cam_bit(i, j,camBuffer)==0)){
+						start_point_i = i;
+						start_point_j = j;
+						m_edge.clear();
+						m_edge.push_back(make_pair(start_point_i,start_point_j));
+						found = true;
+						break;
+					}
+				}
+				if(found)
+					break;
+			}
+			traveling_right(start_point_i, start_point_j, Direction::Down, camBuffer);
+		}
+		else{
+			return m_edge;
+		}
 	}
 
-	return edge;
+	return m_edge;
 }

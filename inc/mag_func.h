@@ -31,9 +31,9 @@ public:
 	void Update();
 	void Calibrate();
 	bool noMagField();
-	bool SmallerThanE(uint8_t id, float t){return v[id] < emin[id/2]*t*multi[id/2];}
-	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id/2];}
-	bool BigMag(bool car1){return ((v[0]+v[1] > 160) || (v[0]+v[1] > 140) && (v[0] > 65 || v[1] > 65) && (car1 && v[5] < 15 || !car1 && v[5] < 20));};
+	bool isLoop();
+	bool SmallerThanE(uint8_t id, float t){return v[id] < emin[id/2]*t*multi[id];}
+	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id];}
 	bool BigMagExit(){return ((v[0]+v[1] > 110) && (v[0] > 67 || v[1] > 67));};
 	bool isBigStraight(){return (linear[0] > -0.005 && linear[0] < 0.005);};
 	int Difference(uint8_t id0, uint8_t id1){return v[id0]-v[id1];}
@@ -58,8 +58,8 @@ private:
 	uint16_t sum[6] = {0};
 	uint8_t filterCounter = 0;
 	uint8_t v[6] ={255};
-	float multi[3] = {1.0,1.0,1.0}, linear[3] = {0};
-	uint8_t min[6] = {15}, max[6] = {0},
+	float multi[6] = {1.0,1.0,1.0,1.0,1.0,1.0}, linear[3] = {0};
+	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0},
 			emin[3] = {255}, emax[3] = {0};
 };
 

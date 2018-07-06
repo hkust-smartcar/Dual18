@@ -17,6 +17,34 @@ inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
     return ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1);//return 1 if black
 }
 
+
+//uint8_t convolution(uint8_t xcoord, uint8_t ycoord, const Byte* camBuffer){
+//	uint8_t threshold = 0;
+//	uint8_t value = 0;
+//	int g1[3][3] = {{-1,0,1},
+//				{-2,0,2},
+//				{-1,0,1}};
+//	int g2[3][3] = {{-1,-2,-1},
+//				  {0,0,0},
+//				  {1,2,1}};
+//	int Q1 = 0;
+//	int Q2 = 0;
+//	for(int j=0; j<3; j++){
+//		for(int i=0; i<3; i++){
+//			Q1 += (ret_cam_bit(xcoord+(i-1), ycoord+(j-1), camBuffer))*(g1[i][j]);
+//			Q2 += ret_cam_bit(xcoord+(i-1), ycoord+(j-1), camBuffer)*(g2[i][j]);
+//
+//		}
+//	}
+//	if(Q1<0)
+//		Q1 = -Q1;
+//	if(Q2<0)
+//		Q2 = -Q2;
+//
+//	return (Q1+Q2);
+//}
+
+
 vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int bottomline, bool type){//for type true == master, false == slave
 	vector<pair<int,int>> m_edge;
 
@@ -85,17 +113,15 @@ vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int b
 	return m_edge;
 }
 
-vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, bool type, vector<pair<int,int>> &edge){
+vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, vector<pair<int,int>> edge){
 	vector<Corner> m_corner;
 
 	std::vector<float> percentage;
 	int top_line = topline;
 	int bottom_line = bottomline;//height==60
-	bool left_fail = false;
-	bool right_fail = false;
 
-	edge = check_corner_edge(camBuffer, topline, bottomline, type);
-
+//	bool left_fail = false;
+//	bool right_fail = false;
 //	if(type==true){
 //		left_fail = check_if_fail(topline, bottomline, edge);
 //		if(!left_fail){
@@ -132,7 +158,7 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 				}
 			}
 			percent = percent/49.0;
-			if ((percent<0.3)&&(percent>0.15)){
+			if (((percent<0.25)&&(percent>0.15))||((percent>0.75)&&(percent<0.85))){
 				Corner temp(edge[i].first,edge[i].second, percent);
 				m_corner.push_back(temp);
 			}
@@ -165,10 +191,6 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 				i++;
 			}
 		}
-//		if(m_corner.size()>0){
-//			int is_breakpoint;
-//			is_breakpoint =1;
-//		}
 	return m_corner;
 }
 
@@ -192,7 +214,35 @@ Corner find_min(vector<Corner> m_corner){
 	return min_percentage;
 }
 
+float slope(uint8_t originx, uint8_t originy, uint8_t x2, uint8_t y2){
+	float slope = 0;
+	int dx = 1;
+	int dy = 0;
 
+	dy = y2-originy;
+	dx = x2-originx;
+
+	if(dx==0){
+		return 100;
+	}
+
+	slope = (dy*(1.0)/dx);
+
+	return slope;
+}
+
+vector<Corner> check_cornerv2(const Byte* camBuffer, int topline, int bottomline, vector<pair<int,int>> edge){
+	vector<Corner> m_corner;
+	for(int i=1; i<edge.size()-1; i++){
+		float slope1 = 0;
+		float slope2 = 0;
+		slope1 = slope(edge[i].first, edge[i].second, edge[i-1].first, edge[i-1].second);
+		slope2 = slope(edge[i].first, edge[i].second, edge[i+1].first, edge[i+1].second);
+
+
+	}
+	return m_corner;
+}
 
 
 

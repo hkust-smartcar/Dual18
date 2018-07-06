@@ -19,6 +19,10 @@
 #include "edge.h"
 using namespace std;
 
+enum CornerDirection{
+	Up, UpRight, Right, DownRight, Down, DownLeft, Left, UpLeft
+};
+
 class Corner{
 public:
 	Corner():percentage(0), x(0),y(0){}
@@ -36,12 +40,13 @@ private:
 	int x;
 	int y;
 };
+//uint8_t convolution(uint8_t xcoord, uint8_t ycoord, const Byte* camBuffer);
 
 vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int bottomline);
 
 Corner find_min(vector<Corner>);
 
-vector<Corner>check_corner(const Byte* camBuffer, int topline, int bottomline, bool type, vector<pair<int,int>> &edge);
+vector<Corner>check_corner(const Byte* camBuffer, int topline, int bottomline, vector<pair<int,int>> edge);
 
 
 
