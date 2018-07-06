@@ -104,7 +104,7 @@ int main() {
 	led2.SetEnable(1);
 	led3.SetEnable(1);
 
-	Mag mag(board.isCar1());
+	Mag mag;
 
 	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig());
 	float batteryVoltage = batteryMeter.GetVoltage();
@@ -277,7 +277,7 @@ int main() {
 
 	DistanceModule UltrasonicSensor([&](float distanceInCm) {
 		if (distanceInCm < 30) {
-			if(approaching){
+			if(approaching && secondArrived){
 				approaching = false;
 				firstArrived = false;
 				secondArrived = false;
@@ -366,20 +366,20 @@ int main() {
 	right_motorPID.setkP(right_motor_pid[0]);
 	right_motorPID.setkI(right_motor_pid[1]);
 	right_motorPID.setkD(right_motor_pid[2]);
-
+	uint32_t dTime = 0;
 	while (1) {
 		if (System::Time() != lastTime) {
 
 			lastTime = System::Time();
 
 //			 bt send motor speed
-			if (lastTime - on9lastSent > 50) {
-				on9lastSent = lastTime;
-				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
-				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
-//				uart0.Send_float(DualCar_UART::FLOAT::f12, mag.GetMag(0));
-//				uart0.Send_float(DualCar_UART::FLOAT::f13, mag.GetMag(1));
-			}
+//			if (lastTime - on9lastSent > 50) {
+//				on9lastSent = lastTime;
+//				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
+//				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
+//				uart0.Send_float(DualCar_UART::FLOAT::f12, left_motorPID.getdTime());
+//				uart0.Send_float(DualCar_UART::FLOAT::f13, right_motorPID.getdTime());
+//			}
 
 			if (USsent) {
 				// moved away from ultrasonic sensor trig
@@ -404,6 +404,7 @@ int main() {
 			mag.TakeSample();
 
 			if (lastTime - on9lastMain >= cycle) {
+				dTime = left_motorPID.getdTime();
 				lcd.SetRegion(Lcd::Rect(100,100,10,10));
 				if (mag.isLoop()){
 					lcd.FillColor(0xFF00);
@@ -427,7 +428,7 @@ int main() {
 				//for alignment
 				if (state == normal && approaching) {
 					state = leave;
-				} else if (state == leave && mag.SmallerThanE(0, 0.5) && mag.SmallerThanE(1, 1.0)) {
+				} else if (state == leave && mag.SmallerThanE(Mag::magPos::x_left, 0.5) && mag.SmallerThanE(Mag::magPos::x_right, 1.0)) {
 					if (isFirst){
 						state = stop;
 						speed = 0;
@@ -440,7 +441,7 @@ int main() {
 					state = side;
 					speed = alignSpeed;
 					approachTime = lastTime;
-				} else if (state == align && mag.Difference(0, 1) < 10 && abs((int) angle - middleServo) < 50){
+				} else if (state == align && mag.GetDifference(Mag::magPos::x_left, Mag::magPos::x_right) < 10 && abs((int) angle - middleServo) < 50){
 					state = side;
 					approachTime = lastTime;
 				} else if (state == side && !approaching) {
@@ -449,8 +450,18 @@ int main() {
 						isFirst = false;
 						firstArrived = false;
 						secondArrived = false;
-						lcd.SetRegion(Lcd::Rect(0,0,100,100));
+						if (isFirst) {
+							lcd.SetRegion(Lcd::Rect(0,0,100,50));
+							lcd.FillColor(0xFF00);
+						}
+					if (firstArrived) {
+						lcd.SetRegion(Lcd::Rect(0,50,100,50));
 						lcd.FillColor(0xFF00);
+					}
+					if (secondArrived) {
+						lcd.SetRegion(Lcd::Rect(0,100,100,50));
+						lcd.FillColor(0xFF00);
+					}
 					}
 					speed = highSpeed;
 					lastServo = -100;
@@ -685,7 +696,7 @@ int main() {
 				}
 				else if(loop_phase[5]==true){
 					if(right_loop){
-						if(mag.BigMagExit()){
+						if(mag.isLoop()){
 							buzz.SetNote(494);
 							buzz.SetBeep(true);
 							loop_phase[5] = false;
@@ -693,7 +704,7 @@ int main() {
 						}
 					}
 					else{
-						if(mag.BigMagExit()){
+						if(mag.isLoop()){
 							buzz.SetNote(494);
 							buzz.SetBeep(true);
 							loop_phase[5] = false;
@@ -703,7 +714,7 @@ int main() {
 				}
 				else if(loop_phase[6]==true){
 					if(right_loop){
-						if((!mag.BigMagExit())&&(mag.isBigStraight())){
+						if((!mag.isLoop())&&(mag.isBigStraight())){
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
 							loop_phase[6] = false;
@@ -711,7 +722,7 @@ int main() {
 						}
 					}
 					else{
-						if(!mag.BigMagExit()&&(mag.isBigStraight())){
+						if(!mag.isLoop()&&(mag.isBigStraight())){
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
 							loop_phase[6] = false;
@@ -727,22 +738,22 @@ int main() {
 					if (cali) {
 						angle = 0;
 					} else if (loop_phase[4]) {
-						if (mag.SmallerThanMin(0, 1.42) || mag.SmallerThanMin(1, 1.42)){
+						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.42) || mag.SmallerThanMin(Mag::magPos::x_right, 1.42)){
 							angle = lastServo;
 						} else {
-							angle = servoPIDLoop.getPID(0.0, mag.GetLinear(0));
+							angle = servoPIDLoop.getPID(0.0, mag.GetLinear());
 							lastServo = angle;
 						}
 					} else if (state == normal) {
 	//					angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-						if (mag.SmallerThanMin(0, 1.42) || mag.SmallerThanMin(1, 1.42)){
+						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.42) || mag.SmallerThanMin(Mag::magPos::x_right, 1.42)){
 							angle = lastServo;
 							if(!approaching){
 	//							buzz.SetNote(800);
 	//							buzz.SetBeep(true);
 							}
 						} else {
-							angle = servoPIDCurve.getPID(0.0, mag.GetLinear(0));
+							angle = servoPIDCurve.getPID(0.0, mag.GetLinear());
 							lastServo = angle;
 							if(!approaching){
 	//							buzz.SetNote(520);
@@ -756,17 +767,17 @@ int main() {
 							angle = 150;
 						}
 					} else if (state == align){
-						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
+						angle = servoPIDAlignCurve.getPID(mag.GetEMin()*mag.GetMulti(0), mag.GetMag(Mag::magPos::x_right));
 					} else if (state == stop){
 						angle = -400;
 					} else if (state == side){
 //						if (!mag.SmallerThanMin(0, 2.0) && mag.SmallerThanE(1, 0.67)){
-						if (!mag.SmallerThanMin(0, 2.0) && mag.GetSum(0) > 60){
-							angle = 3 * servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(0));
+						if (!mag.SmallerThanMin(Mag::magPos::x_left, 2.0) && mag.GetSum() > 60){
+							angle = 3 * servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(Mag::magPos::x_left));
 							buzz.SetNote(100);
 							buzz.SetBeep(true);
 						} else{
-							angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(1));
+							angle = servoPIDAlignCurve.getPID(mag.GetEMin()*mag.GetMulti(0), mag.GetMag(Mag::magPos::x_right));
 							buzz.SetBeep(false);
 						}
 					}
@@ -875,13 +886,13 @@ int main() {
 					Items item22("Ultra", UltrasonicSensor.getDistance());
 
 
-					Items item23("left", mag.GetMag(0));
-					Items item24("right", mag.GetMag(1));
-					Items item25("m2", mag.GetMag(2));
-					Items item26("m3", mag.GetMag(3));
-					Items item27("m4", mag.GetMag(4));
-					Items item28("m5", mag.GetMag(5));
-					Items item29("l", mag.GetLinear(0));
+					Items item23("xL", mag.GetMag(Mag::magPos::x_left));
+					Items item24("xR", mag.GetMag(Mag::magPos::x_right));
+					Items item25("yL", mag.GetMag(Mag::magPos::y_left));
+					Items item26("yR", mag.GetMag(Mag::magPos::y_right));
+					Items item27("m2", mag.GetMag(2));
+					Items item28("m3", mag.GetMag(3));
+					Items item29("l", mag.GetLinear());
 					Items item30("ac_cor", accumulate_corner);
 
 					// show if its connected
@@ -1019,6 +1030,7 @@ int main() {
 				midline.clear();
 				master_corner.clear();
 				cycleTime = System::Time() - lastTime;
+				buzz.SetBeep(0);
 			}
 		}
 	}
