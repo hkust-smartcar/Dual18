@@ -408,6 +408,8 @@ int main() {
 				lcd.SetRegion(Lcd::Rect(100,100,10,10));
 				if (mag.isLoop()){
 					lcd.FillColor(0xFF00);
+				}else if (mag.unlikelyCrossRoad()){
+					lcd.FillColor(0x00FF);
 				}else {
 					lcd.FillColor(0x0000);
 				}
@@ -489,7 +491,7 @@ int main() {
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
 				//alignment
-				if(((master_corner.size()>0) && (slave_corner.size()>0))&&(start_count_corner==false)){
+				if((master_corner.size()>0 && slave_corner.size()>0) && mag.unlikelyCrossRoad() && !start_count_corner){
 					dot_time = 0;
 					start_count_corner = true;
 				}
