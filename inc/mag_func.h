@@ -13,13 +13,14 @@
 
 class Mag{
 public:
-	Mag(bool isCar1):
-		mag0(myConfig::GetAdcConfig(0, isCar1)),
-		mag1(myConfig::GetAdcConfig(1, isCar1)),
-		mag2(myConfig::GetAdcConfig(2, isCar1)),
-		mag3(myConfig::GetAdcConfig(3, isCar1)),
-		mag4(myConfig::GetAdcConfig(4, isCar1)),
-		mag5(myConfig::GetAdcConfig(5, isCar1)){
+	Mag():
+		mag0(myConfig::GetAdcConfig(0)),
+		mag1(myConfig::GetAdcConfig(1)),
+		mag2(myConfig::GetAdcConfig(2)),
+		mag3(myConfig::GetAdcConfig(3)),
+		mag4(myConfig::GetAdcConfig(4)),
+		mag5(myConfig::GetAdcConfig(5)){
+
 		mag0.StartConvert();
 		mag1.StartConvert();
 		mag2.StartConvert();
@@ -27,26 +28,32 @@ public:
 		mag4.StartConvert();
 		mag5.StartConvert();
 	};
+	typedef enum{
+		x_left = 4,
+		x_right = 5,
+		y_left = 0,
+		y_right = 1
+	} magPos;
 	void TakeSample();
 	void Update();
 	void Calibrate();
 	bool noMagField();
 	bool isLoop();
-	bool SmallerThanE(uint8_t id, float t){return v[id] < emin[id/2]*t*multi[id];}
+	bool unlikelyCrossRoad();
+	bool SmallerThanE(uint8_t id, float t){return v[id] < emin*t*multi[id];}
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id];}
-	bool BigMagExit(){return ((v[0]+v[1] > 110) && (v[0] > 67 || v[1] > 67));};
-	bool isBigStraight(){return (linear[0] > -0.005 && linear[0] < 0.005);};
-	int Difference(uint8_t id0, uint8_t id1){return v[id0]-v[id1];}
+	bool isBigStraight(){return (linear > -0.005 && linear < 0.005);};
 	void SetMag(uint8_t id);
-	float GetLinear(uint8_t pair_id);
-	float GetMulti(uint8_t pair_id);
+	float GetLinear(){return linear;};
+	float GetMulti(uint8_t id);
 	float GetAllign();
 	uint8_t GetMag(uint8_t id){return v[id];}
 	uint8_t GetMin(uint8_t id){return min[id];}
 	uint8_t GetMax(uint8_t id){return max[id];}
-	uint8_t GetEMin(uint8_t id){return emin[id];}
-	uint8_t GetEMax(uint8_t id){return emax[id];}
-	uint8_t GetSum(uint8_t id){return v[id*2]+v[id*2+1];}
+	uint8_t GetEMin(){return emin;}
+	uint8_t GetEMax(){return emax;}
+	uint8_t GetSum(){return v[magPos::x_left]+v[magPos::x_right];}
+	int16_t GetDifference(uint8_t id0, uint8_t id1){return v[id0]-v[id1];}
 
 private:
 	Adc mag0;
@@ -55,12 +62,13 @@ private:
 	Adc mag3;
 	Adc mag4;
 	Adc mag5;
-	uint16_t sum[6] = {0};
+	uint16_t sum[6] = {0,0,0,0,0,0};
 	uint8_t filterCounter = 0;
-	uint8_t v[6] ={255};
-	float multi[6] = {1.0,1.0,1.0,1.0,1.0,1.0}, linear[3] = {0};
-	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0},
-			emin[3] = {255}, emax[3] = {0};
+	uint8_t v[6] ={255,255,255,255,255,255};
+	float multi[6] = {1.0,1.0,1.0,1.0,1.0,1.0};
+	float linear = 0;
+	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0,0,0,0,0,0};
+	uint8_t emin = 255, emax = 0;
 };
 
 #endif /* INC_MAG_FUNC_H_ */
