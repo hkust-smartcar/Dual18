@@ -53,8 +53,8 @@ Mcg::Config Mcg::GetMcgConfig() {
 	config.external_oscillator_khz = 50000;
 	config.core_clock_khz = 150000;
 	return config;
-}
-}
+		}
+	}
 }
 
 using libsc::System;
