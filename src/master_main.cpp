@@ -405,13 +405,15 @@ int main() {
 
 			if (lastTime - on9lastMain >= cycle) {
 				dTime = left_motorPID.getdTime();
-				lcd.SetRegion(Lcd::Rect(100,100,10,10));
-				if (mag.isLoop()){
-					lcd.FillColor(0xFF00);
-				}else if (mag.unlikelyCrossRoad()){
-					lcd.FillColor(0x00FF);
-				}else {
-					lcd.FillColor(0x0000);
+				if (menu.get_mode() != DualCar_Menu::Page::kStart){
+					lcd.SetRegion(Lcd::Rect(100,100,10,10));
+					if (mag.isLoop()){
+						lcd.FillColor(0xFF00);
+					}else if (mag.unlikelyCrossRoad()){
+						lcd.FillColor(0x00FF);
+					}else {
+						lcd.FillColor(0x0000);
+					}
 				}
 				dot_time++;
 				on9lastMain = lastTime;
