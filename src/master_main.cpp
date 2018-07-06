@@ -148,13 +148,13 @@ int main() {
 	int loopLsmall, loopLbig, loopRsmall, loopRbig;
 
 	if (board.isCar1()) {
-		left_motor_pid[0] = 0.06;
-		left_motor_pid[1] = 0.015;
+		left_motor_pid[0] = 0.07;
+		left_motor_pid[1] = 0.0045;
 		left_motor_pid[2] = 0.02;
 
 		right_motor_pid[0] = 0.05;
-		right_motor_pid[1] = 0.02;
-		right_motor_pid[2] = 0.02;
+		right_motor_pid[1] = 0.005;
+		right_motor_pid[2] = 0.04;
 
 		loop_servo_pd[0] = 14500;
 		loop_servo_pd[1] = 400000;
@@ -181,13 +181,13 @@ int main() {
 		loopLbig = 450;
 
 	} else {
-	    left_motor_pid[0] = 0.06;
-	    left_motor_pid[1] = 0.015;
-	    left_motor_pid[2] = 0.01;
+	    left_motor_pid[0] = 0.03;
+	    left_motor_pid[1] = 0.0045;
+	    left_motor_pid[2] = 0.015;
 
-	    right_motor_pid[0] = 0.05;
-	    right_motor_pid[1] = 0.02;
-	    right_motor_pid[2] = 0.01;
+	    right_motor_pid[0] = 0.035;
+	    right_motor_pid[1] = 0.007;
+	    right_motor_pid[2] = 0.015;
 
 	    loop_servo_pd[0] = 14500;
 	    loop_servo_pd[1] = 350000;
@@ -232,7 +232,7 @@ int main() {
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 12;
-	float loopSpeed = 4 * cycle, highSpeed = 7 * cycle, alignSpeed = 4 * cycle;
+	float loopSpeed = 4 * cycle, highSpeed = 8 * cycle, alignSpeed = 4 * cycle;
 	float speed = highSpeed;
 	float encoderLval, encoderRval;
 	float voltL, voltR;
