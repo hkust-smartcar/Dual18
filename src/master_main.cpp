@@ -424,13 +424,15 @@ int main() {
 					menu.select_pressed();
 				}
 
-				if (batteryVoltage < 7.5 && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()){
+				if (batteryVoltage < 7.5){
 					buzz.SetBeep(lastTime % 100 < 50);
 					lcd.SetRegion(Lcd::Rect(0,0,100,100));
 					lcd.FillColor(0xF100);
-					left_motorPID.setDesiredVelocity(0);
-					right_motorPID.setDesiredVelocity(0);
-					menu.select_pressed();
+					if (menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()){
+						left_motorPID.setDesiredVelocity(0);
+						right_motorPID.setDesiredVelocity(0);
+						menu.select_pressed();
+					}
 				}
 
 				//for alignment
