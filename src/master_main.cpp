@@ -154,7 +154,7 @@ int main() {
 
 		right_motor_pid[0] = 0.05;
 		right_motor_pid[1] = 0.005;
-		right_motor_pid[2] = 0.04;
+		right_motor_pid[2] = 0.03;
 
 		loop_servo_pd[0] = 14500;
 		loop_servo_pd[1] = 400000;
@@ -219,12 +219,15 @@ int main() {
 		leave,
 		stop,
 		align,
-		side
+		side,
+		exitLoop,
+		lessTurn
 	} carState;
 	carState state = normal;
 	uint32_t lastTime = 0, approachTime = 0;
 	bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false;
 	bool cali = false;
+	bool cantDetect = false;
 
 	float angle = middleServo;
 	float camera_angle = middleServo;
@@ -232,7 +235,7 @@ int main() {
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 12;
-	float loopSpeed = 4 * cycle, highSpeed = 8 * cycle, alignSpeed = 4 * cycle;
+	float loopSpeed = 4 * cycle, highSpeed = 8.5 * cycle, alignSpeed = 4 * cycle;
 	float speed = highSpeed;
 	float encoderLval, encoderRval;
 	float voltL, voltR;
@@ -416,6 +419,15 @@ int main() {
 					mag.Calibrate();
 				}
 				if (mag.noMagField() && state == normal && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
+					left_motorPID.setDesiredVelocity(0);
+					right_motorPID.setDesiredVelocity(0);
+					menu.select_pressed();
+				}
+
+				if (batteryVoltage < 7.5 && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()){
+					buzz.SetBeep(lastTime % 100 < 50);
+					lcd.SetRegion(Lcd::Rect(0,0,100,100));
+					lcd.FillColor(0xF100);
 					left_motorPID.setDesiredVelocity(0);
 					right_motorPID.setDesiredVelocity(0);
 					menu.select_pressed();
@@ -665,19 +677,27 @@ int main() {
 						loop_phase = 5;
 					}
 					else if(loop_phase == 5){
-						if(mag.outLoop()){
+						if(mag.outLoop(right_loop)){
 							buzz.SetNote(494);
 							buzz.SetBeep(true);
 							loop_phase = 6;
+							state = exitLoop;
 						}
 					}
 					else if(loop_phase == 6){
-						if(!mag.isLoop() && mag.isBigStraight()){
+						if(mag.isMidLoop()){
 							buzz.SetNote(440);
 							buzz.SetBeep(true);
-							loop_phase = 0;
-							in_loop = false;
+							loop_phase = 7;
+							state = lessTurn;
+						}
+					}
+					else if(loop_phase == 7){
+						if(!mag.isLoop() && mag.isBigStraight()){
 							buzz.SetBeep(false);
+							loop_phase = 0;
+							state = normal;
+							in_loop = false;
 						}
 					}
 				}
@@ -686,13 +706,18 @@ int main() {
 				if(!camera_control){
 					if (cali) {
 						angle = 0;
-					} else if (state == normal) {
+					} else if (state == normal || state == exitLoop || state == lessTurn) {
 //						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.42) || mag.SmallerThanMin(Mag::magPos::x_right, 1.42)){
+						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.6) || mag.SmallerThanMin(Mag::magPos::x_right, 1.6)){
 							angle = lastServo;
 						} else {
 							angle = servoPIDCurve.getPID(0.0, mag.GetLinear());
 							lastServo = angle;
+						}
+						if (state == exitLoop){
+							angle *= 2;
+						} else if (state == lessTurn){
+							angle *= 0.7;
 						}
 					} else if (state == leave){
 						angle = 150;
@@ -711,7 +736,6 @@ int main() {
 							buzz.SetBeep(false);
 						}
 					}
-
 				} else{
 					angle = camera_angle;
 				}

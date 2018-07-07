@@ -103,7 +103,12 @@ bool Mag::unlikelyCrossRoad(){
 	return (v[Mag::magPos::y_left] < 18 && v[Mag::magPos::y_right] < 18);
 }
 
-bool Mag::outLoop(){
-	return ((v[Mag::magPos::x_left] > max[Mag::magPos::x_left] * 0.9 && v[Mag::magPos::y_left] > max[Mag::magPos::y_left]) * 0.9 ||
-			(v[Mag::magPos::x_right] > max[Mag::magPos::x_right] * 0.9 && v[Mag::magPos::y_right] > max[Mag::magPos::y_right] * 0.9));
+bool Mag::outLoop(bool rightLoop){
+	float multi = 0.8;
+	return ((!rightLoop && v[Mag::magPos::x_left] > max[Mag::magPos::x_left] * multi && v[Mag::magPos::y_left] > max[Mag::magPos::y_left] * multi )||
+			(rightLoop && v[Mag::magPos::x_right] > max[Mag::magPos::x_right] * multi && v[Mag::magPos::y_right] > max[Mag::magPos::y_right] * multi));
+}
+
+bool Mag::isMidLoop(){
+	return (abs(v[Mag::magPos::y_left]-v[Mag::magPos::y_right]) < 5 && v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 80);
 }
