@@ -424,15 +424,11 @@ int main() {
 					menu.select_pressed();
 				}
 
-				if (batteryVoltage < 7.5){
+				batteryVoltage = batteryMeter.GetVoltage();
+				if (batteryVoltage < 7.5 && !(menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected())){
 					buzz.SetBeep(lastTime % 100 < 50);
 					lcd.SetRegion(Lcd::Rect(0,0,100,100));
 					lcd.FillColor(0xF100);
-					if (menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()){
-						left_motorPID.setDesiredVelocity(0);
-						right_motorPID.setDesiredVelocity(0);
-						menu.select_pressed();
-					}
 				}
 
 				//for alignment
@@ -508,7 +504,7 @@ int main() {
 					if(dot_time==10){
 						start_count_corner = false;
 						dot_time = 0;
-						if(accumulate_corner>4){
+						if(accumulate_corner>5){//original 4
 							is_dot_line = true;
 							buzz.SetBeep(true);
 							if(!approaching && (lastTime - approachTime >= 15000 || approachTime == 0)){
@@ -766,7 +762,6 @@ int main() {
 
 				if (menu.get_mode() == DualCar_Menu::Page::kStart){
 					if (menu.get_selected()) {
-						batteryVoltage = batteryMeter.GetVoltage();
 						voltR = right_motorPID.getPID();
 						voltL = left_motorPID.getPID();
 						powerR = voltR/batteryVoltage*1000;
