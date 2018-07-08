@@ -29,10 +29,10 @@ public:
 		mag5.StartConvert();
 	};
 	typedef enum{
-		x_left = 4,
+		x_left = 1,
 		x_right = 5,
 		y_left = 0,
-		y_right = 1
+		y_right = 4
 	} magPos;
 	void TakeSample();
 	void Update();
