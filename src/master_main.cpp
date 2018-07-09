@@ -722,7 +722,7 @@ int main() {
 					} else if (state == stop){
 						angle = -400;
 					} else if (state == align){
-						angle = servoPIDAlignCurve.getPID(mag.GetEMin()*mag.GetMulti(0), mag.GetMag(Mag::magPos::x_right));
+						angle = servoPIDAlignCurve.getPID(mag.GetEMin(), mag.GetMag(Mag::magPos::x_right));
 					} else if (state == side){
 //						if (!mag.SmallerThanMin(0, 2.0) && mag.SmallerThanE(1, 0.67)){
 						if (!mag.SmallerThanMin(Mag::magPos::x_left, 2.0) && mag.GetSum() > 60){
@@ -730,7 +730,7 @@ int main() {
 							buzz.SetNote(100);
 							buzz.SetBeep(true);
 						} else{
-							angle = servoPIDAlignCurve.getPID(mag.GetEMin()*mag.GetMulti(0), mag.GetMag(Mag::magPos::x_right));
+							angle = servoPIDAlignCurve.getPID(mag.GetEMin(), mag.GetMag(Mag::magPos::x_right));
 							buzz.SetBeep(false);
 						}
 					}

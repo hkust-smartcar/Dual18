@@ -42,7 +42,7 @@ public:
 	bool unlikelyCrossRoad();
 	bool outLoop(bool);
 	bool isMidLoop();
-	bool SmallerThanE(uint8_t id, float t){return v[id] < emin*t*multi[id];}
+	bool SmallerThanE(uint8_t id, float t){return v[id] < emin*t;}
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id];}
 	bool isBigStraight(){return (linear > -0.005 && linear < 0.005);};
 	void SetMag(uint8_t id);

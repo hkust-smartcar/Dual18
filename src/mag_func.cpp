@@ -60,17 +60,29 @@ float Mag::GetMulti(uint8_t id){
 
  void Mag::SetMag(uint8_t id){
 	if (id == 1){
-		min[Mag::magPos::x_left] = 8;
-		min[Mag::magPos::x_right] = 8;
-		max[Mag::magPos::x_left] = 68;
-		max[Mag::magPos::x_right] = 73;
-		emin = 50;
-		emax = 52;
+//		emin = 250;
+//		emax = 5;
+//		min[Mag::magPos::x_left] = 80;
+//		min[Mag::magPos::x_right] = 80;
+//		max[Mag::magPos::x_left] = 6;
+//		max[Mag::magPos::x_right] = 7;
+//
+//		min[Mag::magPos::y_left] = 70;
+//		min[Mag::magPos::y_right] = 60;
+//		max[Mag::magPos::y_left] = 6;
+//		max[Mag::magPos::y_right] = 5;
+//
+		emin = 42;
+		emax = 45;
+		min[Mag::magPos::x_left] = 7;
+		min[Mag::magPos::x_right] = 7;
+		max[Mag::magPos::x_left] = 64;
+		max[Mag::magPos::x_right] = 63;
 
 		min[Mag::magPos::y_left] = 7;
-		min[Mag::magPos::y_right] = 6;
-		max[Mag::magPos::y_left] = 67;
-		max[Mag::magPos::y_right] = 57;
+		min[Mag::magPos::y_right] = 8;
+		max[Mag::magPos::y_left] = 66;
+		max[Mag::magPos::y_right] = 66;
 	}else if (id == 2){
 		min[Mag::magPos::x_left] = 7;
 		min[Mag::magPos::x_right] = 7;
@@ -84,10 +96,12 @@ float Mag::GetMulti(uint8_t id){
 		max[Mag::magPos::y_left] = 80;
 		max[Mag::magPos::y_right] = 87;
 	}
-	multi[Mag::magPos::x_left] = 50.0/(emin+emax)*2;
-	multi[Mag::magPos::x_right] = 50.0/(emin+emax)*2;
-	multi[Mag::magPos::y_left] = 80.0/max[Mag::magPos::y_left];
-	multi[Mag::magPos::y_right] = 80.0/max[Mag::magPos::y_right];
+//	multi[Mag::magPos::x_left] = 50.0/(emin+emax)*2;
+//	multi[Mag::magPos::x_right] = 50.0/(emin+emax)*2;
+	multi[Mag::magPos::x_left] = 65.0/max[Mag::magPos::x_left];
+	multi[Mag::magPos::x_right] = 65.0/max[Mag::magPos::x_right];
+	multi[Mag::magPos::y_left] = 65.0/max[Mag::magPos::y_left];
+	multi[Mag::magPos::y_right] = 65.0/max[Mag::magPos::y_right];
  }
 
 float Mag::GetAllign(){
