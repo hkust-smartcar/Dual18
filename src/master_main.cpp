@@ -87,7 +87,6 @@ inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
 //main
 int main() {
 
-
 	System::Init();
 
 	BoardID board;
@@ -175,11 +174,11 @@ int main() {
 
 		mag.SetMag(1);
 
-		loop_slope = 0.75;
+		loop_slope = 0.7;
 		loopRsmall = 500;
 		loopRbig = 550;
-		loopLsmall = 400;
-		loopLbig = 450;
+		loopLsmall = 450;
+		loopLbig = 400;
 
 	} else {
 	    left_motor_pid[0] = 0.03;
@@ -369,13 +368,13 @@ int main() {
 			lastTime = System::Time();
 
 //			 bt send motor speed
-			if (lastTime - on9lastSent > 50) {
-				on9lastSent = lastTime;
-				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
-				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
-				uart0.Send_float(DualCar_UART::FLOAT::f12, left_motorPID.getdTime());
-				uart0.Send_float(DualCar_UART::FLOAT::f13, right_motorPID.getdTime());
-			}
+//			if (lastTime - on9lastSent > 50) {
+//				on9lastSent = lastTime;
+//				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
+//				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
+//				uart0.Send_float(DualCar_UART::FLOAT::f12, left_motorPID.getdTime());
+//				uart0.Send_float(DualCar_UART::FLOAT::f13, right_motorPID.getdTime());
+//			}
 
 			if (USsent) {
 				// moved away from ultrasonic sensor trig
@@ -426,11 +425,11 @@ int main() {
 				}
 
 				batteryVoltage = batteryMeter.GetVoltage();
-				if (batteryVoltage < 7.5 && !(menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected())){
-					buzz.SetBeep(lastTime % 100 < 50);
-					lcd.SetRegion(Lcd::Rect(0,0,100,100));
-					lcd.FillColor(0xF100);
-				}
+//				if (batteryVoltage < 7.5 && !(menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected())){
+//					buzz.SetBeep(lastTime % 100 < 50);
+//					lcd.SetRegion(Lcd::Rect(0,0,100,100));
+//					lcd.FillColor(0xF100);
+//				}
 
 				//for alignment
 				if (state == normal && approaching) {
@@ -707,7 +706,7 @@ int main() {
 						angle = 0;
 					} else if (state == normal || state == exitLoop || state == lessTurn) {
 //						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-						if (mag.SmallerThanMin(Mag::magPos::x_left, 2.0) || mag.SmallerThanMin(Mag::magPos::x_right, 2.0)){
+						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.6) || mag.SmallerThanMin(Mag::magPos::x_right, 1.6)){
 							angle = lastServo;
 						} else {
 							angle = servoPIDCurve.getPID(0.0, mag.GetLinear());
@@ -716,7 +715,7 @@ int main() {
 						if (state == exitLoop){
 							angle *= 2;
 						} else if (state == lessTurn){
-							angle *= 0.5;
+							angle *= 0.7;
 						}
 					} else if (state == leave){
 						angle = 150;

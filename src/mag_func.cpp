@@ -60,18 +60,6 @@ float Mag::GetMulti(uint8_t id){
 
  void Mag::SetMag(uint8_t id){
 	if (id == 1){
-//		emin = 250;
-//		emax = 5;
-//		min[Mag::magPos::x_left] = 80;
-//		min[Mag::magPos::x_right] = 80;
-//		max[Mag::magPos::x_left] = 6;
-//		max[Mag::magPos::x_right] = 7;
-//
-//		min[Mag::magPos::y_left] = 70;
-//		min[Mag::magPos::y_right] = 60;
-//		max[Mag::magPos::y_left] = 6;
-//		max[Mag::magPos::y_right] = 5;
-//
 		emin = 42;
 		emax = 45;
 		min[Mag::magPos::x_left] = 7;
@@ -84,17 +72,17 @@ float Mag::GetMulti(uint8_t id){
 		max[Mag::magPos::y_left] = 66;
 		max[Mag::magPos::y_right] = 66;
 	}else if (id == 2){
+		emin = 45;
+		emax = 49;
 		min[Mag::magPos::x_left] = 7;
 		min[Mag::magPos::x_right] = 7;
-		max[Mag::magPos::x_left] = 68;
+		max[Mag::magPos::x_left] = 55;
 		max[Mag::magPos::x_right] = 64;
-		emin = 40;
-		emax = 43;
 
-		min[Mag::magPos::y_left] = 9;
-		min[Mag::magPos::y_right] = 8;
-		max[Mag::magPos::y_left] = 80;
-		max[Mag::magPos::y_right] = 87;
+		min[Mag::magPos::y_left] = 8;
+		min[Mag::magPos::y_right] = 9;
+		max[Mag::magPos::y_left] = 63;
+		max[Mag::magPos::y_right] = 71;
 	}
 	multi[Mag::magPos::x_left] = 70.0/max[Mag::magPos::x_left];
 	multi[Mag::magPos::x_right] = 70.0/max[Mag::magPos::x_right];
@@ -116,11 +104,11 @@ bool Mag::unlikelyCrossRoad(){
 }
 
 bool Mag::outLoop(bool rightLoop){
-	float multi = 0.8;
+	float multi = 0.7;
 	return ((!rightLoop && v[Mag::magPos::x_left] > max[Mag::magPos::x_left] * multi && v[Mag::magPos::y_left] > max[Mag::magPos::y_left] * multi )||
 			(rightLoop && v[Mag::magPos::x_right] > max[Mag::magPos::x_right] * multi && v[Mag::magPos::y_right] > max[Mag::magPos::y_right] * multi));
 }
 
 bool Mag::isMidLoop(){
-	return (abs(v[Mag::magPos::y_left]-v[Mag::magPos::y_right]) < 7 && v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 80);
+	return (abs(v[Mag::magPos::y_left]-v[Mag::magPos::y_right]) < 10 && v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 80);
 }

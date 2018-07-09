@@ -124,12 +124,12 @@ private:
 class DualCar_Menu{
 public:
 	typedef enum{
+		kStart,
 		kImage,
 		kServoPD,
 		kMotorPID,
 		kMag,
-		kBT,
-		kStart
+		kBT
 	} Page;
 
 	DualCar_Menu(){};
