@@ -96,12 +96,12 @@ float Mag::GetMulti(uint8_t id){
 		max[Mag::magPos::y_left] = 80;
 		max[Mag::magPos::y_right] = 87;
 	}
-//	multi[Mag::magPos::x_left] = 50.0/(emin+emax)*2;
-//	multi[Mag::magPos::x_right] = 50.0/(emin+emax)*2;
-	multi[Mag::magPos::x_left] = 65.0/max[Mag::magPos::x_left];
-	multi[Mag::magPos::x_right] = 65.0/max[Mag::magPos::x_right];
-	multi[Mag::magPos::y_left] = 65.0/max[Mag::magPos::y_left];
-	multi[Mag::magPos::y_right] = 65.0/max[Mag::magPos::y_right];
+	multi[Mag::magPos::x_left] = 70.0/max[Mag::magPos::x_left];
+	multi[Mag::magPos::x_right] = 70.0/max[Mag::magPos::x_right];
+//	multi[Mag::magPos::x_left] *= 50.0/(emin+emax)*2;
+//	multi[Mag::magPos::x_right] *= 50.0/(emin+emax)*2;
+	multi[Mag::magPos::y_left] = 80.0/max[Mag::magPos::y_left];
+	multi[Mag::magPos::y_right] = 80.0/max[Mag::magPos::y_right];
  }
 
 float Mag::GetAllign(){
