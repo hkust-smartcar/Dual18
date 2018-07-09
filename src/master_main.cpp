@@ -160,7 +160,8 @@ int main() {
 		loop_servo_pd[1] = 400000;
 
 		curve_servo_pd[0] = 11200;
-		curve_servo_pd[1] = 750000;
+		curve_servo_pd[1] = 562500;
+//		curve_servo_pd[1] = 750000;
 
 		align_servo_pd[0] = -5;
 		align_servo_pd[1] = -17;
@@ -235,7 +236,7 @@ int main() {
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 12;
-	float loopSpeed = 4 * cycle, highSpeed = 8.5 * cycle, alignSpeed = 4 * cycle;
+	float loopSpeed = 4 * cycle, highSpeed = 8 * cycle, alignSpeed = 4 * cycle;
 	float speed = highSpeed;
 	float encoderLval, encoderRval;
 	float voltL, voltR;
@@ -706,7 +707,7 @@ int main() {
 						angle = 0;
 					} else if (state == normal || state == exitLoop || state == lessTurn) {
 //						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.6) || mag.SmallerThanMin(Mag::magPos::x_right, 1.6)){
+						if (mag.SmallerThanMin(Mag::magPos::x_left, 2.0) || mag.SmallerThanMin(Mag::magPos::x_right, 2.0)){
 							angle = lastServo;
 						} else {
 							angle = servoPIDCurve.getPID(0.0, mag.GetLinear());
@@ -715,7 +716,7 @@ int main() {
 						if (state == exitLoop){
 							angle *= 2;
 						} else if (state == lessTurn){
-							angle *= 0.7;
+							angle *= 0.5;
 						}
 					} else if (state == leave){
 						angle = 150;

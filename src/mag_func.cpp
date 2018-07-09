@@ -98,8 +98,6 @@ float Mag::GetMulti(uint8_t id){
 	}
 	multi[Mag::magPos::x_left] = 70.0/max[Mag::magPos::x_left];
 	multi[Mag::magPos::x_right] = 70.0/max[Mag::magPos::x_right];
-//	multi[Mag::magPos::x_left] *= 50.0/(emin+emax)*2;
-//	multi[Mag::magPos::x_right] *= 50.0/(emin+emax)*2;
 	multi[Mag::magPos::y_left] = 80.0/max[Mag::magPos::y_left];
 	multi[Mag::magPos::y_right] = 80.0/max[Mag::magPos::y_right];
  }
@@ -124,5 +122,5 @@ bool Mag::outLoop(bool rightLoop){
 }
 
 bool Mag::isMidLoop(){
-	return (abs(v[Mag::magPos::y_left]-v[Mag::magPos::y_right]) < 5 && v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 80);
+	return (abs(v[Mag::magPos::y_left]-v[Mag::magPos::y_right]) < 7 && v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 80);
 }
