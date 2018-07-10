@@ -99,8 +99,9 @@ static const uint8_t cycle = 12;
 static float loopSpeed = 7 * cycle, highSpeed = 9 * cycle, alignSpeed = 4 * cycle;
 static float speed = highSpeed;
 
-uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
+uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loop, bool &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
 	static bool left;
+	left_loop = left;
 	switch(state){
 	case 0:
 		if(is_loop){
@@ -445,6 +446,7 @@ int main() {
 	//for loop ver2
 	float loop_control_const = 85;
 	bool right_loop = false;
+	bool left_loop = false;
 	bool in_loop = false;
 	uint8_t loop_phase = 0;
 	bool camera_control = false;//true for camera, false for mag
@@ -690,7 +692,7 @@ int main() {
 					in_loop = true;
 				}
 
-				current_loop_state = loop_control(current_loop_state, in_loop, &mag, camera_control, camera_angle, master_edge.size(), slave_edge_size, m_edge_xmid, s_edge_xmid, master_corner.size(), slave_corner.size(),master_slope, slave_slope);
+				current_loop_state = loop_control(current_loop_state, in_loop, &mag, left_loop, camera_control, camera_angle, master_edge.size(), slave_edge_size, m_edge_xmid, s_edge_xmid, master_corner.size(), slave_corner.size(),master_slope, slave_slope);
 
 				if(!camera_control){
 					if (cali) {
@@ -820,7 +822,7 @@ int main() {
 					Items item6("cam_con", camera_control);
 					Items item7("r_loop", right_loop);
 					Items item8("p", current_loop_state);
-					Items item14("M_es",master_edge.size());
+					Items item14("kind_l", left_loop);
 					Items item15("S_es", slave_edge_size);
 
 					Items item16("speed", speed);
