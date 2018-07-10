@@ -44,9 +44,10 @@ public:
 	bool isMidLoop();
 	bool SmallerThanE(uint8_t id, float t){return v[id] < emin*t;}
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id];}
-	bool isBigStraight(){return (linear > -0.005 && linear < 0.005);};
+	bool isBigStraight(){return (xLinear > -0.005 && xLinear < 0.005);};
 	void SetMag(uint8_t id);
-	float GetLinear(){return linear;};
+	float GetXLinear(){return xLinear;};
+	float GetYLinear(){return yLinear;};
 	float GetMulti(uint8_t id);
 	float GetAllign();
 	uint8_t GetMag(uint8_t id){return v[id];}
@@ -68,7 +69,7 @@ private:
 	uint8_t filterCounter = 0;
 	uint8_t v[6] ={255,255,255,255,255,255};
 	float multi[6] = {1.0,1.0,1.0,1.0,1.0,1.0};
-	float linear = 0;
+	float xLinear = 0, yLinear;
 	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0,0,0,0,0,0};
 	uint8_t emin = 255, emax = 0;
 };
