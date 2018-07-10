@@ -40,7 +40,7 @@ public:
 	bool noMagField();
 	bool isLoop();
 	bool unlikelyCrossRoad();
-	bool outLoop(bool);
+	bool outLoop();
 	bool isMidLoop();
 	bool SmallerThanE(uint8_t id, float t){return v[id] < emin*t;}
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id];}

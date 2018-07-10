@@ -87,7 +87,7 @@ inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
 //main
 int main() {
 
-	System::Init();
+ 	System::Init();
 
 	BoardID board;
 
@@ -148,19 +148,19 @@ int main() {
 
 	if (board.isCar1()) {
 		left_motor_pid[0] = 0.07;
-		left_motor_pid[1] = 0.0045;
-		left_motor_pid[2] = 0.02;
+		left_motor_pid[1] = 0.0055;
+		left_motor_pid[2] = 0.01;
 
 		right_motor_pid[0] = 0.05;
-		right_motor_pid[1] = 0.005;
-		right_motor_pid[2] = 0.03;
+		right_motor_pid[1] = 0.006;
+		right_motor_pid[2] = 0.015;
 
 		loop_servo_pd[0] = 14500;
 		loop_servo_pd[1] = 400000;
 
-		curve_servo_pd[0] = 11200;
-		curve_servo_pd[1] = 562500;
-//		curve_servo_pd[1] = 750000;
+		curve_servo_pd[0] = 7000;
+//		curve_servo_pd[1] = 562500;
+		curve_servo_pd[1] = 750000;
 
 		align_servo_pd[0] = -5;
 		align_servo_pd[1] = -17;
@@ -169,31 +169,31 @@ int main() {
 		forwardR = true;
 
 		middleServo = 1045;
-		leftServo = 1305;
-		rightServo = 760;
+		leftServo = 1330;
+		rightServo = 695;
 
 		mag.SetMag(1);
 
-		loop_slope = 0.7;
-		loopRsmall = 500;
-		loopRbig = 550;
-		loopLsmall = 450;
+		loop_slope = 0.6;
+		loopRsmall = 600;
+		loopRbig = 650;
+		loopLsmall = 350;
 		loopLbig = 400;
 
 	} else {
 	    left_motor_pid[0] = 0.03;
-	    left_motor_pid[1] = 0.0045;
-	    left_motor_pid[2] = 0.015;
+	    left_motor_pid[1] = 0.0055;
+	    left_motor_pid[2] = 0.007;
 
 	    right_motor_pid[0] = 0.035;
-	    right_motor_pid[1] = 0.007;
-	    right_motor_pid[2] = 0.015;
+	    right_motor_pid[1] = 0.008;
+	    right_motor_pid[2] = 0.007;
 
 	    loop_servo_pd[0] = 14500;
 	    loop_servo_pd[1] = 350000;
 
 	    curve_servo_pd[0] = 11200;
-	    curve_servo_pd[1] = 800000;
+	    curve_servo_pd[1] = 840000;
 
 		align_servo_pd[0] = -5;
 		align_servo_pd[1] = -17;
@@ -207,10 +207,10 @@ int main() {
 
 		mag.SetMag(2);
 
-		loop_slope = 0.5;
-		loopRsmall = 550;
+		loop_slope = 0.6;
+		loopRsmall = 450;
 		loopRbig = 600;
-		loopLsmall = 550;
+		loopLsmall = 450;
 		loopLbig = 600;
 	}
 
@@ -220,6 +220,7 @@ int main() {
 		stop,
 		align,
 		side,
+		loop,
 		exitLoop,
 		lessTurn
 	} carState;
@@ -235,11 +236,13 @@ int main() {
 
 	uint8_t cycleTime = 0;
 	const uint8_t cycle = 12;
-	float loopSpeed = 4 * cycle, highSpeed = 8 * cycle, alignSpeed = 4 * cycle;
+	float loopSpeed = 7 * cycle, highSpeed = 9 * cycle, alignSpeed = 4 * cycle;
 	float speed = highSpeed;
 	float encoderLval, encoderRval;
 	float voltL, voltR;
 	int32_t powerL, powerR;
+	float batterySum = 0, angleSum = 0;
+	uint16_t batteryCount = 0, angleCount = 0;
 
 
 	// below sync data to the computer side
@@ -314,6 +317,7 @@ int main() {
 	bool in_loop = false;
 	uint8_t loop_phase = 0;
 	bool camera_control = false;//true for camera, false for mag
+	bool cameraReady = false, magReady = false;
 	//
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
@@ -368,13 +372,13 @@ int main() {
 			lastTime = System::Time();
 
 //			 bt send motor speed
-//			if (lastTime - on9lastSent > 50) {
-//				on9lastSent = lastTime;
-//				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
-//				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
-//				uart0.Send_float(DualCar_UART::FLOAT::f12, left_motorPID.getdTime());
-//				uart0.Send_float(DualCar_UART::FLOAT::f13, right_motorPID.getdTime());
-//			}
+			if (lastTime - on9lastSent > 50) {
+				on9lastSent = lastTime;
+				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
+				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
+				uart0.Send_float(DualCar_UART::FLOAT::f12, left_motorPID.getdTime());
+				uart0.Send_float(DualCar_UART::FLOAT::f13, right_motorPID.getdTime());
+			}
 
 			if (USsent) {
 				// moved away from ultrasonic sensor trig
@@ -397,6 +401,8 @@ int main() {
 			led2.SetEnable(!firstArrived);
 			led3.SetEnable(!secondArrived);
 			mag.TakeSample();
+			batterySum += batteryMeter.GetVoltage();
+			batteryCount++;
 
 			if (lastTime - on9lastMain >= cycle) {
 				const Byte* camBuffer = camera.LockBuffer();
@@ -424,8 +430,7 @@ int main() {
 					menu.select_pressed();
 				}
 
-				batteryVoltage = batteryMeter.GetVoltage();
-//				if (batteryVoltage < 7.5 && !(menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected())){
+//				if (batteryVoltage < 7.3 && !(menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected())){
 //					buzz.SetBeep(lastTime % 100 < 50);
 //					lcd.SetRegion(Lcd::Rect(0,0,100,100));
 //					lcd.FillColor(0xF100);
@@ -559,6 +564,7 @@ int main() {
 					if(loop_phase == 0){
 						if(right_loop){
 							if((slave_edge_size>40)||((s_edge_xmid<30)&&((s_edge_xmid!=0)))){
+//								speed = loopSpeed;
 								loop_phase = 1;
 								buzz.SetNote(554);
 								buzz.SetBeep(true);
@@ -566,6 +572,7 @@ int main() {
 						}
 						else{
 							if((master_edge.size()>40)||(m_edge_xmid>60)){
+//								speed = loopSpeed;
 								loop_phase = 1;
 								buzz.SetNote(554);
 								buzz.SetBeep(true);
@@ -590,10 +597,13 @@ int main() {
 					}
 					else if(loop_phase == 2){
 						if(right_loop){
-							if(s_edge_xmid>40){
+							if(slave_edge_size<2){
+								s_edge_xmid = 80;
+							}
+							if(s_edge_xmid>45){
 								camera_control = true;
-								float difference = (mid_xmid - s_edge_xmid)/80.0;
-								if(difference<0.2){
+								float difference = (mid_xmid - s_edge_xmid)/40.0;
+								if(difference<0.4){
 									camera_angle = difference*loopRsmall;
 	//								camera_angle = 0.9*difference*loopRsmall + 0.1*lastServo;
 								}
@@ -604,15 +614,17 @@ int main() {
 								buzz.SetNote(440);
 								buzz.SetBeep(true);
 							}
-							if(((master_edge.size()<3))){
+							if(((master_edge.size()<3)&&(slave_edge_size>0))){
 								loop_phase = 3;
+								cameraReady = false;
+								magReady = false;
 							}
 						}
 						else{
-							if(m_edge_xmid<40){
+							if(m_edge_xmid<35){
 								camera_control = true;
-								float difference = (mid_xmid - m_edge_xmid)/80.0;
-								if(difference<0.2){
+								float difference = (mid_xmid - m_edge_xmid)/40.0;
+								if(difference<0.4){
 									camera_angle = difference*loopLsmall;
 	//								camera_angle = 0.9*difference*loopLsmall + 0.1*lastServo;
 								}
@@ -623,16 +635,18 @@ int main() {
 								buzz.SetNote(440);
 								buzz.SetBeep(true);
 							}
-							if(((slave_edge_size<3))){
+							if(((slave_edge_size<3)&&(master_edge.size()>0))){
 								loop_phase = 3;
+								cameraReady = false;
+								magReady = false;
 							}
 						}
 					}
 					else if(loop_phase == 3){
 						if(right_loop){
-							if(s_edge_xmid>40){
-								float difference = (mid_xmid - s_edge_xmid)/80.0;
-								if(difference<0.2){
+							if(s_edge_xmid>45){
+								float difference = (mid_xmid - s_edge_xmid)/40.0;
+								if(difference<0.4){
 									camera_angle = difference*loopRsmall;
 	//								camera_angle = 0.9*difference*loopRsmall + 0.1*lastServo;
 								}
@@ -644,14 +658,14 @@ int main() {
 								buzz.SetBeep(true);
 								lastServo = camera_angle;
 							}
-							if(((master_edge.size()>3)&&(m_edge_xmid>60))||(master_corner.size()==1)){
-								loop_phase = 4;
+							if (((master_edge.size()>3&&m_edge_xmid>60)||master_corner.size()==1)){
+								cameraReady = true;
 							}
 						}
 						else{
-							if(m_edge_xmid<40){
-								float difference = (mid_xmid - m_edge_xmid)/80.0;
-								if(difference<0.2){
+							if(m_edge_xmid<35){
+								float difference = (mid_xmid - m_edge_xmid)/40.0;
+								if(difference<0.4){
 									camera_angle = difference*loopLsmall;
 	//								camera_angle = 0.9*difference*loopLsmall + 0.1*lastServo;
 								}
@@ -663,22 +677,33 @@ int main() {
 								buzz.SetBeep(true);
 								lastServo = camera_angle;
 							}
-							if(((slave_edge_size>3)&&(s_edge_xmid<30))||(slave_corner.size()==1)){
-								loop_phase = 4;
+							if (((slave_edge_size>3&&s_edge_xmid<30)||(slave_corner.size()==1))){
+								cameraReady = true;
 							}
+						}
+						if (mag.GetSum() < 120){
+							magReady = true;
+						}
+						if(cameraReady && magReady){
+							loop_phase = 4;
+							speed = highSpeed;
+							camera_control = false;
+							state = loop;
+							angleSum = 0;
+							angleCount = 0;
 						}
 					}
 					else if(loop_phase == 4){
-						camera_control = false;
 						buzz.SetNote(330);
 						buzz.SetBeep(true);
 						loop_phase = 5;
 					}
 					else if(loop_phase == 5){
-						if(mag.outLoop(right_loop)){
+						if(mag.outLoop()){
 							buzz.SetNote(494);
 							buzz.SetBeep(true);
 							loop_phase = 6;
+							speed = loopSpeed;
 							state = exitLoop;
 						}
 					}
@@ -695,6 +720,7 @@ int main() {
 							buzz.SetBeep(false);
 							loop_phase = 0;
 							state = normal;
+							speed = highSpeed;
 							in_loop = false;
 						}
 					}
@@ -704,19 +730,40 @@ int main() {
 				if(!camera_control){
 					if (cali) {
 						angle = 0;
-					} else if (state == normal || state == exitLoop || state == lessTurn) {
+					} else if (state == normal || state == exitLoop ||  state == lessTurn) {
 //						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.6) || mag.SmallerThanMin(Mag::magPos::x_right, 1.6)){
+						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.42) || mag.SmallerThanMin(Mag::magPos::x_right, 1.42)){
 							angle = lastServo;
 						} else {
 							angle = servoPIDCurve.getPID(0.0, mag.GetLinear());
 							lastServo = angle;
 						}
 						if (state == exitLoop){
-							angle *= 2;
+							if (mag.GetSum() < 55){
+								if (right_loop){
+									angle -= 400;
+								} else{
+									angle += 400;
+								}
+							} else{
+								angle *=  2.5;
+							}
 						} else if (state == lessTurn){
-							angle *= 0.7;
+							angle *= 0.5;
 						}
+					} else if (state == loop) {
+						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.42) || mag.SmallerThanMin(Mag::magPos::x_right, 1.42)){
+							angle = lastServo;
+						} else {
+							if (right_loop){
+								angle = servoPIDCurve.getPID(-0.01, mag.GetLinear());
+							} else{
+								angle = servoPIDCurve.getPID( 0.01, mag.GetLinear());
+							}
+							lastServo = angle;
+						}
+						angleSum += angle;
+						angleCount++;
 					} else if (state == leave){
 						angle = 150;
 					} else if (state == stop){
@@ -737,6 +784,7 @@ int main() {
 				} else{
 					angle = camera_angle;
 				}
+				angle = 0.8*angle + 0.2*lastServo;
 				angle += middleServo;
 				angle = max(rightServo, min(leftServo, angle));
 				servo.SetDegree(angle);
@@ -760,6 +808,7 @@ int main() {
 					encoderRval = -encoderR.GetCount();
 				}
 
+				batteryVoltage = batterySum/batteryCount;
 				if (menu.get_mode() == DualCar_Menu::Page::kStart){
 					if (menu.get_selected()) {
 						voltR = right_motorPID.getPID();
@@ -826,7 +875,7 @@ int main() {
 					Items item24("xR", mag.GetMag(Mag::magPos::x_right));
 					Items item25("yL", mag.GetMag(Mag::magPos::y_left));
 					Items item26("yR", mag.GetMag(Mag::magPos::y_right));
-					Items item27("m2", mag.GetMag(2));
+					Items item27("sum", mag.GetMag(Mag::magPos::x_left) + mag.GetMag(Mag::magPos::x_right) + mag.GetMag(Mag::magPos::y_left) + mag.GetMag(Mag::magPos::y_right));
 					Items item28("m3", mag.GetMag(3));
 					Items item29("l", mag.GetLinear());
 					Items item30("ac_cor", accumulate_corner);
@@ -858,7 +907,7 @@ int main() {
 					mode0.add_items(&item5);
 
 					mode1.add_items(&item6);
-					mode1.add_items(&item7);
+					mode1.add_items(&item1);
 					mode1.add_items(&item8);
 					mode1.add_items(&item14);
 					mode1.add_items(&item15);

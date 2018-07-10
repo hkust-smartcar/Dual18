@@ -81,7 +81,7 @@ float Mag::GetMulti(uint8_t id){
 
 		min[Mag::magPos::y_left] = 8;
 		min[Mag::magPos::y_right] = 9;
-		max[Mag::magPos::y_left] = 63;
+		max[Mag::magPos::y_left] = 65;
 		max[Mag::magPos::y_right] = 71;
 	}
 	multi[Mag::magPos::x_left] = 70.0/max[Mag::magPos::x_left];
@@ -103,10 +103,8 @@ bool Mag::unlikelyCrossRoad(){
 	return (v[Mag::magPos::y_left] < 18 && v[Mag::magPos::y_right] < 18);
 }
 
-bool Mag::outLoop(bool rightLoop){
-	float multi = 0.7;
-	return ((!rightLoop && v[Mag::magPos::x_left] > max[Mag::magPos::x_left] * multi && v[Mag::magPos::y_left] > max[Mag::magPos::y_left] * multi )||
-			(rightLoop && v[Mag::magPos::x_right] > max[Mag::magPos::x_right] * multi && v[Mag::magPos::y_right] > max[Mag::magPos::y_right] * multi));
+bool Mag::outLoop(){
+	return v[Mag::magPos::x_left] + v[Mag::magPos::x_right] + v[Mag::magPos::y_left] + v[Mag::magPos::y_right] > 200;
 }
 
 bool Mag::isMidLoop(){
