@@ -43,6 +43,7 @@
 #include "menu.h"
 #include "BoardID.h"
 #include "DistanceModule.h"
+#include "MenuV2.h"
 
 #define pi 3.1415926
 
@@ -233,6 +234,9 @@ uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loo
 
 //main
 int main() {
+
+	System::Init();
+
 	BoardID board;
 
 	Ov7725 camera(myConfig::getCameraConfig(Width, Height));
@@ -435,15 +439,6 @@ int main() {
 		}
 	});
 
-	//joystick value
-	DualCar_Menu menu;
-	Mode mode0(0);
-	Mode mode1(1);
-	Mode mode2(2);
-	Mode mode3(3);
-	Mode mode4(4);
-	Mode ClearMode(5);
-	//
 	//dotted lines
 	uint32_t accumulate_corner = 0;
 	uint8_t dot_time = 0;
@@ -461,23 +456,38 @@ int main() {
 	uint8_t current_loop_state = 0;
 	//
 
+	//menu v2
+	DualCarMenu menuV2(&lcd, &writer, Width, Height);
+	DualCarMenu::SubMenu* current_page = &menuV2.home_page;
+
+	int temp = 0;
+	menuV2.AddItem("start", &(menuV2.home_page), true);
+
+	menuV2.AddItem("camera", &(menuV2.home_page), true);
+	menuV2.AddItem("image", menuV2.home_page.submenu_items[1].next_page, true);
+
+	menuV2.AddItem("magnetic", &(menuV2.home_page), true);
+	int mag_xL = mag.GetMag(Mag::magPos::x_left);
+	int mag_xR = mag.GetMag(Mag::magPos::x_right);
+	int mag_yL = mag.GetMag(Mag::magPos::y_left);
+	int mag_yR = mag.GetMag(Mag::magPos::y_right);
+	int* pmag_xL = &mag_xL;
+	int* pmag_xR = &mag_xR;
+	int* pmag_yL = &mag_yL;
+	int* pmag_yR = &mag_yR;
+	menuV2.AddItem("XL", pmag_xL, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem("XR", pmag_xR, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem("YL", pmag_yL, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem("YR", pmag_yR, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem("temp", &temp, menuV2.home_page.submenu_items[2].next_page, true);
+
+	menuV2.AddItem("other", &(menuV2.home_page), true);
+	menuV2.AddItem("EncL", &(encoderLval), menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem("EncR", &(encoderRval), menuV2.home_page.submenu_items[3].next_page, false);
+
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
-		if(state == Joystick::State::kRight) {
-			menu.change_mode(true);
-		}
-		else if(state == Joystick::State::kLeft){
-			menu.change_mode(false);
-		}
-		else if(state == Joystick::State::kSelect){
-			menu.select_pressed();
-		}
-		else if(state == Joystick::State::kUp){
-			menu.change_line(true);
-		}
-		else if(state == Joystick::State::kDown){
-			menu.change_line(false);
-		}
+		menuV2.SetJoystickState(state);
 	})));
 
 	servo.SetDegree(middleServo);
@@ -552,26 +562,26 @@ int main() {
 				const Byte* camBuffer = camera.LockBuffer();
 				camera.UnlockBuffer();
 				mag.Update();
-				if (menu.get_mode() != DualCar_Menu::Page::kStart){
-					lcd.SetRegion(Lcd::Rect(100,100,10,10));
-					if (mag.isLoop()){
-						lcd.FillColor(0xFF00);
-					}else if (mag.unlikelyCrossRoad()){
-						lcd.FillColor(0x00FF);
-					}else {
-						lcd.FillColor(0x0000);
-					}
-				}
+//				if (menu.get_mode() != DualCar_Menu::Page::kStart){
+//					lcd.SetRegion(Lcd::Rect(100,100,10,10));
+//					if (mag.isLoop()){
+//						lcd.FillColor(0xFF00);
+//					}else if (mag.unlikelyCrossRoad()){
+//						lcd.FillColor(0x00FF);
+//					}else {
+//						lcd.FillColor(0x0000);
+//					}
+//				}
 				dot_time++;
 				on9lastMain = lastTime;
 				if (cali) {
 					mag.Calibrate();
 				}
-				if (mag.noMagField() && magState == kNormal && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
-					left_motorPID.setDesiredVelocity(0);
-					right_motorPID.setDesiredVelocity(0);
-					menu.select_pressed();
-				}
+//				if (mag.noMagField() && magState == kNormal && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
+//					left_motorPID.setDesiredVelocity(0);
+//					right_motorPID.setDesiredVelocity(0);
+//					menu.select_pressed();
+//				}
 
 //				if (batteryVoltage < 7.3 && !(menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected())){
 //					buzz.SetBeep(lastTime % 100 < 50);
@@ -765,208 +775,94 @@ int main() {
 					right_motorPID.setDesiredVelocity(speed * (1 - differential));
 				}
 
-				if (menu.get_mode() != DualCar_Menu::Page::kStart) {
+//				if (menu.get_mode() != DualCar_Menu::Page::kStart) {
+//					encoderL.Update();
+//					encoderR.Update();
+//					encoderLval = encoderL.GetCount();
+//					encoderRval = -encoderR.GetCount();
+//				}
+//
+//				batteryVoltage = batterySum/batteryCount;
+//				if (menu.get_mode() == DualCar_Menu::Page::kStart){
+//					if (menu.get_selected()) {
+//						voltR = right_motorPID.getPID(cycle);
+//						voltL = left_motorPID.getPID(cycle);
+//						powerR = voltR/batteryVoltage*1000;
+//						powerL = voltL/batteryVoltage*1000;
+//						if (powerR > 0) {
+//							right_motor.SetClockwise(forwardR);
+//							right_motor.SetPower(min(powerR,1000));
+//						} else {
+//							right_motor.SetClockwise(!forwardR);
+//							right_motor.SetPower(min(-powerR,1000));
+//						}
+//						if (powerL > 0) {
+//							left_motor.SetClockwise(forwardL);
+//							left_motor.SetPower(min(powerL,1000));
+//						} else {
+//							left_motor.SetClockwise(!forwardL);
+//							left_motor.SetPower(min(-powerL,1000));
+//						}
+//					} else {
+//						left_motorPID.setDesiredVelocity(0);
+//						right_motorPID.setDesiredVelocity(0);
+//						left_motor.SetPower(0);
+//						right_motor.SetPower(0);
+//						if (encoderLval != 0) {
+//							encoderL.Update();
+//						}
+//						if (encoderRval != 0) {
+//							encoderR.Update();
+//						}
+//					}
+//				}
+
+				/////print menu
+				mag_xL = mag.GetMag(Mag::magPos::x_left);
+				mag_xR = mag.GetMag(Mag::magPos::x_right);
+				mag_yL = mag.GetMag(Mag::magPos::y_left);
+				mag_yR = mag.GetMag(Mag::magPos::y_right);
+				menuV2.SetCamBuffer(camBuffer);
+				current_page = menuV2.PrintSubMenu(current_page);
+				if(current_page->identity == "start"){
+					voltR = right_motorPID.getPID(cycle);
+					voltL = left_motorPID.getPID(cycle);
+					powerR = voltR/batteryVoltage*1000;
+					powerL = voltL/batteryVoltage*1000;
+					if (powerR > 0) {
+						right_motor.SetClockwise(forwardR);
+						right_motor.SetPower(min(powerR,1000));
+					} else {
+						right_motor.SetClockwise(!forwardR);
+						right_motor.SetPower(min(-powerR,1000));
+					}
+					if (powerL > 0) {
+						left_motor.SetClockwise(forwardL);
+						left_motor.SetPower(min(powerL,1000));
+					} else {
+						left_motor.SetClockwise(!forwardL);
+						left_motor.SetPower(min(-powerL,1000));
+					}
+				}
+				else{
 					encoderL.Update();
 					encoderR.Update();
 					encoderLval = encoderL.GetCount();
 					encoderRval = -encoderR.GetCount();
+					left_motorPID.setDesiredVelocity(0);
+					right_motorPID.setDesiredVelocity(0);
+					left_motor.SetPower(0);
+					right_motor.SetPower(0);
+					if (encoderLval != 0) {
+						encoderL.Update();
+					}
+					if (encoderRval != 0) {
+						encoderR.Update();
+					}
+
 				}
+				/////
 
-				batteryVoltage = batterySum/batteryCount;
-				if (menu.get_mode() == DualCar_Menu::Page::kStart){
-					if (menu.get_selected()) {
-						voltR = right_motorPID.getPID(cycle);
-						voltL = left_motorPID.getPID(cycle);
-						powerR = voltR/batteryVoltage*1000;
-						powerL = voltL/batteryVoltage*1000;
-						if (powerR > 0) {
-							right_motor.SetClockwise(forwardR);
-							right_motor.SetPower(min(powerR,1000));
-						} else {
-							right_motor.SetClockwise(!forwardR);
-							right_motor.SetPower(min(-powerR,1000));
-						}
-						if (powerL > 0) {
-							left_motor.SetClockwise(forwardL);
-							left_motor.SetPower(min(powerL,1000));
-						} else {
-							left_motor.SetClockwise(!forwardL);
-							left_motor.SetPower(min(-powerL,1000));
-						}
-					} else {
-						left_motorPID.setDesiredVelocity(0);
-						right_motorPID.setDesiredVelocity(0);
-						left_motor.SetPower(0);
-						right_motor.SetPower(0);
-						if (encoderLval != 0) {
-							encoderL.Update();
-						}
-						if (encoderRval != 0) {
-							encoderR.Update();
-						}
-					}
-				} else{ //not start, printing show value
-					char *s = "";
-					if (board.isCar1()) {
-						s = "Master car1";
-					} else {
-						s = "Master car2";
-					}
-
-					Items item0(s);
-					Items item1 ("M_sl", master_slope);
-					Items item2("S_sl", m_master_bluetooth.get_m_slope());
-					Items item3("Sv", servo.GetDegree());
-					Items item4("M_cor", master_corner.size());
-					Items item5("S_cor", slave_corner.size());
-
-					Items item6("cam_con", camera_control);
-					Items item7("r_loop", right_loop);
-					Items item8("p", current_loop_state);
-					Items item14("kind_l", left_loop);
-					Items item15("S_es", slave_edge_size);
-
-					Items item16("speed", speed);
-					Items item17("r_en", encoderRval);
-					Items item18("l_en", encoderLval);
-					Items item19("lines", menu.get_line());
-					Items item20("selected", menu.get_selected());
-					Items item21("", dot_time);
-					Items item22("Ultra", UltrasonicSensor.getDistance());
-
-
-					Items item23("xL", mag.GetMag(Mag::magPos::x_left));
-					Items item24("xR", mag.GetMag(Mag::magPos::x_right));
-					Items item25("yL", mag.GetMag(Mag::magPos::y_left));
-					Items item26("yR", mag.GetMag(Mag::magPos::y_right));
-					Items item27("sum", mag.GetXSum()+mag.GetYSum());
-					Items item28("magState", (int)magState);
-					Items item29("l", mag.GetXLinear());
-					Items item30("ac_cor", accumulate_corner);
-
-					// show if its connected
-					// 1: yes, 0: no
-					Items item31("BTconn", uart0.isConnected());
-
-					// show the run time of the client in ms
-					Items item32("BTtime", uart0.receivedElpasedTime);
-
-					// show the receive buffer of this
-					Items item33("RxSize", uart0.RxBuffer.size());
-
-					// show the send buffer of this
-					Items item34("SeSize", uart0.SendImmediate.size());
-
-					Items item35("getst", uart0.getsth);
-					Items item36("sdsth", uart0.sendsth);
-					Items item37("volt", batteryMeter.GetVoltage());
-
-
-					mode0.add_items(&item0);
-					mode0.add_items(&item1);
-					mode0.add_items(&item2);
-					mode0.add_items(&item3);
-					mode0.add_items(&item4);
-					mode0.add_items(&item5);
-
-					mode1.add_items(&item6);
-					mode1.add_items(&item1);
-					mode1.add_items(&item8);
-					mode1.add_items(&item14);
-					mode1.add_items(&item15);
-
-					mode2.add_items(&item16);
-					mode2.add_items(&item17);
-					mode2.add_items(&item18);
-					mode2.add_items(&item19);
-					mode2.add_items(&item20);
-					mode2.add_items(&item21);
-					mode2.add_items(&item22);
-
-					mode3.add_items(&item23);
-					mode3.add_items(&item24);
-					mode3.add_items(&item25);
-					mode3.add_items(&item26);
-					mode3.add_items(&item27);
-					mode3.add_items(&item28);
-					mode3.add_items(&item29);
-					mode3.add_items(&item30);
-
-					mode4.add_items(&item31);
-					mode4.add_items(&item32);
-					mode4.add_items(&item33);
-					mode4.add_items(&item34);
-					mode4.add_items(&item35);
-					mode4.add_items(&item36);
-					mode4.add_items(&item37);
-				}
-
-				menu.add_mode(&mode0);
-				menu.add_mode(&mode1);
-				menu.add_mode(&mode2);
-				menu.add_mode(&mode3);
-				menu.add_mode(&mode4);
-				menu.add_mode(&ClearMode);
-
-
-				if (menu.get_mode() == DualCar_Menu::Page::kImage) {
-					if (menu.change_screen()) {
-						lcd.Clear();
-					}
-					lcd.SetRegion(Lcd::Rect(0, 0, Width, Height));
-					lcd.FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
-					for (int i = 0; i < master_edge.size(); i++) {
-						lcd.SetRegion(
-								Lcd::Rect(master_edge[i].first,
-										master_edge[i].second, 2, 2));
-						lcd.FillColor(Lcd::kRed);
-					}
-					for (int i = 0; i < slave_edge.size(); i++) {
-						lcd.SetRegion(
-								Lcd::Rect(slave_edge[i].first, slave_edge[i].second, 2, 2));
-						lcd.FillColor(Lcd::kPurple);
-					}
-
-					for (int i = 0; i < midline.size(); i++) {
-						lcd.SetRegion(
-								Lcd::Rect(midline[i].first, midline[i].second,
-										2, 2));
-						lcd.FillColor(Lcd::kBlue);
-					}
-
-					for (int i = 0; i < master_corner.size(); i++) {
-						lcd.SetRegion(
-								Lcd::Rect(master_corner[i].get_xcoord(), master_corner[i].get_ycoord(), 2, 2));
-						lcd.FillColor(Lcd::kGreen);
-					}
-
-					for (int i = 0; i < slave_corner.size(); i++) {
-						lcd.SetRegion(
-								Lcd::Rect(slave_corner[i].get_xcoord(), slave_corner[i].get_ycoord(), 2, 2));
-						lcd.FillColor(Lcd::kGreen);
-					}
-
-					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
-						lcd.SetRegion(Lcd::Rect(0, 60+15*i, 88, 15));
-						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),15);
-					}
-				}
-
-				else if (menu.get_mode() != DualCar_Menu::Page::kStart) {
-					if (menu.change_screen()) {
-						lcd.Clear();
-					}
-					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
-						lcd.SetRegion(Lcd::Rect(0, 15*i, 88, 15));
-						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),15);
-					}
-				}
-				else{
-					if (menu.change_screen()) {
-						lcd.Clear();
-					}
-				}
-				menu.clear();
 				master_edge.clear();
 				slave_edge.clear();
 				midline.clear();
