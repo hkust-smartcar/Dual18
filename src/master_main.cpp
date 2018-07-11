@@ -344,11 +344,11 @@ int main() {
 	    loop_servo_pd[0] = 14500;
 	    loop_servo_pd[1] = 350000;
 
-	    x_servo_pd[0] = 11200;
-	    x_servo_pd[1] = 840000;
+	    x_servo_pd[0] = 10634;
+	    x_servo_pd[1] = 981750;
 
-	    y_servo_pd[0] = 11200;
-	    y_servo_pd[1] = 840000;
+	    y_servo_pd[0] = 16.1;
+	    y_servo_pd[1] = 363;
 
 		align_servo_pd[0] = -5;
 		align_servo_pd[1] = -17;
