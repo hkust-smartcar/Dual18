@@ -8,9 +8,8 @@
 #include "../inc/PID.h"
 #include <cmath>
 int PID::counter = 0;
-float PID::getPID(){
-	 uint32_t currentTime = System::Time();
-	 dTime = currentTime - lastTime;
+float PID::getPID(uint32_t time){
+	 dTime = time;
 	 if(dTime == 0){
 	  dTime =1;
 	 }
@@ -31,7 +30,6 @@ float PID::getPID(){
 		 accumulateError = -500;
 	 }
 	 output = kP*currentError + kI*accumulateError + kD*(currentError - lastError);
-	 lastTime = currentTime;
 	 lastError = currentError;
 	 lastVelocity = currentVelocity;
 	 if(output < -8.5){

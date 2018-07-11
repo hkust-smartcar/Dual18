@@ -53,7 +53,7 @@ bool Mag::noMagField(){
 	bool b = true;
 	for (int i = 0; i < 6; i++){
 		if (i != 2 && i != 3)
-			b = b && (v[i] < min[i]*1.75*multi[i]);
+			b = b && (v[i] < 10);
 	}
 	return b;
 }
@@ -114,14 +114,18 @@ bool Mag::isLoop(){
 			(v[Mag::magPos::x_left] > 68 && v[Mag::magPos::x_right] > 68 && v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 40));
 }
 
+bool Mag::isRightLoop(){
+	return (v[Mag::magPos::y_right] + v[Mag::magPos::x_right] > v[Mag::magPos::y_left] + v[Mag::magPos::x_left]);
+}
+
 bool Mag::unlikelyCrossRoad(){
 	return (v[Mag::magPos::y_left] < 15 && v[Mag::magPos::y_right] < 15);
 }
 
 bool Mag::outLoop(){
-	return v[Mag::magPos::x_left] + v[Mag::magPos::x_right] + v[Mag::magPos::y_left] + v[Mag::magPos::y_right] > 300;
+	return v[Mag::magPos::x_left] + v[Mag::magPos::x_right] + v[Mag::magPos::y_left] + v[Mag::magPos::y_right] > 260;
 }
 
 bool Mag::isMidLoop(){
-	return (v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 30);
+	return (v[Mag::magPos::y_left] < 30 || v[Mag::magPos::y_right] < 30);
 }

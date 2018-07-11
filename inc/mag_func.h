@@ -42,6 +42,7 @@ public:
 	bool unlikelyCrossRoad();
 	bool outLoop();
 	bool isMidLoop();
+	bool isRightLoop();
 	bool SmallerThanE(uint8_t id, float t){return v[id] < emin*t;}
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id];}
 	bool isBigStraight(){return (xLinear > -0.005 && xLinear < 0.005);};
@@ -69,7 +70,7 @@ private:
 	uint8_t filterCounter = 0;
 	uint8_t v[6] ={255,255,255,255,255,255};
 	float multi[6] = {1.0,1.0,1.0,1.0,1.0,1.0};
-	float xLinear = 0, yLinear;
+	float xLinear = 0, yLinear = 0;
 	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0,0,0,0,0,0};
 	uint8_t emin = 255, emax = 0;
 };

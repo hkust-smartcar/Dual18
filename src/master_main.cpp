@@ -102,6 +102,7 @@ static float speed = highSpeed;
 uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loop, bool &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
 	static bool left;
 	left_loop = left;
+	static bool cameraReady = false, magReady = false;
 	switch(state){
 	case 0:
 		if(is_loop){
@@ -109,7 +110,7 @@ uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loo
 		}
 		break;
 	case 1:
-		if(master_slope<(-1*slave_slope))
+		if(master_slope<(-1*slave_slope))//master_slope<magnetic->isRightLoop()
 			left = true;
 		else
 			left = false;
@@ -117,20 +118,20 @@ uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loo
 		break;
 	case 2:
 		if(left){
-			if(master_edge_size>40)
+			if(master_edge_size>20)
 				state = 3;
 		}else{
-			if(slave_edge_size>40)
+			if(slave_edge_size>20)
 				state = 3;
 		}
 		break;
 
 	case 3:
 		if(left){
-			if(((master_slope>0.7)&&(m_edge_xmid<40))||(master_edge_size<5))
+			if(((master_slope>0.5)&&(m_edge_xmid<40))||(master_edge_size<15))
 				state = 4;
 		}else{
-			if(((slave_slope<-0.7)&&(s_edge_xmid>40))||(slave_edge_size<5))
+			if(((slave_slope<-0.5)&&(s_edge_xmid>40))||(slave_edge_size<15))
 				state = 4;
 		}
 		break;
@@ -138,26 +139,30 @@ uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loo
 		if(left){
 			camera_control = true;
 			float difference = (40 - m_edge_xmid)/40.0;
-			if(difference<0.75){
-				camera_angle = difference*350;
+			if(difference<0.5){
+				camera_angle = difference*100;
 			}
 			else{
-				camera_angle = difference*550;
+				camera_angle = difference*200;
 			}
 			if(slave_edge_size<4){
 				state = 5;
+				cameraReady = false;
+				magReady = false;
 			}
 		}else{
 			camera_control = true;
 			float difference = (40 - s_edge_xmid)/40.0;
-			if(difference>-0.75){
-				camera_angle = difference*350;
+			if(difference>-0.5){
+				camera_angle = difference*100;
 			}
 			else{
-				camera_angle = difference*550;
+				camera_angle = difference*200;
 			}
 			if(master_edge_size<4){
 				state = 5;
+				cameraReady = false;
+				magReady = false;
 			}
 		}
 		break;
@@ -165,12 +170,18 @@ uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loo
 		if(left){
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
-				camera_angle = difference*350;
+				camera_angle = difference*250;
 			}
 			else{
-				camera_angle = difference*550;
+				camera_angle = difference*400;
 			}
 			if((slave_edge_size>5)||(slave_corner_size==1)){
+				cameraReady = true;
+			}
+			if (magnetic->GetSum() < 120){
+				magReady = true;
+			}
+			if(cameraReady && magReady){
 				state = 6;
 				camera_control = false;
 				magState = carState::loop;
@@ -179,10 +190,10 @@ uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loo
 		else{
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
-				camera_angle = difference*350;
+				camera_angle = difference*250;
 			}
 			else{
-				camera_angle = difference*550;
+				camera_angle = difference*400;
 			}
 			if((master_edge_size>5)||(master_corner_size==1)){
 				state = 6;
@@ -261,7 +272,7 @@ int main() {
 	DirEncoder encoderL(myConfig::GetEncoderConfig(1));
 	PID servoPIDLoop(14500, 880000);
 	PID servoPIDx(5500, 1);
-	PID servoPIDy(5500, 1);
+	PID servoPIDy(500, 1);
 	PID servoPIDAlignCurve(-6, 1);
 	PID cameraPID(0,0);
 	PID left_motorPID(0, 0, 0, &encoderL, false);
@@ -285,13 +296,13 @@ int main() {
 	int loopLsmall, loopLbig, loopRsmall, loopRbig;
 
 	if (board.isCar1()) {
-		left_motor_pid[0] = 0.07;
-		left_motor_pid[1] = 0.0055;
-		left_motor_pid[2] = 0.01;
+	    left_motor_pid[0] = 0.07;
+	    left_motor_pid[1] = 0.01;
+	    left_motor_pid[2] = 0.02;
 
-		right_motor_pid[0] = 0.05;
-		right_motor_pid[1] = 0.006;
-		right_motor_pid[2] = 0.015;
+	    right_motor_pid[0] = 0.05;
+	    right_motor_pid[1] = 0.009;
+	    right_motor_pid[2] = 0.015;
 
 		loop_servo_pd[0] = 14500;
 		loop_servo_pd[1] = 400000;
@@ -450,7 +461,6 @@ int main() {
 	bool in_loop = false;
 	uint8_t loop_phase = 0;
 	bool camera_control = false;//true for camera, false for mag
-	bool cameraReady = false, magReady = false;
 	uint8_t current_loop_state = 0;
 	//
 
@@ -508,12 +518,13 @@ int main() {
 			lastTime = System::Time();
 
 //			 bt send motor speed
-			if (lastTime - on9lastSent > 50) {
+			if (lastTime - on9lastSent >= 100) {
 				on9lastSent = lastTime;
 				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
 				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
-				uart0.Send_float(DualCar_UART::FLOAT::f12, left_motorPID.getdTime());
-				uart0.Send_float(DualCar_UART::FLOAT::f13, right_motorPID.getdTime());
+				uart0.Send_float(DualCar_UART::FLOAT::f12, right_motorPID.getdTime());
+//				uart0.Send_float(DualCar_UART::FLOAT::f12, mag.GetXLinear());
+//				uart0.Send_float(DualCar_UART::FLOAT::f13, mag.GetYLinear());
 			}
 
 			if (USsent) {
@@ -544,7 +555,6 @@ int main() {
 				const Byte* camBuffer = camera.LockBuffer();
 				camera.UnlockBuffer();
 				mag.Update();
-				dTime = left_motorPID.getdTime();
 				if (menu.get_mode() != DualCar_Menu::Page::kStart){
 					lcd.SetRegion(Lcd::Rect(100,100,10,10));
 					if (mag.isLoop()){
@@ -692,6 +702,10 @@ int main() {
 					in_loop = true;
 				}
 
+				if(slave_edge_size<2){
+					s_edge_xmid = 80;
+				}
+
 				current_loop_state = loop_control(current_loop_state, in_loop, &mag, left_loop, camera_control, camera_angle, master_edge.size(), slave_edge_size, m_edge_xmid, s_edge_xmid, master_corner.size(), slave_corner.size(),master_slope, slave_slope);
 
 				if(!camera_control){
@@ -699,15 +713,15 @@ int main() {
 						angle = 0;
 					} else if (magState == normal || magState == loop || magState == exitLoop ||  magState == lessTurn) {
 //						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.42) || mag.SmallerThanMin(Mag::magPos::x_right, 1.42)){
+						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.6) || mag.SmallerThanMin(Mag::magPos::x_right, 1.6)){
 							angle = lastServo;
 						} else {
 							float target = 0.0;
 							if (magState == loop){
 								if (right_loop){
-									target = -0.01;
+									target = -0.005;
 								} else{
-									target = 0.01;
+									target = 0.005;
 								}
 							}
 							angle = 0.5*servoPIDx.getPID(target, mag.GetXLinear()) + 0.5*servoPIDy.getPID(target, mag.GetYLinear());
@@ -774,8 +788,8 @@ int main() {
 				batteryVoltage = batterySum/batteryCount;
 				if (menu.get_mode() == DualCar_Menu::Page::kStart){
 					if (menu.get_selected()) {
-						voltR = right_motorPID.getPID();
-						voltL = left_motorPID.getPID();
+						voltR = right_motorPID.getPID(cycle);
+						voltL = left_motorPID.getPID(cycle);
 						powerR = voltR/batteryVoltage*1000;
 						powerL = voltL/batteryVoltage*1000;
 						if (powerR > 0) {
