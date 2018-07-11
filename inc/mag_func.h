@@ -43,7 +43,6 @@ public:
 	bool outLoop();
 	bool isMidLoop();
 	bool isRightLoop();
-//	bool SmallerThanE(uint8_t id, float t){return v[id] < emin*t;}
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id];}
 	bool isBigStraight(){return (xLinear > -0.005 && xLinear < 0.005);};
 	void InitMag(uint8_t car_id);
@@ -60,6 +59,7 @@ public:
 	uint8_t GetYSum(){return v[magPos::y_left]+v[magPos::y_right];}
 	uint8_t GetXDiff(){return v[magPos::x_left]-v[magPos::x_right];}
 	uint8_t GetYDiff(){return v[magPos::y_left]-v[magPos::y_right];}
+	bool isTwoLine();
 
 private:
 	Adc mag0;

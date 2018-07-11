@@ -102,10 +102,12 @@ bool Mag::noMagField(){
 	multi[Mag::magPos::y_right] = 80.0/(max[Mag::magPos::y_right]-min[Mag::magPos::y_right]);
  }
 
- //need to change
 bool Mag::isLoop(){
-	return ((v[Mag::magPos::x_left]+v[Mag::magPos::x_right] > (max[Mag::magPos::x_left]+max[Mag::magPos::x_right])*multi[Mag::magPos::x_left]) ||
-			(v[Mag::magPos::x_left] > 68 && v[Mag::magPos::x_right] > 68 && v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 40));
+	return (v[Mag::magPos::x_left] > 60 && v[Mag::magPos::x_right] > 60);
+}
+
+bool Mag::isTwoLine(){
+	return (Mag::GetXSum()+Mag::GetYSum() > 160);
 }
 
 //need to change
