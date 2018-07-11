@@ -100,7 +100,7 @@ static const uint8_t cycle = 12;
 static float loopSpeed = 7 * cycle, highSpeed = 9 * cycle, alignSpeed = 7 * cycle;
 static float speed = highSpeed;
 
-uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loop, bool &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
+int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
 	static bool left;
 	left_loop = left;
 	static bool cameraReady = false, magReady = false;
@@ -298,11 +298,11 @@ int main() {
 
 	if (board.isCar1()) {
 	    left_motor_pid[0] = 0.07;
-	    left_motor_pid[1] = 0.01;
-	    left_motor_pid[2] = 0.02;
+	    left_motor_pid[1] = 0.00495;
+	    left_motor_pid[2] = 0.01;
 
 	    right_motor_pid[0] = 0.05;
-	    right_motor_pid[1] = 0.009;
+	    right_motor_pid[1] = 0.0054;
 	    right_motor_pid[2] = 0.015;
 
 		loop_servo_pd[0] = 14500;
@@ -311,8 +311,8 @@ int main() {
 		x_servo_pd[0] = 9702;
 		x_servo_pd[1] = 516780;
 
-		y_servo_pd[0] = 2.5885959;
-		y_servo_pd[1] = 217.845;
+		y_servo_pd[0] = 2.2002756515;
+		y_servo_pd[1] = 228.73725;
 
 		align_servo_pd[0] = -7.5;
 		align_servo_pd[1] = -130;
@@ -448,12 +448,10 @@ int main() {
 
 	//for loop ver2
 	float loop_control_const = 85;
-	bool right_loop = false;
 	bool left_loop = false;
 	bool in_loop = false;
-	uint8_t loop_phase = 0;
 	bool camera_control = false;//true for camera, false for mag
-	uint8_t current_loop_state = 0;
+	int current_loop_state = 0;
 	//
 
 	//menu v2
@@ -462,6 +460,8 @@ int main() {
 
 	int temp = 0;
 	menuV2.AddItem("start", &(menuV2.home_page), true);
+	menuV2.AddItem("open_motor", menuV2.home_page.submenu_items[0].next_page, true);
+	menuV2.AddItem("close_motor", menuV2.home_page.submenu_items[0].next_page, true);
 
 	menuV2.AddItem("camera", &(menuV2.home_page), true);
 	menuV2.AddItem("image", menuV2.home_page.submenu_items[1].next_page, true);
@@ -481,9 +481,13 @@ int main() {
 	menuV2.AddItem("YR", pmag_yR, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("temp", &temp, menuV2.home_page.submenu_items[2].next_page, true);
 
+	menuV2.AddItem("loop", &current_loop_state, &(menuV2.home_page), false);
+
 	menuV2.AddItem("other", &(menuV2.home_page), true);
-	menuV2.AddItem("EncL", &(encoderLval), menuV2.home_page.submenu_items[3].next_page, false);
-	menuV2.AddItem("EncR", &(encoderRval), menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem("EncL", &(encoderLval), menuV2.home_page.submenu_items[4].next_page, false);
+	menuV2.AddItem("EncR", &(encoderRval), menuV2.home_page.submenu_items[4].next_page, false);
+
+
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -656,7 +660,7 @@ int main() {
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
 				//alignment
-				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()!=0)&& (slave_corner.size()!=0) && mag.unlikelyCrossRoad() && !start_count_corner){
+				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()!=0)&& (slave_corner.size()!=0) && !mag.isTwoLine() && !start_count_corner){
 					dot_time = 0;
 					start_count_corner = true;
 				}
@@ -723,16 +727,25 @@ int main() {
 //						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
 						float target = 0.0;
 						if (magState == kLoop){
-							if (right_loop){
-								target = -0.005;
-							} else{
+							if (left_loop){
 								target = 0.005;
+							} else{
+								target = -0.005;
 							}
 						}
-						angle = 0.5*servoPIDx.getPID(target, mag.GetXLinear()) + 0.5*servoPIDy.getPID(target, mag.GetYLinear());
-							lastServo = angle;
+						if (mag.isTwoLine()){
+							angle = servoPIDx.getPID(target, mag.GetXLinear());
+						} else{
+							angle = 0.5*servoPIDx.getPID(target, mag.GetXLinear()) + 0.5*servoPIDy.getPID(0, mag.GetYLinear());
+						}
 						if (magState == kLessTurn){
 							angle *= 0.5;
+						} else if (magState == kExitLoop){
+							if (left_loop){
+								angle += 100;
+							} else {
+								angle -= 100;
+							}
 						}
 					} else if (magState == kLeave){
 						angle = 150;
@@ -818,13 +831,18 @@ int main() {
 //				}
 
 				/////print menu
+				if(left_loop){
+					led0.SetEnable(0);
+				}
+
 				mag_xL = mag.GetMag(Mag::magPos::x_left);
 				mag_xR = mag.GetMag(Mag::magPos::x_right);
 				mag_yL = mag.GetMag(Mag::magPos::y_left);
 				mag_yR = mag.GetMag(Mag::magPos::y_right);
 				menuV2.SetCamBuffer(camBuffer);
+				menuV2.SetEdge(master_edge);
 				current_page = menuV2.PrintSubMenu(current_page);
-				if(current_page->identity == "start"){
+				if(current_page->identity == "open_motor"){
 					voltR = right_motorPID.getPID(cycle);
 					voltL = left_motorPID.getPID(cycle);
 					powerR = voltR/batteryVoltage*1000;

@@ -183,7 +183,7 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu){
 			PrintItem(menu->submenu_items[i],i+4);
 		}
 	}
-	else if(menu->identity == "start"){}
+	else if((menu->identity == "open_motor")||(menu->identity == "close_motor")){}
 	else{
 		if(menu->identity == "changed"){
 			change_number();
@@ -203,4 +203,10 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu){
 void DualCarMenu::PrintCamImage(){
 	lcd->SetRegion(Lcd::Rect(0, 0, image_width, image_height));
 	lcd->FillBits(0x0000, 0xFFFF, camBuffer, (image_width*image_height));
+
+	for(int i=0; i<edge.size(); i++){
+		lcd->SetRegion(Lcd::Rect(edge[i].first, edge[i].second, 2, 2));
+		lcd->FillColor(Lcd::kRed);
+	}
+
 }

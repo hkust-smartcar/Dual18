@@ -122,7 +122,7 @@ bool Mag::unlikelyCrossRoad(){
 
 //need to change
 bool Mag::outLoop(){
-	return v[Mag::magPos::x_left] + v[Mag::magPos::x_right] + v[Mag::magPos::y_left] + v[Mag::magPos::y_right] > 260;
+	return v[Mag::magPos::x_left] + v[Mag::magPos::x_right] + v[Mag::magPos::y_left] + v[Mag::magPos::y_right] > 200;
 }
 
 //need to change

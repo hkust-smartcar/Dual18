@@ -75,6 +75,10 @@ public:
 		this->camBuffer = camBuffer;
 	}
 
+	void SetEdge(vector<pair<int, int>> edge){
+		this->edge = edge;
+	}
+
 	void SetJoystickState(Joystick::State state){
 		joystick_state = state;
 	}
@@ -93,6 +97,7 @@ private:
 	int selected = false;
 	bool pressed = false;
 	vector<SubMenu*> memory;
+	vector<pair<int, int>> edge;
 };
 
 
