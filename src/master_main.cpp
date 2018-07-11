@@ -84,19 +84,19 @@ inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
 }
 
 typedef enum {
-	normal = 0,
-	leave,
-	stop,
-	align,
-	side,
-	loop,
-	exitLoop,
-	lessTurn
+	kNormal = 0,
+	kLeave,
+	kStop,
+	kAlign,
+	kSide,
+	kLoop,
+	kExitLoop,
+	kLessTurn
 } carState;
-carState magState = normal;
+carState magState = kNormal;
 
 static const uint8_t cycle = 12;
-static float loopSpeed = 7 * cycle, highSpeed = 9 * cycle, alignSpeed = 4 * cycle;
+static float loopSpeed = 7 * cycle, highSpeed = 9 * cycle, alignSpeed = 7 * cycle;
 static float speed = highSpeed;
 
 uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loop, bool &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
@@ -178,13 +178,13 @@ uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loo
 			if((slave_edge_size>5)||(slave_corner_size==1)){
 				cameraReady = true;
 			}
-			if (magnetic->GetSum() < 120){
+			if (magnetic->GetXSum() < 120){
 				magReady = true;
 			}
 			if(cameraReady && magReady){
 				state = 6;
 				camera_control = false;
-				magState = carState::loop;
+				magState = carState::kLoop;
 			}
 		}
 		else{
@@ -198,27 +198,27 @@ uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loo
 			if((master_edge_size>5)||(master_corner_size==1)){
 				state = 6;
 				camera_control = false;
-				magState = carState::loop;
+				magState = carState::kLoop;
 			}
 		}
 		break;
 	case 6:
 		if(magnetic->outLoop()){
 			state = 7;
-			magState = carState::exitLoop;
+			magState = carState::kExitLoop;
 			speed = loopSpeed;
 		}
 		break;
 	case 7:
 		if (magnetic->isMidLoop()){
 			state = 8;
-			magState = carState::lessTurn;
+			magState = carState::kLessTurn;
 		}
 		break;
 	case 8:
 		if (!magnetic->isLoop() && magnetic->isBigStraight()){
 			state = 0;
-			magState = carState::normal;
+			magState = carState::kNormal;
 			speed = highSpeed;
 			is_loop = false;
 		}
@@ -233,9 +233,6 @@ uint8_t loop_control(uint8_t state, bool &is_loop, Mag* magnetic, bool &left_loo
 
 //main
 int main() {
-
- 	System::Init();
-
 	BoardID board;
 
 	Ov7725 camera(myConfig::getCameraConfig(Width, Height));
@@ -307,14 +304,14 @@ int main() {
 		loop_servo_pd[0] = 14500;
 		loop_servo_pd[1] = 400000;
 
-		x_servo_pd[0] = 12500;
-		x_servo_pd[1] = 1200000;
+		x_servo_pd[0] = 9702;
+		x_servo_pd[1] = 516780;
 
-		y_servo_pd[0] = 6;
-		y_servo_pd[1] = 80;
+		y_servo_pd[0] = 2.5885959;
+		y_servo_pd[1] = 217.845;
 
-		align_servo_pd[0] = -5;
-		align_servo_pd[1] = -17;
+		align_servo_pd[0] = -7.5;
+		align_servo_pd[1] = -130;
 
 		forwardL = true;
 		forwardR = true;
@@ -323,7 +320,7 @@ int main() {
 		leftServo = 1330;
 		rightServo = 695;
 
-		mag.SetMag(1);
+		mag.InitMag(1);
 
 		loop_slope = 0.6;
 		loopRsmall = 600;
@@ -359,7 +356,7 @@ int main() {
 		leftServo = 1130;
 		rightServo = 560;
 
-		mag.SetMag(2);
+		mag.InitMag(2);
 
 		loop_slope = 0.6;
 		loopRsmall = 450;
@@ -570,7 +567,7 @@ int main() {
 				if (cali) {
 					mag.Calibrate();
 				}
-				if (mag.noMagField() && magState == normal && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
+				if (mag.noMagField() && magState == kNormal && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
 					left_motorPID.setDesiredVelocity(0);
 					right_motorPID.setDesiredVelocity(0);
 					menu.select_pressed();
@@ -583,26 +580,26 @@ int main() {
 //				}
 
 				//for alignment
-				if (magState == normal && approaching) {
-					magState = leave;
-				} else if (magState == leave && mag.SmallerThanE(Mag::magPos::x_left, 0.5) && mag.SmallerThanE(Mag::magPos::x_right, 1.0)) {
+				if (magState == kNormal && approaching) {
+					magState = kLeave;
+				} else if (magState == kLeave && mag.GetMag(Mag::magPos::x_left) < 15 && mag.GetMag(Mag::magPos::x_right) < mag.GetEMin()) {
 					if (isFirst){
-						magState = stop;
+						magState = kStop;
 						speed = 0;
 					} else {
-						magState = side;
+						magState = kSide;
 						secondArrived = true;
 						uart0.Send_bool(DualCar_UART::BOOLEAN::b2, true);
 					}
-				} else if (magState == stop && secondArrived){
-					magState = side;
+				} else if (magState == kStop && secondArrived){
+					magState = kSide;
 					speed = alignSpeed;
 					approachTime = lastTime;
-				} else if (magState == align && mag.GetDifference(Mag::magPos::x_left, Mag::magPos::x_right) < 10 && abs((int) angle - middleServo) < 50){
-					magState = side;
+				} else if (magState == kAlign && abs(mag.GetYDiff()) < 4 && abs(angle-middleServo) < 50){
+					magState = kSide;
 					approachTime = lastTime;
-				} else if (magState == side && !approaching) {
-					magState = normal;
+				} else if (magState == kSide && !approaching) {
+					magState = kNormal;
 					if (isFirst || firstArrived || secondArrived){
 						isFirst = false;
 						firstArrived = false;
@@ -611,16 +608,17 @@ int main() {
 							lcd.SetRegion(Lcd::Rect(0,0,100,50));
 							lcd.FillColor(0xFF00);
 						}
-					if (firstArrived) {
-						lcd.SetRegion(Lcd::Rect(0,50,100,50));
-						lcd.FillColor(0xFF00);
+						if (firstArrived) {
+							lcd.SetRegion(Lcd::Rect(0,50,100,50));
+							lcd.FillColor(0xFF00);
+						}
+						if (secondArrived) {
+							lcd.SetRegion(Lcd::Rect(0,100,100,50));
+							lcd.FillColor(0xFF00);
+						}
 					}
-					if (secondArrived) {
-						lcd.SetRegion(Lcd::Rect(0,100,100,50));
-						lcd.FillColor(0xFF00);
-					}
-					}
-					speed = highSpeed;
+//					speed = highSpeed;
+					speed = 0;
 					lastServo = -100;
 				}
 
@@ -711,52 +709,40 @@ int main() {
 				if(!camera_control){
 					if (cali) {
 						angle = 0;
-					} else if (magState == normal || magState == loop || magState == exitLoop ||  magState == lessTurn) {
+					} else if (magState == kNormal || magState == kLoop || magState == kExitLoop ||  magState == kLessTurn) {
 //						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-//						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.6) || mag.SmallerThanMin(Mag::magPos::x_right, 1.6)){
-						if (mag.GetMag(Mag::magPos::x_left) < 20 || mag.GetMag(Mag::magPos::x_right) < 20){
-							angle = lastServo;
-						} else {
-							float target = 0.0;
-							if (magState == loop){
-								if (right_loop){
-									target = -0.005;
-								} else{
-									target = 0.005;
-								}
+						float target = 0.0;
+						if (magState == kLoop){
+							if (right_loop){
+								target = -0.005;
+							} else{
+								target = 0.005;
 							}
-							angle = 0.5*servoPIDx.getPID(target, mag.GetXLinear()) + 0.5*servoPIDy.getPID(target, mag.GetYLinear());
-							lastServo = angle;
 						}
-//						if (magState == exitLoop){
-//							if (mag.GetSum() < 55){
-//								if (right_loop){
-//									angle -= 400;
-//								} else{
-//									angle += 400;
-//								}
-//							} else{
-//								angle *=  2.5;
-//							}
-//						} else
-							if (magState == lessTurn){
+						angle = 0.5*servoPIDx.getPID(target, mag.GetXLinear()) + 0.5*servoPIDy.getPID(target, mag.GetYLinear());
+							lastServo = angle;
+						if (magState == kLessTurn){
 							angle *= 0.5;
 						}
-					} else if (magState == leave){
+					} else if (magState == kLeave){
 						angle = 150;
-					} else if (magState == stop){
+					} else if (magState == kStop){
 						angle = -400;
-					} else if (magState == align){
-						angle = servoPIDAlignCurve.getPID(mag.GetEMin(), mag.GetMag(Mag::magPos::x_right));
-					} else if (magState == side){
-//						if (!mag.SmallerThanMin(0, 2.0) && mag.SmallerThanE(1, 0.67)){
-						if (!mag.SmallerThanMin(Mag::magPos::x_left, 2.0) && mag.GetSum() > 60){
-							angle = 3 * servoPIDAlignCurve.getPID(mag.GetMin(0)*mag.GetMulti(0), mag.GetMag(Mag::magPos::x_left));
+					} else if (magState == kAlign){
+						angle = servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));
+					} else if (magState == kSide){
+						if (mag.GetYSum() > 15){
+							angle = 100 + 4 * servoPIDAlignCurve.getPID(0, mag.GetMag(Mag::magPos::x_left));
 							buzz.SetNote(100);
 							buzz.SetBeep(true);
 						} else{
-							angle = servoPIDAlignCurve.getPID(mag.GetEMin(), mag.GetMag(Mag::magPos::x_right));
+							angle = servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));
 							buzz.SetBeep(false);
+							if (mag.GetMag(Mag::magPos::x_right) < 25){
+								angle *= 1.5;
+								buzz.SetNote(300);
+								buzz.SetBeep(true);
+							}
 						}
 					}
 				} else{
@@ -853,8 +839,8 @@ int main() {
 					Items item24("xR", mag.GetMag(Mag::magPos::x_right));
 					Items item25("yL", mag.GetMag(Mag::magPos::y_left));
 					Items item26("yR", mag.GetMag(Mag::magPos::y_right));
-					Items item27("sum", mag.GetMag(Mag::magPos::x_left) + mag.GetMag(Mag::magPos::x_right) + mag.GetMag(Mag::magPos::y_left) + mag.GetMag(Mag::magPos::y_right));
-					Items item28("m3", mag.GetMag(3));
+					Items item27("sum", mag.GetXSum()+mag.GetYSum());
+					Items item28("magState", (int)magState);
 					Items item29("l", mag.GetXLinear());
 					Items item30("ac_cor", accumulate_corner);
 
@@ -874,7 +860,6 @@ int main() {
 					Items item35("getst", uart0.getsth);
 					Items item36("sdsth", uart0.sendsth);
 					Items item37("volt", batteryMeter.GetVoltage());
-					Items item38("magState", (int)magState);
 
 
 					mode0.add_items(&item0);
@@ -914,7 +899,6 @@ int main() {
 					mode4.add_items(&item35);
 					mode4.add_items(&item36);
 					mode4.add_items(&item37);
-					mode4.add_items(&item38);
 				}
 
 				menu.add_mode(&mode0);

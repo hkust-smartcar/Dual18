@@ -19,9 +19,9 @@ void Mag::TakeSample(){
 
 void Mag::Update(){
 	for (int i = 0; i < 6; i++){
-		if (sum[i] > 0){
-			v[i] = multi[i] * ((sum[i] / filterCounter) - min[i]);
-//			v[i] = multi[i] * ((sum[i] / filterCounter));
+		raw[i] = sum[i] / filterCounter;
+		if (raw[i] > 0){
+			v[i] = multi[i] * (raw[i] - min[i]);
 		}
 		sum[i] = 0;
 	}
@@ -32,11 +32,11 @@ void Mag::Update(){
 
 void Mag::Calibrate(){
 	for (int i = 0; i < 6; i++){
-		if (v[i] < min[i]){
-			min[i] = v[i];
+		if (raw[i] < min[i]){
+			min[i] = raw[i];
 		}
-		if (v[i] > max[i]){
-			max[i] = v[i];
+		if (raw[i] > max[i]){
+			max[i] = raw[i];
 		}
 	}
 	if (v[Mag::magPos::x_left] == v[Mag::magPos::x_right]){
@@ -58,12 +58,8 @@ bool Mag::noMagField(){
 	return b;
 }
 
-float Mag::GetMulti(uint8_t id){
-	return multi[id];
-}
-
- void Mag::SetMag(uint8_t id){
-	if (id == 1){
+ void Mag::InitMag(uint8_t car_id){
+	if (car_id == 1){
 		emin = 52;
 		emax = 55;
 		min[Mag::magPos::x_left] = 7;
@@ -75,7 +71,7 @@ float Mag::GetMulti(uint8_t id){
 		min[Mag::magPos::y_right] = 8;
 		max[Mag::magPos::y_left] = 72;
 		max[Mag::magPos::y_right] = 72;
-	}else if (id == 2){
+	}else if (car_id == 2){
 		emin = 48;
 		emax = 50;
 		min[Mag::magPos::x_left] = 10;
@@ -87,6 +83,7 @@ float Mag::GetMulti(uint8_t id){
 		min[Mag::magPos::y_right] = 7;
 		max[Mag::magPos::y_left] = 62;
 		max[Mag::magPos::y_right] = 71;
+//initial value for calibration
 //		emin = 200;
 //		emax = 4;
 //		min[Mag::magPos::x_left] = 70;
@@ -105,27 +102,28 @@ float Mag::GetMulti(uint8_t id){
 	multi[Mag::magPos::y_right] = 80.0/(max[Mag::magPos::y_right]-min[Mag::magPos::y_right]);
  }
 
-float Mag::GetAllign(){
-	return 1.0/(v[0*2]+40)-1.0/(v[0*2+1] + 10);
-}
-
+ //need to change
 bool Mag::isLoop(){
 	return ((v[Mag::magPos::x_left]+v[Mag::magPos::x_right] > (max[Mag::magPos::x_left]+max[Mag::magPos::x_right])*multi[Mag::magPos::x_left]) ||
 			(v[Mag::magPos::x_left] > 68 && v[Mag::magPos::x_right] > 68 && v[Mag::magPos::y_left]+v[Mag::magPos::y_right] < 40));
 }
 
+//need to change
 bool Mag::isRightLoop(){
 	return (v[Mag::magPos::y_right] + v[Mag::magPos::x_right] > v[Mag::magPos::y_left] + v[Mag::magPos::x_left]);
 }
 
+//need to change
 bool Mag::unlikelyCrossRoad(){
 	return (v[Mag::magPos::y_left] < 15 && v[Mag::magPos::y_right] < 15);
 }
 
+//need to change
 bool Mag::outLoop(){
 	return v[Mag::magPos::x_left] + v[Mag::magPos::x_right] + v[Mag::magPos::y_left] + v[Mag::magPos::y_right] > 260;
 }
 
+//need to change
 bool Mag::isMidLoop(){
 	return (v[Mag::magPos::y_left] < 30 || v[Mag::magPos::y_right] < 30);
 }
