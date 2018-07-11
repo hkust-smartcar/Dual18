@@ -713,7 +713,8 @@ int main() {
 						angle = 0;
 					} else if (magState == normal || magState == loop || magState == exitLoop ||  magState == lessTurn) {
 //						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.6) || mag.SmallerThanMin(Mag::magPos::x_right, 1.6)){
+//						if (mag.SmallerThanMin(Mag::magPos::x_left, 1.6) || mag.SmallerThanMin(Mag::magPos::x_right, 1.6)){
+						if (mag.GetMag(Mag::magPos::x_left) < 20 || mag.GetMag(Mag::magPos::x_right) < 20){
 							angle = lastServo;
 						} else {
 							float target = 0.0;
