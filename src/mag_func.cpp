@@ -53,7 +53,7 @@ bool Mag::noMagField(){
 	bool b = true;
 	for (int i = 0; i < 6; i++){
 		if (i != 2 && i != 3)
-			b = b && (v[i] < 10);
+			b = b && (v[i] < 5);
 	}
 	return b;
 }
@@ -110,22 +110,14 @@ bool Mag::isTwoLine(){
 	return (Mag::GetXSum()+Mag::GetYSum() > 160);
 }
 
-//need to change
-bool Mag::isRightLoop(){
-	return (v[Mag::magPos::y_right] + v[Mag::magPos::x_right] > v[Mag::magPos::y_left] + v[Mag::magPos::x_left]);
-}
-
-//need to change
 bool Mag::unlikelyCrossRoad(){
-	return (v[Mag::magPos::y_left] < 15 && v[Mag::magPos::y_right] < 15);
+	return (v[Mag::magPos::y_left] < 20 && v[Mag::magPos::y_right] < 20);
 }
 
-//need to change
 bool Mag::outLoop(){
-	return v[Mag::magPos::x_left] + v[Mag::magPos::x_right] + v[Mag::magPos::y_left] + v[Mag::magPos::y_right] > 200;
+	return (Mag::GetXSum()+Mag::GetYSum() > 200);
 }
 
-//need to change
 bool Mag::isMidLoop(){
-	return (v[Mag::magPos::y_left] < 30 || v[Mag::magPos::y_right] < 30);
+	return (v[Mag::magPos::y_left] < 20 || v[Mag::magPos::y_right] < 20);
 }
