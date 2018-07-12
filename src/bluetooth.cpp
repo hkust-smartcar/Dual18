@@ -29,10 +29,16 @@ void M_Bluetooth::change_message(const Byte* m_buff){
 		information_types = Informations::edge_xmid;
 	}
 
+	if(((*m_buff)==Informations::mpu)&&(buffer.size()==0)) {
+		buffer.clear();
+		information_types = Informations::mpu;
+	}
+
 	if((*m_buff==Informations::corner)&&(buffer.size()==0)) {
 		buffer.clear();
 		information_types = Informations::corner;
 	}
+
 }
 
 void M_Bluetooth::build_message(const Byte* m_buff){
@@ -100,6 +106,21 @@ void M_Bluetooth::build_message(const Byte* m_buff){
 			}
 			else{
 				edge_size = 0;
+			}
+			buffer.clear();
+		}
+	}
+
+	else if((information_types == Informations::mpu)) {
+		this->buffer.push_back(*m_buff);
+		if(((*m_buff)==Informations::end)) {
+			mpu_data = 0;
+			int size = buffer[1];
+			if(buffer.size() == size) {
+				mpu_data  = buffer[2];
+			}
+			else{
+				mpu_data = 0;
 			}
 			buffer.clear();
 		}

@@ -183,7 +183,7 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu){
 			PrintItem(menu->submenu_items[i],i+4);
 		}
 	}
-	else if((menu->identity == "open_motor")||(menu->identity == "close_motor")){}
+	else if((menu->identity == "OpenMotor")||(menu->identity == "CloseMotor")){}
 	else{
 		if(menu->identity == "changed"){
 			change_number();

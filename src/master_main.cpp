@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-#define Master
+//#define Master
 //combined
 #ifdef Master
 
@@ -460,8 +460,8 @@ int main() {
 
 	int temp = 0;
 	menuV2.AddItem("start", &(menuV2.home_page), true);
-	menuV2.AddItem("open_motor", menuV2.home_page.submenu_items[0].next_page, true);
-	menuV2.AddItem("close_motor", menuV2.home_page.submenu_items[0].next_page, true);
+	menuV2.AddItem("OpenMotor", menuV2.home_page.submenu_items[0].next_page, true);
+	menuV2.AddItem("CLoseMotor", menuV2.home_page.submenu_items[0].next_page, true);
 
 	menuV2.AddItem("camera", &(menuV2.home_page), true);
 	menuV2.AddItem("image", menuV2.home_page.submenu_items[1].next_page, true);
@@ -486,8 +486,9 @@ int main() {
 	menuV2.AddItem("other", &(menuV2.home_page), true);
 	menuV2.AddItem("EncL", &(encoderLval), menuV2.home_page.submenu_items[4].next_page, false);
 	menuV2.AddItem("EncR", &(encoderRval), menuV2.home_page.submenu_items[4].next_page, false);
-
-
+	int mpu_data = 0;
+	int* pmpu_data = &mpu_data;
+	menuV2.AddItem("mpu", pmpu_data, menuV2.home_page.submenu_items[4].next_page, false);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -698,6 +699,8 @@ int main() {
 				}
 				//
 
+				(*pmpu_data) = m_master_bluetooth.get_mpu_data();
+
 
 				//loop ver2
 				float master_slope = 0;
@@ -842,7 +845,7 @@ int main() {
 				menuV2.SetCamBuffer(camBuffer);
 				menuV2.SetEdge(master_edge);
 				current_page = menuV2.PrintSubMenu(current_page);
-				if(current_page->identity == "open_motor"){
+				if(current_page->identity == "OpenMotor"){
 					voltR = right_motorPID.getPID(cycle);
 					voltL = left_motorPID.getPID(cycle);
 					powerR = voltR/batteryVoltage*1000;
