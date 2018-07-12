@@ -458,7 +458,8 @@ int main() {
 	DualCarMenu menuV2(&lcd, &writer, Width, Height);
 	DualCarMenu::SubMenu* current_page = &menuV2.home_page;
 
-	int temp = 0;
+	int temp = 5230;
+	float tempf = 23.24;
 	menuV2.AddItem("start", &(menuV2.home_page), true);
 	menuV2.AddItem("OpenMotor", menuV2.home_page.submenu_items[0].next_page, true);
 	menuV2.AddItem("CloseMotor", menuV2.home_page.submenu_items[0].next_page, true);
@@ -480,7 +481,7 @@ int main() {
 	menuV2.AddItem("YL", pmag_yL, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("YR", pmag_yR, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("temp", &temp, menuV2.home_page.submenu_items[2].next_page, true);
-
+	menuV2.AddItem("tempf", &tempf, menuV2.home_page.submenu_items[2].next_page, true);
 	menuV2.AddItem("loop", &current_loop_state, &(menuV2.home_page), false);
 
 	menuV2.AddItem("other", &(menuV2.home_page), true);

@@ -29,15 +29,15 @@
 #include <cstring>
 using namespace std;
 
-class DualCarMenu{
+class DualCarMenu {
 public:
-	enum MessageType{
+	enum MessageType {
 		TypeInt, TypeFloat, TypeMessage
 	};
 
 	struct SubMenu;
 
-	struct Item{
+	struct Item {
 		char* name = nullptr;
 		string identity = "";
 		MessageType type = MessageType::TypeInt;
@@ -45,7 +45,7 @@ public:
 		bool can_change = false;
 		SubMenu* next_page = nullptr;
 	};
-	struct SubMenu{
+	struct SubMenu {
 		SubMenu* previous_page = nullptr;
 		char* submenu_name = nullptr;
 		string identity = "";
@@ -65,21 +65,19 @@ public:
 
 	void PrintItem(Item item, uint8_t row, bool isSelected = false);
 
-	SubMenu* PrintSubMenu(SubMenu* menu);//return the current page
+	SubMenu* PrintSubMenu(SubMenu* menu); //return the current page
 
 	void PrintCamImage();
 
-	void change_number();
-
-	void SetCamBuffer(const Byte* camBuffer){
+	void SetCamBuffer(const Byte* camBuffer) {
 		this->camBuffer = camBuffer;
 	}
 
-	void SetEdge(vector<pair<int, int>> edge){
+	void SetEdge(vector<pair<int, int>> edge) {
 		this->edge = edge;
 	}
 
-	void SetJoystickState(Joystick::State state){
+	void SetJoystickState(Joystick::State state) {
 		joystick_state = state;
 	}
 
@@ -93,7 +91,7 @@ private:
 	uint8_t image_height;
 	Joystick::State joystick_state = Joystick::State::kIdle;
 	uint8_t max_line = 10;
-	int current_line = 0;
+	uint8_t current_line = 0;
 	int selected = false;
 	bool pressed = false;
 	vector<SubMenu*> memory;
@@ -101,12 +99,11 @@ private:
 
 	int8_t change_number_row = 0;
 	int8_t change_number_column = 0;
+	Item *change_number_item_ptr = nullptr;
+	bool change_number_isOn = false;
+	char *change_number_newValue;
 
-//	char * change_number_getOpt(int8_t row, int8_t column, bool isSelected = false);
+	char * change_number_getOpt(const int8_t &row, const int8_t &column, uint8_t &action);
 };
-
-
-
-
 
 #endif /* INC_MENUV2_H_ */

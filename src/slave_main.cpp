@@ -41,6 +41,7 @@
 #include "useful_functions.h"
 #include "menu.h"
 #include "libsc/mpu6050.h"
+#include "FlashWrapper.h"
 
 #define pi 3.1415926
 

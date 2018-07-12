@@ -14,45 +14,8 @@ DualCarMenu::DualCarMenu(St7735r* lcd, LcdTypewriter* writer, uint8_t image_widt
 	this->image_width = image_width;
 	this->image_height = image_height;
 	home_page.identity = "home_page";
-}
 
-void DualCarMenu::change_number() {
-	/*
-	 * (variable name)
-	 * (value)
-	 *
-	 * 1 2 3
-	 * 4 5 6
-	 * 7 8 9
-	 * DEL 0 .
-	 * BACK SAVE CLR
-	 */
-
-	switch (joystick_state) {
-		joystick_state = Joystick::State::kIdle;
-		case Joystick::State::kSelect:
-			break;
-		case Joystick::State::kUp:
-			change_number_row--;
-			break;
-		case Joystick::State::kDown:
-			change_number_row++;
-			break;
-		case Joystick::State::kLeft:
-			change_number_column--;
-			break;
-		case Joystick::State::kRight:
-			change_number_column++;
-			break;
-		default:
-			break;
-	}
-
-	change_number_row = change_number_row == -1 ? 2 : change_number_row;
-	change_number_row = change_number_row == 3 ? 0 : change_number_row;
-	change_number_column = change_number_column == -1 ? 3 : change_number_column;
-	change_number_column = change_number_column == 4 ? 0 : change_number_column;
-	return;
+	change_number_newValue = (char*) malloc(20);
 }
 
 void DualCarMenu::AddItem(char* input_name, float* input_data, SubMenu* under_menu, bool can_change) {
@@ -111,17 +74,17 @@ void DualCarMenu::AddItem(char* input_name, SubMenu* under_menu, bool HavSub) {
 }
 
 void DualCarMenu::PrintItem(Item item, uint8_t row, bool isSelected) {
-	char c[15];
-	for (int i = 0; i < 15; i++) {
+	char c[20];
+	for (int i = 0; i < 20; i++) {
 		c[i] = ' ';
 	}
-	lcd->SetRegion(Lcd::Rect(0, 15 * row, 80, 15));
+	lcd->SetRegion(Lcd::Rect(0, 15 * row, 120, 15));
 	switch (item.type) {
 		case MessageType::TypeInt:
 			sprintf(c, " %s: %d", item.name, *int_data[item.message_index]);
 			break;
 		case MessageType::TypeFloat:
-			sprintf(c, " %s: %.3float", item.name, *float_data[item.message_index]);
+			sprintf(c, " %s: %.3f", item.name, *float_data[item.message_index]);
 			break;
 		case MessageType::TypeMessage:
 			sprintf(c, " %s", item.name);
@@ -131,19 +94,72 @@ void DualCarMenu::PrintItem(Item item, uint8_t row, bool isSelected) {
 			break;
 	}
 	c[0] = isSelected ? '>' : ' ';
-	writer->WriteBuffer(c, 15);
+	writer->WriteBuffer(c, 20);
 }
 
 DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 
-	AddItem("exit", menu, false);
+	uint8_t change_number_action; // dummy read
+	change_number_getOpt(change_number_row, change_number_column, change_number_action);
+
+	AddItem((char*) "exit", menu, false);
 	switch (joystick_state) {
 		case Joystick::State::kSelect:
-			if (selected > 0)
-				selected = 0;
-			else
-				selected = 1;
-			pressed = !pressed;
+			if (menu->identity == "changed") {
+				if (strlen(change_number_newValue) < 15) {
+					char c[1];
+					if (change_number_action < 10) {
+						// 1 to 9
+						sprintf(c, "%d", change_number_action);
+						strcat(change_number_newValue, c);
+					} else if (change_number_action == 10 && strlen(change_number_newValue) != 0) {
+						// del - remove last character
+						change_number_newValue[strlen(change_number_newValue) - 1] = 0;
+					} else if (change_number_action == 11) {
+						// 0
+						sprintf(c, "%d", 0);
+						strcat(change_number_newValue, c);
+					} else if (change_number_action == 12 && strlen(change_number_newValue) != 0) {
+						// .
+						sprintf(c, ".");
+						strcat(change_number_newValue, c);
+					} else if (change_number_action == 13) {
+						// back
+						if (selected > 0)
+							selected = 0;
+						else
+							selected = 1;
+						pressed = !pressed;
+					} else if (change_number_action == 14) {
+						// save
+						float t = 7777;
+//						std::sscanf(change_number_newValue, "%f", &t);
+						t = atof(change_number_newValue);
+						if (change_number_item_ptr->type == MessageType::TypeInt) {
+							*int_data[change_number_item_ptr->message_index] = (int) t;
+						} else {
+							*float_data[change_number_item_ptr->message_index] = t;
+						}
+
+						if (selected > 0)
+							selected = 0;
+						else
+							selected = 1;
+						pressed = !pressed;
+					} else if (change_number_action == 15) {
+						// clear
+						sprintf(change_number_newValue, "");
+					}
+//					strcat(change_number_newValue, (char*) (change_number_action+48)); // ascii conversion
+				}
+			} else {
+				if (selected > 0)
+					selected = 0;
+				else
+					selected = 1;
+				pressed = !pressed;
+
+			}
 			joystick_state = Joystick::State::kIdle;
 			break;
 		case Joystick::State::kUp:
@@ -152,10 +168,14 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 //					(*int_data[menu->submenu_items[current_line].message_index])++;
 //				}
 //			} else if (!selected) {
-			if (current_line > 0)
+			if (current_line > 0) {
 				current_line--;
+			} else {
+				current_line = (menu->submenu_items.size() - 1);
+			}
 //			}
-
+			if (menu->identity == "changed")
+				change_number_row--;
 			joystick_state = Joystick::State::kIdle;
 			break;
 		case Joystick::State::kDown:
@@ -166,15 +186,24 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 //					}
 //				}
 //			} else if (!selected) {
-			if (current_line < (menu->submenu_items.size() - 1))
+			if (current_line < (menu->submenu_items.size() - 1)) {
 				current_line++;
+			} else {
+				current_line = 0;
+			}
 //			}
+			if (menu->identity == "changed")
+				change_number_row++;
 			joystick_state = Joystick::State::kIdle;
 			break;
 		case Joystick::State::kLeft:
+			if (menu->identity == "changed")
+				change_number_column--;
 			joystick_state = Joystick::State::kIdle;
 			break;
 		case Joystick::State::kRight:
+			if (menu->identity == "changed")
+				change_number_column++;
 			joystick_state = Joystick::State::kIdle;
 			break;
 		default:
@@ -182,9 +211,20 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 			break;
 	}
 
+	if (menu->identity == "changed") {
+		change_number_row = change_number_row == -1 ? 4 : change_number_row;
+		change_number_row = change_number_row == 5 ? 0 : change_number_row;
+		change_number_column = change_number_column == -1 ? 2 : change_number_column;
+		change_number_column = change_number_column == 3 ? 0 : change_number_column;
+	}
+
 	if ((pressed) && (menu->submenu_items[current_line].next_page != nullptr)) {
 		pressed = false;
 		selected = false;
+
+		// need better assignment for this VVV
+		change_number_item_ptr = &menu->submenu_items[current_line];
+
 		uint8_t temp = current_line;
 		current_line = 0;
 		menu->submenu_items.erase(menu->submenu_items.end());
@@ -193,9 +233,9 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 		return menu->submenu_items[temp].next_page;
 	} else if ((pressed) && (menu->submenu_items[current_line].identity == "exit")
 			&& (menu->identity != "home_page")) {
+		change_number_action = 0;
 		pressed = false;
 		selected = false;
-		uint8_t temp = current_line;
 		current_line = 0;
 		menu->submenu_items.erase(menu->submenu_items.end());
 		lcd->Clear();
@@ -204,20 +244,61 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 
 	if (menu->identity == "image") {
 		PrintCamImage();
-		for (int i = 0; i < (menu->submenu_items.size()) && (i < max_line - 4); i++) {
+		for (uint16_t i = 0; i < (menu->submenu_items.size()) && (i < max_line - 4); i++) {
 			PrintItem(menu->submenu_items[i], i + 4);
 		}
 	} else if ((menu->identity == "OpenMotor") || (menu->identity == "CloseMotor")) {
-	} else {
-		if (menu->identity == "changed") {
-			change_number();
+	} else if (menu->identity == "changed") {
+		if (!change_number_isOn) {
+			// init the value
+			char c[20];
+			if (change_number_item_ptr->type == MessageType::TypeInt) {
+				sprintf(c, "%d", *int_data[change_number_item_ptr->message_index]);
+			} else {
+				sprintf(c, "%.3f", *float_data[change_number_item_ptr->message_index]);
+			}
+			strcpy(change_number_newValue, c);
+			lcd->Clear();
+			change_number_isOn = true;
+
+			change_number_row = 3;
+			change_number_column = 1;
 		}
-		for (int i = 0; i < (menu->submenu_items.size()) && (i < max_line); i++) {
+
+		char c[20];
+		lcd->SetRegion(Lcd::Rect(0, 15 * 0, 120, 15));
+		if (change_number_item_ptr->type == MessageType::TypeInt) {
+			sprintf(c, "*%s: %d                ", change_number_item_ptr->name,
+					*int_data[change_number_item_ptr->message_index]);
+		} else {
+			sprintf(c, "*%s: %.3f                ", change_number_item_ptr->name,
+					*float_data[change_number_item_ptr->message_index]);
+		}
+		writer->WriteBuffer(c, 20);
+
+		lcd->SetRegion(Lcd::Rect(10, 15 * 1, 120, 15));
+		strcpy(c, change_number_newValue);
+		strcat(c, (char *) "                     ");
+		writer->WriteBuffer(c, 20);
+
+		for (uint8_t y = 0; y < 5; y++) {
+			char* c = (char*) malloc(30);
+			uint8_t change_number_action; // dummy read
+			strcpy(c, change_number_getOpt(y, 0, change_number_action));
+			strcat(c, change_number_getOpt(y, 1, change_number_action));
+			strcat(c, change_number_getOpt(y, 2, change_number_action));
+			lcd->SetRegion(Lcd::Rect(0, 15 * (y + 3), 120, 15));
+			writer->WriteBuffer(c, 30);
+			free(c);
+		}
+	} else {
+		for (uint16_t i = 0; i < (menu->submenu_items.size()) && (i < max_line); i++) {
 			PrintItem(menu->submenu_items[i], i, current_line == i);
 		}
 	}
 	menu->submenu_items.erase(menu->submenu_items.end());
 
+	change_number_isOn = menu->identity == "changed";
 	return menu;
 
 }
@@ -226,9 +307,78 @@ void DualCarMenu::PrintCamImage() {
 	lcd->SetRegion(Lcd::Rect(0, 0, image_width, image_height));
 	lcd->FillBits(0x0000, 0xFFFF, camBuffer, (image_width * image_height));
 
-	for (int i = 0; i < edge.size(); i++) {
+	for (uint16_t i = 0; i < edge.size(); i++) {
 		lcd->SetRegion(Lcd::Rect(edge[i].first, edge[i].second, 2, 2));
 		lcd->FillColor(Lcd::kRed);
 	}
 
+}
+
+inline char * DualCarMenu::change_number_getOpt(const int8_t &row, const int8_t &column, uint8_t &action) {
+	char str[5];
+	bool isSelected = change_number_row == row && change_number_column == column;
+	char selectLeft = isSelected ? '>' : ' ';
+	char selectRight = isSelected ? '<' : ' ';
+	switch (row) {
+		case 0:
+		case 1:
+		case 2:
+			action = (row * 3 + (column + 1));
+			sprintf(str, "%c %d %c", selectLeft, action, selectRight);
+			break;
+		case 3: {
+			switch (column) {
+				case 0: {
+					// del
+					action = 10;
+					sprintf(str, "%c%s%c", selectLeft, "Del", selectRight);
+				}
+					break;
+				case 1: {
+					// 0
+					action = 11;
+					sprintf(str, "%c%s%c", selectLeft, " 0 ", selectRight);
+				}
+					break;
+				case 2: {
+					// .
+					action = 12;
+					sprintf(str, "%c%s%c", selectLeft, " . ", selectRight);
+				}
+					break;
+				default:
+					break;
+			}
+		}
+			break;
+		case 4: {
+			switch (column) {
+				case 0: {
+					action = 13;
+					sprintf(str, "%c%s%c", selectLeft, "BK ", selectRight);
+					// Back
+				}
+					break;
+				case 1: {
+					action = 14;
+					sprintf(str, "%c%s%c", selectLeft, "SAV", selectRight);
+					// Enter
+				}
+					break;
+				case 2: {
+					action = 15;
+					sprintf(str, "%c%s%c", selectLeft, "Clr", selectRight);
+					// Clear
+				}
+					break;
+				default:
+					break;
+			}
+		}
+			break;
+		default:
+			break;
+	}
+
+	return str;
 }
