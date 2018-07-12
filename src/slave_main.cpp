@@ -8,6 +8,7 @@
 //#define slave
 
 #ifdef slave
+//#ifndef Master
 
 #include <cmath>
 #include <vector>
@@ -39,6 +40,8 @@
 #include "libbase/k60/vectors.h"
 #include "useful_functions.h"
 #include "menu.h"
+#include "libsc/mpu6050.h"
+
 #define pi 3.1415926
 
 namespace libbase {
@@ -117,24 +120,22 @@ int main() {
 	Mode mode1(1);
 	Mode ClearMode(2);
 
-
-
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
 		if(state == Joystick::State::kRight) {
 			menu.change_mode(true);
 		}
-		else if(state == Joystick::State::kLeft){
+		else if(state == Joystick::State::kLeft) {
 			menu.change_mode(false);
 		}
-		else if(state == Joystick::State::kSelect){
+		else if(state == Joystick::State::kSelect) {
 			menu.select_pressed();
 		}
-		else if(state == Joystick::State::kUp){
+		else if(state == Joystick::State::kUp) {
 			menu.change_line(true);
 
 		}
-		else if(state == Joystick::State::kDown){
+		else if(state == Joystick::State::kDown) {
 			menu.change_line(false);
 		}
 	})));
@@ -156,7 +157,14 @@ int main() {
 
 //	int servo_degree = 1000;
 
+	// init mpu
 
+	Mpu6050::Config MpuConfig;
+	MpuConfig.accel_range = Mpu6050::Config::Range::kExtreme;
+	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
+	MpuConfig.cal_drift = true;
+	Mpu6050 mpu(MpuConfig);
+	System::DelayMs(200);
 
 	while (1) {
 		if (System::Time() != lastTime) {
@@ -169,9 +177,13 @@ int main() {
 
 // bluetooth send image
 
+
+				mpu.Update(1);
+				std::array<int32_t, 3> mpuAccel = mpu.GetAccel();
+				mpuAccel[2] -= 2630;
+
 				float slave_slope;
 				bool right_fail;
-				int mpu_number = 1;
 				m_slave_vector = right_edge.check_edge(camBuffer, 30, 60);
 				vector<Corner> m_corner;
 				m_corner = check_corner(camBuffer, 30, 60, m_slave_vector);
@@ -183,33 +195,33 @@ int main() {
 				m_slave_bluetooth.send_slope(slave_slope);
 				m_slave_bluetooth.send_corner(m_corner);
 				m_slave_bluetooth.send_int_data(m_slave_vector.size(), Informations::edge_size);
-				m_slave_bluetooth.send_int_data(mpu_number, Informations::mpu);
-				if(m_slave_vector.size()>0){
-					m_slave_bluetooth.send_int_data(m_slave_vector[m_slave_vector.size()/2].first, Informations::edge_xmid);
-				}
-				else{
+				m_slave_bluetooth.send_int_data(mpuAccel[2], Informations::mpu);
+				if (m_slave_vector.size() > 0) {
+					m_slave_bluetooth.send_int_data(m_slave_vector[m_slave_vector.size() / 2].first,
+							Informations::edge_xmid);
+				} else {
 					m_slave_bluetooth.send_int_data(0, Informations::edge_xmid);
 				}
 
 //				}
 
-
-
-				if(menu.get_mode()!=2){
-					Items item0 ("Slave");
+				if (menu.get_mode() != 2) {
+					Items item0("Slave");
 					Items item1("Sl", slave_slope);
 //					Items item2("Select", menu.get_selected());
 //					Items item3("line", menu.get_line());
 					Items item2("corner", m_corner.size());
 					Items item3("S_es", m_slave_vector.size());
-					Items item4("xmid", m_slave_vector[m_slave_vector.size()/2].first);
+					Items item4("xmid", m_slave_vector[m_slave_vector.size() / 2].first);
 					Items item5("xmid", 0);
+					Items item6("mpu", mpuAccel[2]);
 
 					mode0.add_items(&item0);
 					mode0.add_items(&item1);
 					mode0.add_items(&item2);
 					mode0.add_items(&item3);
-					if(m_slave_vector.size()>0)
+					mode0.add_items(&item6);
+					if (m_slave_vector.size() > 0)
 						mode0.add_items(&item4);
 					else
 						mode0.add_items(&item5);
@@ -228,34 +240,28 @@ int main() {
 					lcd.SetRegion(Lcd::Rect(0, 0, Width, Height));
 					lcd.FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
 					for (int i = 0; i < m_slave_vector.size(); i++) {
-						lcd.SetRegion(
-								Lcd::Rect(m_slave_vector[i].first,
-										m_slave_vector[i].second, 2, 2));
+						lcd.SetRegion(Lcd::Rect(m_slave_vector[i].first, m_slave_vector[i].second, 2, 2));
 						lcd.FillColor(Lcd::kRed);
 					}
 
 					for (int i = 0; i < m_corner.size(); i++) {
-						lcd.SetRegion(
-								Lcd::Rect(m_corner[i].get_xcoord(),
-										m_corner[i].get_ycoord(), 2, 2));
+						lcd.SetRegion(Lcd::Rect(m_corner[i].get_xcoord(), m_corner[i].get_ycoord(), 2, 2));
 						lcd.FillColor(Lcd::kBlue);
 					}
 
-					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
-						lcd.SetRegion(Lcd::Rect(0, 60+15*i, 88, 15));
-						writer.WriteBuffer(menu.m_menu[0]->m_items[i]->get_message(),15);
+					for (int i = 0; i < menu.m_menu[menu.get_mode()]->get_max_line(); i++) {
+						lcd.SetRegion(Lcd::Rect(0, 60 + 15 * i, 88, 15));
+						writer.WriteBuffer(menu.m_menu[0]->m_items[i]->get_message(), 15);
 					}
-				}
-				else if (menu.get_mode() == 1) {
+				} else if (menu.get_mode() == 1) {
 					if (menu.change_screen()) {
 						lcd.Clear();
 					}
-					for(int i=0; i<menu.m_menu[menu.get_mode()]->get_max_line(); i++){
-						lcd.SetRegion(Lcd::Rect(0, 15*i, 88, 15));
-						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),15);
+					for (int i = 0; i < menu.m_menu[menu.get_mode()]->get_max_line(); i++) {
+						lcd.SetRegion(Lcd::Rect(0, 15 * i, 88, 15));
+						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(), 15);
 					}
-				}
-				else{
+				} else {
 					if (menu.change_screen()) {
 						lcd.Clear();
 					}
