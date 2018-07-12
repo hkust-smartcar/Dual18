@@ -63,7 +63,7 @@ public:
 
 	void AddItem(char* input_name, SubMenu* under_menu, bool HavSub);
 
-	void PrintItem(Item item, uint8_t row);
+	void PrintItem(Item item, uint8_t row, bool isSelected = false);
 
 	SubMenu* PrintSubMenu(SubMenu* menu);//return the current page
 
@@ -98,6 +98,11 @@ private:
 	bool pressed = false;
 	vector<SubMenu*> memory;
 	vector<pair<int, int>> edge;
+
+	int8_t change_number_row = 0;
+	int8_t change_number_column = 0;
+
+//	char * change_number_getOpt(int8_t row, int8_t column, bool isSelected = false);
 };
 
 

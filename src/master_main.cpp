@@ -461,7 +461,7 @@ int main() {
 	int temp = 0;
 	menuV2.AddItem("start", &(menuV2.home_page), true);
 	menuV2.AddItem("OpenMotor", menuV2.home_page.submenu_items[0].next_page, true);
-	menuV2.AddItem("CLoseMotor", menuV2.home_page.submenu_items[0].next_page, true);
+	menuV2.AddItem("CloseMotor", menuV2.home_page.submenu_items[0].next_page, true);
 
 	menuV2.AddItem("camera", &(menuV2.home_page), true);
 	menuV2.AddItem("image", menuV2.home_page.submenu_items[1].next_page, true);
