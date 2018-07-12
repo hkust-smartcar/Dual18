@@ -111,7 +111,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 		}
 		break;
 	case 1:
-		if(master_slope<(-1*slave_slope))//master_slope<magnetic->isRightLoop()
+		if(master_slope < (-slave_slope))//master_slope<magnetic->isRightLoop()
 			left = true;
 		else
 			left = false;
@@ -382,8 +382,8 @@ int main() {
 	float encoderLval, encoderRval;
 	float voltL, voltR;
 	int32_t powerL, powerR;
-	float batterySum = 0, angleSum = 0;
-	uint16_t batteryCount = 0, angleCount = 0;
+	float batterySum = 0;
+	uint16_t batteryCount = 0;
 
 
 	// below sync data to the computer side
@@ -442,15 +442,15 @@ int main() {
 	//dotted lines
 	uint32_t accumulate_corner = 0;
 	uint8_t dot_time = 0;
-	bool is_dot_line = false;
 	bool start_count_corner = false;
+
 	bool rubbishJoseph = false;//two car
 
 	//for loop ver2
 	float loop_control_const = 85;
 	bool left_loop = false;
 	bool in_loop = false;
-	bool camera_control = false;//true for camera, false for mag
+	bool camera_control = false;
 	int current_loop_state = 0;
 	//
 
@@ -472,24 +472,34 @@ int main() {
 	int mag_xR = mag.GetMag(Mag::magPos::x_right);
 	int mag_yL = mag.GetMag(Mag::magPos::y_left);
 	int mag_yR = mag.GetMag(Mag::magPos::y_right);
+	int mag_xSum = mag.GetXSum();
+	int mag_ySum = mag.GetYSum();
 	int* pmag_xL = &mag_xL;
 	int* pmag_xR = &mag_xR;
 	int* pmag_yL = &mag_yL;
 	int* pmag_yR = &mag_yR;
+	int* pmag_xSum = &mag_xSum;
+	int* pmag_ySum = &mag_ySum;
 	menuV2.AddItem("XL", pmag_xL, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("XR", pmag_xR, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("YL", pmag_yL, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("YR", pmag_yR, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem("XS", pmag_xSum, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem("YS", pmag_ySum, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("temp", &temp, menuV2.home_page.submenu_items[2].next_page, true);
 	menuV2.AddItem("tempf", &tempf, menuV2.home_page.submenu_items[2].next_page, true);
 	menuV2.AddItem("loop", &current_loop_state, &(menuV2.home_page), false);
 
+	int intmagState = (int)magState;
+	int* pmagState = &intmagState;
+	menuV2.AddItem("MagSt", pmagState, &(menuV2.home_page), false);
+
 	menuV2.AddItem("other", &(menuV2.home_page), true);
-	menuV2.AddItem("EncL", &(encoderLval), menuV2.home_page.submenu_items[4].next_page, false);
-	menuV2.AddItem("EncR", &(encoderRval), menuV2.home_page.submenu_items[4].next_page, false);
+	menuV2.AddItem("EncL", &(encoderLval), menuV2.home_page.submenu_items[5].next_page, false);
+	menuV2.AddItem("EncR", &(encoderRval), menuV2.home_page.submenu_items[5].next_page, false);
 	int mpu_data = 0;
 	int* pmpu_data = &mpu_data;
-	menuV2.AddItem("mpu", pmpu_data, menuV2.home_page.submenu_items[4].next_page, false);
+	menuV2.AddItem("mpu", pmpu_data, menuV2.home_page.submenu_items[5].next_page, false);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -578,16 +588,13 @@ int main() {
 //						lcd.FillColor(0x0000);
 //					}
 //				}
-				dot_time++;
 				on9lastMain = lastTime;
 				if (cali) {
 					mag.Calibrate();
 				}
-//				if (mag.noMagField() && magState == kNormal && menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected()) {
-//					left_motorPID.setDesiredVelocity(0);
-//					right_motorPID.setDesiredVelocity(0);
-//					menu.select_pressed();
-//				}
+				if (mag.noMagField() && current_page->identity == "OpenMotor") {
+					speed = 0;
+				}
 
 //				if (batteryVoltage < 7.3 && !(menu.get_mode() == DualCar_Menu::Page::kStart && menu.get_selected())){
 //					buzz.SetBeep(lastTime % 100 < 50);
@@ -633,9 +640,7 @@ int main() {
 							lcd.FillColor(0xFF00);
 						}
 					}
-//					speed = highSpeed;
-					speed = 0;
-					lastServo = -100;
+					speed = highSpeed;
 				}
 
 				if (!rubbishJoseph){
@@ -662,19 +667,17 @@ int main() {
 				slave_corner = m_master_bluetooth.get_slave_corner();
 
 				//alignment
-				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()!=0)&& (slave_corner.size()!=0) && !mag.isTwoLine() && !start_count_corner){
+				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()!=0)&& (slave_corner.size()!=0) && !start_count_corner){
 					dot_time = 0;
 					start_count_corner = true;
 				}
 
 				if(start_count_corner){
+					dot_time++;
 					if(dot_time==10){
-						start_count_corner = false;
-						dot_time = 0;
-						if(accumulate_corner>5){//original 4
-							is_dot_line = true;
+						if(accumulate_corner > 5){
 							buzz.SetBeep(true);
-							if(!approaching && (lastTime - approachTime >= 15000 || approachTime == 0)){
+							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (lastTime - approachTime >= 10000 || approachTime == 0)){
 								approaching = true;
 								if (!firstArrived){
 									isFirst = true;
@@ -683,19 +686,13 @@ int main() {
 								}
 							}
 						}
-						else{
-							is_dot_line = false;
-						}
 						accumulate_corner = 0;
+						start_count_corner = false;
+						dot_time = 0;
 					}
 					else{
 						accumulate_corner += master_corner.size();
 						accumulate_corner += slave_corner.size();
-					}
-				}
-				else{
-					if(dot_time==10){
-						dot_time = 0;
 					}
 				}
 				//
@@ -716,13 +713,16 @@ int main() {
 				slave_slope = m_master_bluetooth.get_m_slope();
 				if(mag.isLoop() && !in_loop){
 					in_loop = true;
+					buzz.SetBeep(true);
 				}
 
 				if(slave_edge_size<2){
 					s_edge_xmid = 80;
 				}
 
-				current_loop_state = loop_control(current_loop_state, in_loop, &mag, left_loop, camera_control, camera_angle, master_edge.size(), slave_edge_size, m_edge_xmid, s_edge_xmid, master_corner.size(), slave_corner.size(),master_slope, slave_slope);
+				if (in_loop){
+					current_loop_state = loop_control(current_loop_state, in_loop, &mag, left_loop, camera_control, camera_angle, master_edge.size(), slave_edge_size, m_edge_xmid, s_edge_xmid, master_corner.size(), slave_corner.size(),master_slope, slave_slope);
+				}
 
 				if(!camera_control){
 					if (cali) {
@@ -744,12 +744,18 @@ int main() {
 						}
 						if (magState == kLessTurn){
 							angle *= 0.5;
+							buzz.SetNote(698);
+							buzz.SetBeep(true);
 						} else if (magState == kExitLoop){
 							if (left_loop){
 								angle += 100;
 							} else {
 								angle -= 100;
 							}
+							buzz.SetNote(659);
+							buzz.SetBeep(true);
+						} else if (!in_loop){
+							buzz.SetBeep(false);
 						}
 					} else if (magState == kLeave){
 						angle = 150;
@@ -776,6 +782,7 @@ int main() {
 					angle = camera_angle;
 				}
 				angle = 0.8*angle + 0.2*lastServo;
+				lastServo = angle;
 				angle += middleServo;
 				angle = max(rightServo, min(leftServo, angle));
 				servo.SetDegree(angle);
@@ -792,60 +799,24 @@ int main() {
 					right_motorPID.setDesiredVelocity(speed * (1 - differential));
 				}
 
-//				if (menu.get_mode() != DualCar_Menu::Page::kStart) {
-//					encoderL.Update();
-//					encoderR.Update();
-//					encoderLval = encoderL.GetCount();
-//					encoderRval = -encoderR.GetCount();
-//				}
-//
-//				batteryVoltage = batterySum/batteryCount;
-//				if (menu.get_mode() == DualCar_Menu::Page::kStart){
-//					if (menu.get_selected()) {
-//						voltR = right_motorPID.getPID(cycle);
-//						voltL = left_motorPID.getPID(cycle);
-//						powerR = voltR/batteryVoltage*1000;
-//						powerL = voltL/batteryVoltage*1000;
-//						if (powerR > 0) {
-//							right_motor.SetClockwise(forwardR);
-//							right_motor.SetPower(min(powerR,1000));
-//						} else {
-//							right_motor.SetClockwise(!forwardR);
-//							right_motor.SetPower(min(-powerR,1000));
-//						}
-//						if (powerL > 0) {
-//							left_motor.SetClockwise(forwardL);
-//							left_motor.SetPower(min(powerL,1000));
-//						} else {
-//							left_motor.SetClockwise(!forwardL);
-//							left_motor.SetPower(min(-powerL,1000));
-//						}
-//					} else {
-//						left_motorPID.setDesiredVelocity(0);
-//						right_motorPID.setDesiredVelocity(0);
-//						left_motor.SetPower(0);
-//						right_motor.SetPower(0);
-//						if (encoderLval != 0) {
-//							encoderL.Update();
-//						}
-//						if (encoderRval != 0) {
-//							encoderR.Update();
-//						}
-//					}
-//				}
-
 				/////print menu
 				if(left_loop){
 					led0.SetEnable(0);
+					led1.SetEnable(0);
+					led2.SetEnable(0);
+					led3.SetEnable(0);
 				}
-
+				*pmagState = (int)magState;
 				mag_xL = mag.GetMag(Mag::magPos::x_left);
 				mag_xR = mag.GetMag(Mag::magPos::x_right);
 				mag_yL = mag.GetMag(Mag::magPos::y_left);
 				mag_yR = mag.GetMag(Mag::magPos::y_right);
+				mag_xSum = mag.GetXSum();
+				mag_ySum = mag.GetYSum();
 				menuV2.SetCamBuffer(camBuffer);
 				menuV2.SetEdge(master_edge);
 				current_page = menuV2.PrintSubMenu(current_page);
+				batteryVoltage = batterySum/batteryCount;
 				if(current_page->identity == "OpenMotor"){
 					voltR = right_motorPID.getPID(cycle);
 					voltL = left_motorPID.getPID(cycle);
@@ -875,13 +846,6 @@ int main() {
 					right_motorPID.setDesiredVelocity(0);
 					left_motor.SetPower(0);
 					right_motor.SetPower(0);
-					if (encoderLval != 0) {
-						encoderL.Update();
-					}
-					if (encoderRval != 0) {
-						encoderR.Update();
-					}
-
 				}
 				/////
 

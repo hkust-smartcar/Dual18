@@ -42,7 +42,6 @@ public:
 	bool unlikelyCrossRoad();
 	bool outLoop();
 	bool isMidLoop();
-	bool isRightLoop();
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id];}
 	bool isBigStraight(){return (xLinear > -0.005 && xLinear < 0.005);};
 	void InitMag(uint8_t car_id);
