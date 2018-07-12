@@ -334,24 +334,24 @@ int main() {
 
 	} else {
 	    left_motor_pid[0] = 0.03;
-	    left_motor_pid[1] = 0.0055;
-	    left_motor_pid[2] = 0.007;
+	    left_motor_pid[1] = 0.003;
+	    left_motor_pid[2] = 0.005;
 
 	    right_motor_pid[0] = 0.035;
-	    right_motor_pid[1] = 0.008;
-	    right_motor_pid[2] = 0.007;
+	    right_motor_pid[1] = 0.0036;
+	    right_motor_pid[2] = 0.0065;
 
 	    loop_servo_pd[0] = 14500;
 	    loop_servo_pd[1] = 350000;
 
-	    x_servo_pd[0] = 10634;
-	    x_servo_pd[1] = 981750;
+	    x_servo_pd[0] = 15688.376;
+	    x_servo_pd[1] = 712800.06;
 
-	    y_servo_pd[0] = 16.1;
-	    y_servo_pd[1] = 363;
+	    y_servo_pd[0] = 3.538945;
+	    y_servo_pd[1] = 126.72;
 
-		align_servo_pd[0] = -5;
-		align_servo_pd[1] = -17;
+		align_servo_pd[0] = -7.5;
+		align_servo_pd[1] = -130;
 
 		forwardL = false;
 		forwardR = true;
