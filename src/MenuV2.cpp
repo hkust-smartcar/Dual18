@@ -147,6 +147,7 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu){
 			joystick_state = Joystick::State::kIdle;
 			break;
 		default:
+			pressed = false;
 			break;
 	}
 
