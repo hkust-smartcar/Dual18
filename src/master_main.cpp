@@ -204,14 +204,13 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 		}
 		break;
 	case 6:
-		if(magnetic->outLoop()){
+		if(magnetic->outLoop() && magnetic->GetYSum() > magnetic->GetXSum() ){
 			state = 7;
 			magState = carState::kExitLoop;
-			speed = loopSpeed;
 		}
 		break;
 	case 7:
-		if (magnetic->GetXSum() > 140 && magnetic->GetYSum() < 80){//magnetic->isMidLoop()
+		if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 90){//magnetic->isMidLoop()
 			state = 8;
 			magState = carState::kLessTurn;
 		}
@@ -220,7 +219,6 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 		if (magnetic->GetXSum() < 120 && magnetic->GetYSum() < 50){//!magnetic->isLoop() && magnetic->isBigStraight()
 			state = 0;
 			magState = carState::kNormal;
-			speed = highSpeed;
 			is_loop = false;
 		}
 		break;
@@ -321,11 +319,11 @@ int main() {
 	    right_motor_pid[1] = 0.0036;
 	    right_motor_pid[2] = 0.0065;
 
-	    x_servo_pd[0] = 15688.376;
-	    x_servo_pd[1] = 712800.06;
+	    x_servo_pd[0] = 12550;
+	    x_servo_pd[1] = 710000;
 
-	    y_servo_pd[0] = 3.538945;
-	    y_servo_pd[1] = 126.72;
+	    y_servo_pd[0] = 4.4;
+	    y_servo_pd[1] = 220;
 
 		align_servo_pd[0] = -7.5;
 		align_servo_pd[1] = -130;
@@ -504,11 +502,12 @@ int main() {
 			lastTime = System::Time();
 
 //			 bt send motor speed
-			if (lastTime - on9lastSent >= 100) {
+			if (lastTime - on9lastSent >= 50) {
 				on9lastSent = lastTime;
-				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
-				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
-				uart0.Send_float(DualCar_UART::FLOAT::f12, right_motorPID.getdTime());
+				uart0.Send_float(DualCar_UART::FLOAT::f10, mag.GetRaw(Mag::magPos::y_left));
+				uart0.Send_float(DualCar_UART::FLOAT::f11, mag.GetRaw(Mag::magPos::y_right));
+				uart0.Send_float(DualCar_UART::FLOAT::f12, mag.GetXLinear());
+				uart0.Send_float(DualCar_UART::FLOAT::f13, mag.GetYLinear());
 			}
 
 			if (USsent) {
@@ -690,7 +689,7 @@ int main() {
 						angleY = servoPIDy.getPID(0, mag.GetYLinear());
 						if (mag.isTwoLine()){
 							angle = angleX;
-						} else if (angleX > 0 ^ angleY > 0){
+						} else if (mag.GetYSum() > 15 && (angleX > 0 ^ angleY > 0)){
 							angle = angleY;
 						} else{
 							angle = 0.5*angleX + 0.5*angleY;
@@ -702,15 +701,15 @@ int main() {
 						} else if (magState == kExitLoop){
 							if (left_loop){
 								if (angle < 0){
-									angle = 300;
+									angle = 200;
 								} else{
-								angle += 100;
+								angle += 50;
 								}
 							} else {
 								if (angle > 0){
-									angle = -300;
+									angle = -200;
 								} else{
-									angle -= 100;
+									angle -= 50;
 								}
 							}
 							buzz.SetNote(659);
@@ -768,10 +767,17 @@ int main() {
 					led3.SetEnable(0);
 				}
 				*pmagState = (int)magState;
-				mag_xL = mag.GetMag(Mag::magPos::x_left);
-				mag_xR = mag.GetMag(Mag::magPos::x_right);
-				mag_yL = mag.GetMag(Mag::magPos::y_left);
-				mag_yR = mag.GetMag(Mag::magPos::y_right);
+				if (cali){
+					mag_xL = mag.GetRaw(Mag::magPos::x_left);
+					mag_xR = mag.GetRaw(Mag::magPos::x_right);
+					mag_yL = mag.GetRaw(Mag::magPos::y_left);
+					mag_yR = mag.GetRaw(Mag::magPos::y_right);
+				} else{
+					mag_xL = mag.GetMag(Mag::magPos::x_left);
+					mag_xR = mag.GetMag(Mag::magPos::x_right);
+					mag_yL = mag.GetMag(Mag::magPos::y_left);
+					mag_yR = mag.GetMag(Mag::magPos::y_right);
+				}
 				mag_xSum = mag.GetXSum();
 				mag_ySum = mag.GetYSum();
 				menuV2.SetCamBuffer(camBuffer);

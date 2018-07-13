@@ -20,7 +20,7 @@ void Mag::TakeSample(){
 void Mag::Update(){
 	for (int i = 0; i < 6; i++){
 		raw[i] = sum[i] / filterCounter;
-		if (raw[i] > 0){
+		if (raw[i] > min[i]){
 			v[i] = multi[i] * (raw[i] - min[i]);
 		}
 		sum[i] = 0;
@@ -81,8 +81,8 @@ bool Mag::noMagField(){
 
 		min[Mag::magPos::y_left] = 8;
 		min[Mag::magPos::y_right] = 7;
-		max[Mag::magPos::y_left] = 62;
-		max[Mag::magPos::y_right] = 71;
+		max[Mag::magPos::y_left] = 72;
+		max[Mag::magPos::y_right] = 70;
 //initial value for calibration
 //		emin = 200;
 //		emax = 4;
