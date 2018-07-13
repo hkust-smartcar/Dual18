@@ -27,6 +27,7 @@
 #ifndef INC_BOARDID_H_
 #define INC_BOARDID_H_
 
+#ifndef newboard
 #include "libbase/k60/cmsis/mk60f15.h"
 #include <libbase/k60/mcg.h>
 #include <libsc/system.h>
@@ -79,5 +80,61 @@ private:
 		return config;
 	}
 };
+
+#else
+
+#ifndef INC_BOARDID_H_
+#define INC_BOARDID_H_
+
+class BoardID {
+public:
+	BoardID() :
+			m_pin0(getGpiConfig(0)), m_pin1(getGpiConfig(1)), m_pin2(getGpiConfig(2)) {
+		b_pin0 = m_pin0.Get();
+		b_pin1 = m_pin1.Get();
+		b_pin2 = m_pin2.Get();
+	}
+
+	uint8_t getCarID() {
+		uint8_t id = 0;
+		id += b_pin0 ? 1 : 0;
+		id += b_pin1 ? 2 : 0;
+		id += b_pin2 ? 4 : 0;
+		return id;
+	}
+
+private:
+	const Pin::Name J1 = Pin::Name::kPta19; // J1
+	const Pin::Name J2 = Pin::Name::kPta11; // J2
+	const Pin::Name J3 = Pin::Name::kPta10; // J3
+
+	Gpi m_pin0, m_pin1, m_pin2;
+	bool b_pin0, b_pin1, b_pin2;
+
+	Gpi::Config getGpiConfig(uint8_t id) {
+		Gpi::Config config;
+		config.config.set(Pin::Config::ConfigBit::kPullUp);
+		config.interrupt = Pin::Config::Interrupt::kBoth;
+		if (id == 0) {
+			config.pin = J1;
+			config.isr = [&] (Gpi *gpi) {
+				b_pin0 = m_pin0.Get();
+			};
+		} else if (id == 1) {
+			config.pin = J2;
+			config.isr = [&] (Gpi *gpi) {
+				b_pin1 = m_pin1.Get();
+			};
+		} else if (id == 2) {
+			config.pin = J3;
+			config.isr = [&] (Gpi *gpi) {
+				b_pin2 = m_pin2.Get();
+			};
+		}
+		return config;
+	}
+};
+
+#endif
 
 #endif /* INC_BOARDID_H_ */
