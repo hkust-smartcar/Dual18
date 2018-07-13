@@ -97,7 +97,7 @@ typedef enum {
 carState magState = kNormal;
 
 static const uint8_t cycle = 12;
-static float loopSpeed = 9 * cycle, highSpeed = 9 * cycle, alignSpeed = 7 * cycle;
+static float loopSpeed = 8 * cycle, highSpeed = 8 * cycle, alignSpeed = 7 * cycle;
 static float speed = highSpeed;
 
 int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
@@ -174,7 +174,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 				camera_angle = difference*250;
 			}
 			else{
-				camera_angle = difference*400;
+				camera_angle = difference*350;
 			}
 			if((slave_edge_size>5)||(slave_corner_size==1)){
 				cameraReady = true;
@@ -194,7 +194,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 				camera_angle = difference*250;
 			}
 			else{
-				camera_angle = difference*400;
+				camera_angle = difference*350;
 			}
 			if((master_edge_size>5)||(master_corner_size==1)){
 				state = 6;
@@ -211,12 +211,12 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 		break;
 	case 7:
 		if (left){
-			if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 90 && magnetic->GetMag(Mag::magPos::x_left)>magnetic->GetMag(Mag::magPos::x_right)){//magnetic->isMidLoop()
+			if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 80 && magnetic->GetMag(Mag::magPos::x_left)>magnetic->GetMag(Mag::magPos::x_right)){//magnetic->isMidLoop()
 				state = 8;
 				magState = carState::kLessTurn;
 			}
 		} else{
-			if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 90 && magnetic->GetMag(Mag::magPos::x_right)>magnetic->GetMag(Mag::magPos::x_left)){//magnetic->isMidLoop()
+			if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 80 && magnetic->GetMag(Mag::magPos::x_right)>magnetic->GetMag(Mag::magPos::x_left)){//magnetic->isMidLoop()
 				state = 8;
 				magState = carState::kLessTurn;
 			}
@@ -703,10 +703,10 @@ int main() {
 							angle = 0.5*angleX + 0.5*angleY;
 						}
 						if (magState == kLessTurn){
-							if(left_loop && angle > 100){
-								angle = 100;
-							}else if(!left && angle < -100){
-								angle = -100;
+							if(left_loop && angle > 50){
+								angle = 50;
+							}else if(!left && angle < -50){
+								angle = -50;
 							}
 							buzz.SetNote(698);
 							buzz.SetBeep(true);
