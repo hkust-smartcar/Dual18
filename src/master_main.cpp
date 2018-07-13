@@ -204,16 +204,24 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 		}
 		break;
 	case 6:
-		if(magnetic->outLoop() && magnetic->GetYSum() > magnetic->GetXSum()){
+		if(magnetic->outLoop()){
 			state = 7;
 			magState = carState::kExitLoop;
 		}
 		break;
 	case 7:
-		if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 90){//magnetic->isMidLoop()
-			state = 8;
-			magState = carState::kLessTurn;
+		if (left){
+			if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 90 && magnetic->GetMag(Mag::magPos::x_left)>magnetic->GetMag(Mag::magPos::x_right)){//magnetic->isMidLoop()
+				state = 8;
+				magState = carState::kLessTurn;
+			}
+		} else{
+			if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 90 && magnetic->GetMag(Mag::magPos::x_right)>magnetic->GetMag(Mag::magPos::x_left)){//magnetic->isMidLoop()
+				state = 8;
+				magState = carState::kLessTurn;
+			}
 		}
+
 		break;
 	case 8:
 		if (magnetic->GetXSum() < 120 && magnetic->GetYSum() < 50){//!magnetic->isLoop() && magnetic->isBigStraight()
@@ -680,9 +688,9 @@ int main() {
 						float target = 0.0;
 						if (magState == kLoop){
 							if (left_loop){
-								target = 0.01;
+								target = 0.005;
 							} else{
-								target = -0.01;
+								target = -0.005;
 							}
 						}
 						angleX = servoPIDx.getPID(target, mag.GetXLinear());
@@ -695,7 +703,9 @@ int main() {
 							angle = 0.5*angleX + 0.5*angleY;
 						}
 						if (magState == kLessTurn){
-							angle *= 0.5;
+							if((left_loop && angle > 0) || (!left_loop && angle < 0)){
+								angle = 0;
+							}
 							buzz.SetNote(698);
 							buzz.SetBeep(true);
 						} else if (magState == kExitLoop){
