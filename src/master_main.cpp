@@ -90,6 +90,7 @@ typedef enum {
 	kStop,
 	kAlign,
 	kSide,
+	kEnter,
 	kLoop,
 	kExitLoop,
 	kLessTurn
@@ -97,10 +98,10 @@ typedef enum {
 carState magState = kNormal;
 
 static const uint8_t cycle = 12;
-static float loopSpeed = 8 * cycle, highSpeed = 8 * cycle, alignSpeed = 7 * cycle;
+static float loopSpeed = 8 * cycle, highSpeed = 9 * cycle, alignSpeed = 7 * cycle;
 static float speed = highSpeed;
 
-int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
+int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
 	static bool left;
 	left_loop = left;
 	static bool cameraReady = false, magReady = false;
@@ -108,6 +109,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 	case 0:
 		if(is_loop){
 			state = 1;
+			magState = kEnter;
 		}
 		break;
 	case 1:
@@ -141,10 +143,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 			camera_control = true;
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
-				camera_angle = difference*100;
+				camera_angle = difference*70;
 			}
 			else{
-				camera_angle = difference*200;
+				camera_angle = difference*170;
 			}
 			if(slave_edge_size<4){
 				state = 5;
@@ -155,10 +157,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 			camera_control = true;
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
-				camera_angle = difference*100;
+				camera_angle = difference*70;
 			}
 			else{
-				camera_angle = difference*200;
+				camera_angle = difference*170;
 			}
 			if(master_edge_size<4){
 				state = 5;
@@ -171,10 +173,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 		if(left){
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
-				camera_angle = difference*250;
+				camera_angle = difference*150;
 			}
 			else{
-				camera_angle = difference*350;
+				camera_angle = difference*250;
 			}
 			if((slave_edge_size>5)||(slave_corner_size==1)){
 				cameraReady = true;
@@ -191,10 +193,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 		else{
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
-				camera_angle = difference*250;
+				camera_angle = difference*150;
 			}
 			else{
-				camera_angle = difference*350;
+				camera_angle = difference*250;
 			}
 			if((master_edge_size>5)||(master_corner_size==1)){
 				state = 6;
@@ -214,20 +216,60 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 			if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 80 && magnetic->GetMag(Mag::magPos::x_left)>magnetic->GetMag(Mag::magPos::x_right)){//magnetic->isMidLoop()
 				state = 8;
 				magState = carState::kLessTurn;
+				camera_control = true;
 			}
 		} else{
 			if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 80 && magnetic->GetMag(Mag::magPos::x_right)>magnetic->GetMag(Mag::magPos::x_left)){//magnetic->isMidLoop()
 				state = 8;
+				camera_control = true;
 				magState = carState::kLessTurn;
+				camera_control = true;
 			}
 		}
 
 		break;
 	case 8:
-		if (magnetic->GetXSum() < 120 && magnetic->GetYSum() < 50){//!magnetic->isLoop() && magnetic->isBigStraight()
-			state = 0;
-			magState = carState::kNormal;
-			is_loop = false;
+		if(left){
+			if(slave_edge_size<2){
+				s_edge_xmid = 0;
+			}
+			float difference = (40 - s_edge_xmid)/40.0;
+			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
+				camera_angle = difference*100;
+			}
+			else{
+				camera_angle = difference*200;
+			}
+			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){//!magnetic->isLoop() && magnetic->isBigStraight()
+				state = 0;
+				camera_control = false;
+				magState = carState::kNormal;
+				is_loop = false;
+			}
+		}
+		else{
+			if(master_edge_size<2){
+				m_edge_xmid = 80;
+			}
+			float difference = (40 - m_edge_xmid)/40.0;
+			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
+				camera_angle = difference*100;
+			}
+			else{
+				camera_angle = difference*200;
+			}
+			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){//!magnetic->isLoop() && magnetic->isBigStraight()
+				state = 0;
+				camera_control = false;
+				magState = carState::kNormal;
+				is_loop = false;
+			}
+			if (magnetic->GetXSum() < 120 && magnetic->GetYSum() < 50){//!magnetic->isLoop() && magnetic->isBigStraight()
+				state = 0;
+				camera_control = false;
+				magState = carState::kNormal;
+				is_loop = false;
+			}
 		}
 		break;
 	default:
@@ -422,7 +464,7 @@ int main() {
 	//for loop ver2
 	bool left_loop = false;
 	bool in_loop = false;
-	bool camera_control = false;
+	int camera_control = false;
 	int current_loop_state = 0;
 	//
 
@@ -456,11 +498,16 @@ int main() {
 	menuV2.AddItem("XR", pmag_xR, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("YL", pmag_yL, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("YR", pmag_yR, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("XS", pmag_xSum, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("YS", pmag_ySum, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("temp", &temp, menuV2.home_page.submenu_items[2].next_page, true);
-	menuV2.AddItem("tempf", &tempf, menuV2.home_page.submenu_items[2].next_page, true);
-	menuV2.AddItem("loop", &current_loop_state, &(menuV2.home_page), false);
+	menuV2.AddItem("SX", pmag_xSum, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem("SY", pmag_ySum, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem("AX", &angleX, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem("AY", &angleY, menuV2.home_page.submenu_items[2].next_page, false);
+//	menuV2.AddItem("temp", &temp, menuV2.home_page.submenu_items[2].next_page, true);
+//	menuV2.AddItem("tempf", &tempf, menuV2.home_page.submenu_items[2].next_page, true);
+	menuV2.AddItem("loop", &(menuV2.home_page), true);
+	menuV2.AddItem("state", &current_loop_state, menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem("cam_con", &camera_control, menuV2.home_page.submenu_items[3].next_page, false);
+
 
 	int intmagState = (int)magState;
 	int* pmagState = &intmagState;
@@ -697,10 +744,15 @@ int main() {
 						angleY = servoPIDy.getPID(0, mag.GetYLinear());
 						if (mag.isTwoLine()){
 							angle = angleX;
-						} else if (mag.GetYSum() > 15 && (angleX > 0 ^ angleY > 0)){
+							buzz.SetNote(100);
+							buzz.SetBeep(true);
+						} else if (mag.GetYSum() > 15 && ((angleX > 0) ^ (angleY > 0))){
 							angle = angleY;
+							buzz.SetNote(300);
+							buzz.SetBeep(true);
 						} else{
 							angle = 0.5*angleX + 0.5*angleY;
+							buzz.SetBeep(false);
 						}
 						if (magState == kLessTurn){
 							if(left_loop && angle > 50){
@@ -729,6 +781,9 @@ int main() {
 						} else if (!in_loop){
 							buzz.SetBeep(false);
 						}
+					} else if (magState == kEnter){
+						angleY = servoPIDy.getPID(0, mag.GetYLinear());
+						angle = angleY;
 					} else if (magState == kLeave){
 						angle = 150;
 					} else if (magState == kStop){
