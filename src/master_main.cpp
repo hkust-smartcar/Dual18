@@ -92,8 +92,7 @@ typedef enum {
 	kSide,
 	kEnter,
 	kLoop,
-	kExitLoop,
-	kLessTurn
+	kExitLoop
 } carState;
 carState magState = kNormal;
 
@@ -105,6 +104,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 	static bool left;
 	left_loop = left;
 	static bool cameraReady = false, magReady = false;
+	static float lastY = 0, rateY = 0, currY = 0, prevRateY = 0;
 	switch(state){
 	case 0:
 		if(is_loop){
@@ -120,36 +120,27 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 		state = 2;
 		break;
 	case 2:
-		if(left){
-			if(master_edge_size>20)
-				state = 3;
-		}else{
-			if(slave_edge_size>20)
-				state = 3;
+		currY = magnetic->GetYSum();
+		prevRateY = rateY;
+		rateY = currY - lastY;
+		rateY = 0.7*rateY + 0.3*prevRateY;
+		lastY = currY;
+		if (rateY < 0){
+			state = 3;
 		}
 		break;
-
 	case 3:
-		if(left){
-			if(((master_slope>0.5)&&(m_edge_xmid<40))||(master_edge_size<15))
-				state = 4;
-		}else{
-			if(((slave_slope<-0.5)&&(s_edge_xmid>40))||(slave_edge_size<15))
-				state = 4;
-		}
-		break;
-	case 4:
 		if(left){
 			camera_control = true;
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
-				camera_angle = difference*70;
+				camera_angle = difference*110;
 			}
 			else{
-				camera_angle = difference*170;
+				camera_angle = difference*210;
 			}
 			if(slave_edge_size<4){
-				state = 5;
+				state = 4;
 				cameraReady = false;
 				magReady = false;
 			}
@@ -157,19 +148,19 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			camera_control = true;
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
-				camera_angle = difference*70;
+				camera_angle = difference*110;
 			}
 			else{
-				camera_angle = difference*170;
+				camera_angle = difference*210;
 			}
 			if(master_edge_size<4){
-				state = 5;
+				state = 4;
 				cameraReady = false;
 				magReady = false;
 			}
 		}
 		break;
-	case 5:
+	case 4:
 		if(left){
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
@@ -181,11 +172,11 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			if((slave_edge_size>5)||(slave_corner_size==1)){
 				cameraReady = true;
 			}
-			if (magnetic->GetXSum() < 120){
+			if (magnetic->GetXSum() < 100){
 				magReady = true;
 			}
 			if(cameraReady && magReady){
-				state = 6;
+				state = 5;
 				camera_control = false;
 				magState = carState::kLoop;
 			}
@@ -199,36 +190,32 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 				camera_angle = difference*250;
 			}
 			if((master_edge_size>5)||(master_corner_size==1)){
-				state = 6;
+				state = 5;
 				camera_control = false;
 				magState = carState::kLoop;
 			}
 		}
 		break;
-	case 6:
+	case 5:
 		if(magnetic->outLoop()){
-			state = 7;
+			state = 6;
 			magState = carState::kExitLoop;
+			lastY = magnetic->GetYSum();
+		}
+		break;
+	case 6:
+		currY = magnetic->GetYSum();
+		prevRateY = rateY;
+		rateY = currY - lastY;
+		rateY = 0.7*rateY + 0.3*prevRateY;
+		lastY = currY;
+		if (rateY < 0 && magnetic->GetYSum() < 110){
+			state = 7;
+			camera_control = true;
+			magState = carState::kNormal;
 		}
 		break;
 	case 7:
-		if (left){
-			if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 80 && magnetic->GetMag(Mag::magPos::x_left)>magnetic->GetMag(Mag::magPos::x_right)){//magnetic->isMidLoop()
-				state = 8;
-				magState = carState::kLessTurn;
-				camera_control = true;
-			}
-		} else{
-			if (magnetic->GetXSum() > 120 && magnetic->GetYSum() < 80 && magnetic->GetMag(Mag::magPos::x_right)>magnetic->GetMag(Mag::magPos::x_left)){//magnetic->isMidLoop()
-				state = 8;
-				camera_control = true;
-				magState = carState::kLessTurn;
-				camera_control = true;
-			}
-		}
-
-		break;
-	case 8:
 		if(left){
 			if(slave_edge_size<2){
 				s_edge_xmid = 0;
@@ -240,10 +227,9 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			else{
 				camera_angle = difference*200;
 			}
-			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){//!magnetic->isLoop() && magnetic->isBigStraight()
+			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 50){
 				state = 0;
 				camera_control = false;
-				magState = carState::kNormal;
 				is_loop = false;
 			}
 		}
@@ -258,16 +244,9 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			else{
 				camera_angle = difference*200;
 			}
-			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){//!magnetic->isLoop() && magnetic->isBigStraight()
+			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 50){
 				state = 0;
 				camera_control = false;
-				magState = carState::kNormal;
-				is_loop = false;
-			}
-			if (magnetic->GetXSum() < 120 && magnetic->GetYSum() < 50){//!magnetic->isLoop() && magnetic->isBigStraight()
-				state = 0;
-				camera_control = false;
-				magState = carState::kNormal;
 				is_loop = false;
 			}
 		}
@@ -715,6 +694,9 @@ int main() {
 
 				if(mag.isLoop() && !in_loop){
 					in_loop = true;
+				}
+
+				if (current_loop_state > 0 && current_loop_state < 6 && left_loop){
 					buzz.SetNote(440);
 					buzz.SetBeep(true);
 				}
@@ -730,23 +712,23 @@ int main() {
 				if(!camera_control){
 					if (cali || mag.noMagField()) {
 						angle = 0;
-					} else if (magState == kNormal || magState == kLoop || magState == kExitLoop ||  magState == kLessTurn) {
+					} else if (magState == kNormal || magState == kLoop || magState == kExitLoop) {
 //						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
 						float target = 0.0;
-						if (magState == kLoop){
+						if (magState == kLoop || magState ==kExitLoop){
 							if (left_loop){
-								target = 0.005;
+								target = 0.02;
 							} else{
-								target = -0.005;
+								target = -0.02;
 							}
 						}
 						angleX = servoPIDx.getPID(target, mag.GetXLinear());
 						angleY = servoPIDy.getPID(0, mag.GetYLinear());
-						if (mag.isTwoLine()){
+						if (mag.isTwoLine() && magState == kNormal){
 							angle = angleX;
 							buzz.SetNote(100);
 							buzz.SetBeep(true);
-						} else if (mag.GetYSum() > 15 && ((angleX > 0) ^ (angleY > 0))){
+						} else if (mag.GetYSum() > 15 && ((angleX > 0) ^ (angleY > 0)) && magState == kNormal){
 							angle = angleY;
 							buzz.SetNote(300);
 							buzz.SetBeep(true);
@@ -754,32 +736,22 @@ int main() {
 							angle = 0.5*angleX + 0.5*angleY;
 							buzz.SetBeep(false);
 						}
-						if (magState == kLessTurn){
-							if(left_loop && angle > 50){
-								angle = 50;
-							}else if(!left && angle < -50){
-								angle = -50;
-							}
-							buzz.SetNote(698);
-							buzz.SetBeep(true);
-						} else if (magState == kExitLoop){
-							if (left_loop){
-								if (angle < 0){
-									angle = 200;
-								} else{
-								angle += 50;
-								}
-							} else {
-								if (angle > 0){
-									angle = -200;
-								} else{
-									angle -= 50;
-								}
-							}
+						if (magState == kExitLoop){
+//							if (left_loop){
+//								if (mag.GetXSum() < 100){
+//									angle = 200;
+//								} else{
+//									angle *= 2.3;
+//								}
+//							} else {
+//								if (mag.GetXSum() < 100){
+//									angle = -200;
+//								} else{
+//									angle *= 2.3;
+//								}
+//							}
 							buzz.SetNote(659);
 							buzz.SetBeep(true);
-						} else if (!in_loop){
-							buzz.SetBeep(false);
 						}
 					} else if (magState == kEnter){
 						angleY = servoPIDy.getPID(0, mag.GetYLinear());
@@ -807,6 +779,7 @@ int main() {
 					}
 				} else{
 					angle = camera_angle;
+					buzz.SetBeep(false);
 				}
 				angle = 0.75*angle + 0.25*lastServo;
 				angle = max(rightServo-middleServo, min(leftServo-middleServo, angle));
