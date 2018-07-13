@@ -83,8 +83,6 @@ private:
 
 #else
 
-#ifndef INC_BOARDID_H_
-#define INC_BOARDID_H_
 
 class BoardID {
 public:
