@@ -204,7 +204,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, bool 
 		}
 		break;
 	case 6:
-		if(magnetic->outLoop() && magnetic->GetYSum() > magnetic->GetXSum() ){
+		if(magnetic->outLoop() && magnetic->GetYSum() > magnetic->GetXSum()){
 			state = 7;
 			magState = carState::kExitLoop;
 		}
@@ -673,7 +673,7 @@ int main() {
 				}
 
 				if(!camera_control){
-					if (cali) {
+					if (cali || mag.noMagField()) {
 						angle = 0;
 					} else if (magState == kNormal || magState == kLoop || magState == kExitLoop ||  magState == kLessTurn) {
 //						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
