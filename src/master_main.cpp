@@ -703,8 +703,10 @@ int main() {
 							angle = 0.5*angleX + 0.5*angleY;
 						}
 						if (magState == kLessTurn){
-							if((left_loop && angle > 0) || (!left_loop && angle < 0)){
-								angle = 0;
+							if(left_loop && angle > 100){
+								angle = 100;
+							}else if(!left && angle < -100){
+								angle = -100;
 							}
 							buzz.SetNote(698);
 							buzz.SetBeep(true);
