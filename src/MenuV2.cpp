@@ -224,19 +224,19 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 
 		// need better assignment for this VVV
 		change_number_item_ptr = &menu->submenu_items[current_line];
-
 		uint8_t temp = current_line;
+		menu->submenu_items[temp].next_page->previous_line= current_line;
 		current_line = 0;
 		menu->submenu_items.erase(menu->submenu_items.end());
-		menu->submenu_items[temp].next_page->previous_page = menu;
+		menu->submenu_items[menu->submenu_items[temp].next_page->previous_line].next_page->previous_page = menu;
 		lcd->Clear();
-		return menu->submenu_items[temp].next_page;
+		return menu->submenu_items[menu->submenu_items[temp].next_page->previous_line].next_page;
 	} else if ((pressed) && (menu->submenu_items[current_line].identity == "exit")
 			&& (menu->identity != "home_page")) {
 		change_number_action = 0;
 		pressed = false;
 		selected = false;
-		current_line = 0;
+		current_line = menu->previous_line;
 		menu->submenu_items.erase(menu->submenu_items.end());
 		lcd->Clear();
 		return menu->previous_page;

@@ -47,6 +47,7 @@ public:
 	};
 	struct SubMenu {
 		SubMenu* previous_page = nullptr;
+		uint8_t previous_line = 0;
 		char* submenu_name = nullptr;
 		string identity = "";
 		vector<Item> submenu_items;
