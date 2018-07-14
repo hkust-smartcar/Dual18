@@ -425,7 +425,6 @@ int main() {
 
 	uart0.parseValues();
 
-
 	DistanceModule UltrasonicSensor([&](float distanceInCm) {
 		if (distanceInCm < 30) {
 			if(approaching && secondArrived){
@@ -503,6 +502,8 @@ int main() {
 	menuV2.AddItem("MagSt", pmagState, &(menuV2.home_page), false);
 
 	menuV2.AddItem("other", &(menuV2.home_page), true);
+	float distance = UltrasonicSensor.getDistance();
+	menuV2.AddItem("Dist", &(distance), menuV2.home_page.submenu_items[5].next_page, false);
 	menuV2.AddItem("Volt", &(batteryVoltage), menuV2.home_page.submenu_items[5].next_page, false);
 	menuV2.AddItem("EncL", &(encoderLval), menuV2.home_page.submenu_items[5].next_page, false);
 	menuV2.AddItem("EncR", &(encoderRval), menuV2.home_page.submenu_items[5].next_page, false);
@@ -741,12 +742,8 @@ int main() {
 						angleY = servoPIDy.getPID(0, mag.GetYLinear());
 						if (mag.isTwoLine() && magState == kNormal){
 							angle = 0.25*angleX + angleY;
-							buzz.SetNote(100);
-							buzz.SetBeep(true);
 						} else if (mag.GetYSum() > 15 && mag.GetXSum() < 80 && ((angleX > 0) ^ (angleY > 0)) && magState == kNormal){
 							angle = angleY;
-							buzz.SetNote(300);
-							buzz.SetBeep(true);
 						} else{
 							angle = 0.5*angleX + 0.5*angleY;
 							buzz.SetBeep(false);
@@ -827,6 +824,7 @@ int main() {
 				}
 				mag_xSum = mag.GetXSum();
 				mag_ySum = mag.GetYSum();
+				distance = UltrasonicSensor.getDistance();
 				menuV2.SetCamBuffer(camBuffer);
 				menuV2.SetEdge(master_edge);
 				current_page = menuV2.PrintSubMenu(current_page);
