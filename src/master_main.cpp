@@ -97,7 +97,7 @@ typedef enum {
 carState magState = kNormal;
 
 static const uint8_t cycle = 12;
-static float loopSpeed = 9.5, highSpeed = 9.5, alignSpeed = 8;
+static float loopSpeed = 9.5, highSpeed = 9.5, alignSpeed = 9;
 static float speed = highSpeed;
 static float l1 = 100,l2 = 100,r1 = 100,r2 = 100;
 
@@ -333,8 +333,8 @@ int main() {
 	    y_servo_pd[0] = 3.85;
 	    y_servo_pd[1] = 228.73725;
 
-		align_servo_pd[0] = -7.5;
-		align_servo_pd[1] = -130;
+		align_servo_pd[0] = 5.8;
+		align_servo_pd[1] = 750;
 
 		forwardL = true;
 		forwardR = true;
@@ -345,22 +345,22 @@ int main() {
 
 		mag.InitMag(1);
 	} else {
-	    left_motor_pid[0] = 0.03;
-	    left_motor_pid[1] = 0.003;
-	    left_motor_pid[2] = 0.005;
+	    left_motor_pid[0] = 0.72;
+	    left_motor_pid[1] = 0.025;
+	    left_motor_pid[2] = 0.0001;
 
-	    right_motor_pid[0] = 0.035;
-	    right_motor_pid[1] = 0.0036;
-	    right_motor_pid[2] = 0.0065;
+	    right_motor_pid[0] = 0.72;
+	    right_motor_pid[1] = 0.025;
+	    right_motor_pid[2] = 0.0001;
 
-	    x_servo_pd[0] = 12550;
-	    x_servo_pd[1] = 710000;
+	    x_servo_pd[0] = 12000;
+	    x_servo_pd[1] = 1100000;
 
 	    y_servo_pd[0] = 4.4;
-	    y_servo_pd[1] = 220;
+	    y_servo_pd[1] = 190;
 
-		align_servo_pd[0] = -7.5;
-		align_servo_pd[1] = -130;
+		align_servo_pd[0] = 5.8;
+		align_servo_pd[1] = 750;//car1 value
 
 		forwardL = false;
 		forwardR = true;
@@ -373,12 +373,13 @@ int main() {
 	}
 
 	uint32_t lastTime = 0, approachTime = 0;
-	bool approaching = false, isFirst = false, firstArrived = false, secondArrived = true, USsent = false;
+	bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false;
 	bool cali = false;
 
 	float angle = middleServo, angleX = 0, angleY = 0;
 	float camera_angle = middleServo;
 	float lastServo = 0;
+	uint8_t leaveCount = 0;
 
 	uint8_t cycleTime = 0;
 	float encoderLval, encoderRval;
@@ -603,6 +604,7 @@ int main() {
 				//for alignment
 				if (magState == kNormal && approaching) {
 					magState = kLeave;
+					leaveCount = 0;
 				} else if (magState == kLeave && mag.GetMag(Mag::magPos::x_left) < 15 && mag.GetMag(Mag::magPos::x_right) < mag.GetEMin()) {
 					if (isFirst){
 						magState = kStop;
@@ -738,7 +740,7 @@ int main() {
 						angleX = servoPIDx.getPID(target, mag.GetXLinear());
 						angleY = servoPIDy.getPID(0, mag.GetYLinear());
 						if (mag.isTwoLine() && magState == kNormal){
-							angle = angleX;
+							angle = 0.25*angleX + angleY;
 							buzz.SetNote(100);
 							buzz.SetBeep(true);
 						} else if (mag.GetYSum() > 15 && mag.GetXSum() < 80 && ((angleX > 0) ^ (angleY > 0)) && magState == kNormal){
@@ -757,21 +759,21 @@ int main() {
 						angleY = servoPIDy.getPID(0, mag.GetYLinear());
 						angle = angleY;
 					} else if (magState == kLeave){
-						angle = 150;
+//						angle = 150;
+						angle = max(300-leaveCount*20, 100);
+						leaveCount++;
 					} else if (magState == kStop){
 						angle = -400;
 					} else if (magState == kAlign){
-						angle = servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));
+						angle = -servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));
 					} else if (magState == kSide){
 						if (mag.GetYSum() > 15){
-//							angleX = servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));//right
-//							angleY = 4 * servoPIDAlignCurve.getPID(0, mag.GetMag(Mag::magPos::x_left));//left
-//							angle = 100 + angleY;
-							angle = 100 + 4 * servoPIDAlignCurve.getPID(0, mag.GetMag(Mag::magPos::x_left));
+							angle = 100 - 5 * servoPIDAlignCurve.getPID(0, mag.GetMag(Mag::magPos::x_left));
+							angleY = angle;
 							buzz.SetNote(100);
 							buzz.SetBeep(true);
 						} else{
-							angle = servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));
+							angle = -servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));
 							buzz.SetBeep(false);
 							if (mag.GetMag(Mag::magPos::x_right) < 25){
 //								angle *= 1.5;
@@ -779,6 +781,7 @@ int main() {
 								buzz.SetNote(300);
 								buzz.SetBeep(true);
 							}
+							angleX = angle;
 						}
 					}
 				} else{
