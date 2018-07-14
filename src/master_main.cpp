@@ -97,7 +97,7 @@ typedef enum {
 carState magState = kNormal;
 
 static const uint8_t cycle = 12;
-static float loopSpeed = 8, highSpeed = 9, alignSpeed = 7;
+static float loopSpeed = 8, highSpeed = 9.5, alignSpeed = 7;
 static float speed = highSpeed;
 
 int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
@@ -314,19 +314,19 @@ int main() {
 	uint16_t middleServo, leftServo, rightServo;
 
 	if (board.isCar1()) {
-	    left_motor_pid[0] = 0.4;
-	    left_motor_pid[1] = 0.01;
-	    left_motor_pid[2] = 0.06;
+	    left_motor_pid[0] = 0.55;
+	    left_motor_pid[1] = 0.012;
+	    left_motor_pid[2] = 0.03;
 
-	    right_motor_pid[0] = 0.04;
-	    right_motor_pid[1] = 0.01;
-	    right_motor_pid[2] = 0.06;
+	    right_motor_pid[0] = 0.55;
+	    right_motor_pid[1] = 0.012;
+	    right_motor_pid[2] = 0.03;
 
-		x_servo_pd[0] = 9702;
-		x_servo_pd[1] = 660000;
+	    x_servo_pd[0] = 9800;
+	    x_servo_pd[1] = 740000;
 
-		y_servo_pd[0] = 4.6;
-		y_servo_pd[1] = 228.73725;
+	    y_servo_pd[0] = 3.85;
+	    y_servo_pd[1] = 228.73725;
 
 		align_servo_pd[0] = -7.5;
 		align_servo_pd[1] = -130;
@@ -732,7 +732,7 @@ int main() {
 							angle = angleX;
 							buzz.SetNote(100);
 							buzz.SetBeep(true);
-						} else if (mag.GetYSum() > 15 && ((angleX > 0) ^ (angleY > 0)) && magState == kNormal){
+						} else if (mag.GetYSum() > 15 && mag.GetXSum() < 80 && ((angleX > 0) ^ (angleY > 0)) && magState == kNormal){
 							angle = angleY;
 							buzz.SetNote(300);
 							buzz.SetBeep(true);
