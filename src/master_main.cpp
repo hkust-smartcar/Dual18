@@ -97,7 +97,7 @@ typedef enum {
 carState magState = kNormal;
 
 static const uint8_t cycle = 12;
-static float loopSpeed = 8 * cycle, highSpeed = 9 * cycle, alignSpeed = 7 * cycle;
+static float loopSpeed = 8, highSpeed = 9, alignSpeed = 7;
 static float speed = highSpeed;
 
 int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
@@ -314,18 +314,18 @@ int main() {
 	uint16_t middleServo, leftServo, rightServo;
 
 	if (board.isCar1()) {
-	    left_motor_pid[0] = 0.07;
-	    left_motor_pid[1] = 0.00495;
-	    left_motor_pid[2] = 0.01;
+	    left_motor_pid[0] = 0.4;
+	    left_motor_pid[1] = 0.01;
+	    left_motor_pid[2] = 0.06;
 
-	    right_motor_pid[0] = 0.05;
-	    right_motor_pid[1] = 0.0054;
-	    right_motor_pid[2] = 0.015;
+	    right_motor_pid[0] = 0.04;
+	    right_motor_pid[1] = 0.01;
+	    right_motor_pid[2] = 0.06;
 
 		x_servo_pd[0] = 9702;
-		x_servo_pd[1] = 516780;
+		x_servo_pd[1] = 660000;
 
-		y_servo_pd[0] = 2.2002756515;
+		y_servo_pd[0] = 4.6;
 		y_servo_pd[1] = 228.73725;
 
 		align_servo_pd[0] = -7.5;
@@ -538,10 +538,14 @@ int main() {
 //			 bt send motor speed
 			if (lastTime - on9lastSent >= 50) {
 				on9lastSent = lastTime;
-				uart0.Send_float(DualCar_UART::FLOAT::f10, mag.GetRaw(Mag::magPos::y_left));
-				uart0.Send_float(DualCar_UART::FLOAT::f11, mag.GetRaw(Mag::magPos::y_right));
+				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
+				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 				uart0.Send_float(DualCar_UART::FLOAT::f12, mag.GetXLinear());
 				uart0.Send_float(DualCar_UART::FLOAT::f13, mag.GetYLinear());
+				uart0.Send_float(DualCar_UART::FLOAT::f21, servoPIDx.getpTerm());
+				uart0.Send_float(DualCar_UART::FLOAT::f22, servoPIDx.getdTerm());
+				uart0.Send_float(DualCar_UART::FLOAT::f23, servoPIDy.getpTerm());
+				uart0.Send_float(DualCar_UART::FLOAT::f24, servoPIDy.getdTerm());
 			}
 
 			if (USsent) {
@@ -825,8 +829,8 @@ int main() {
 				current_page = menuV2.PrintSubMenu(current_page);
 				batteryVoltage = batterySum/batteryCount;
 				if(current_page->identity == "OpenMotor"){
-					voltR = right_motorPID.getPID(cycle);
-					voltL = left_motorPID.getPID(cycle);
+					voltR = right_motorPID.getPID();
+					voltL = left_motorPID.getPID();
 					powerR = voltR/batteryVoltage*1000;
 					powerL = voltL/batteryVoltage*1000;
 					if (powerR > 0) {

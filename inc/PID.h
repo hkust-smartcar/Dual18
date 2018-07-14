@@ -16,7 +16,7 @@ class PID {
 public:
 	PID(float KP, float KD):kP(KP),kD(KD){};
 	PID(float KP, float KI, float KD, DirEncoder* Encoder, bool direction):kP(KP),kI(KI),kD(KD),encoder(Encoder),dir(direction){};
-	float getPID(uint32_t);
+	float getPID();
 	float getPID(float setPoint, float measuredValue);
 	float getkP(){return kP;}
 	void setkP(float v){kP = v;}
@@ -27,6 +27,8 @@ public:
 	float getcurrentVelocity(){return currentVelocity;}
 	float getDesiredVelocty(){return desireVelocity;}
 	void setDesiredVelocity(float v){desireVelocity = v;}
+	float getpTerm(){return pTerm;}
+	float getiTerm(){return iTerm;}
 	float getdTerm(){return dTerm;}
 	void resetdTerm(){lastError = 0; dTerm = 0;}
 	uint32_t getdTime(){return dTime;}
@@ -45,6 +47,8 @@ private:
 	float currentError = 0;
 	float output = 0;
 	static int counter;
+	float pTerm = 0.0;
+	float iTerm = 0.0;
 	float dTerm = 0.0;
 	DirEncoder * encoder = nullptr;
 };
