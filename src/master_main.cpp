@@ -97,8 +97,9 @@ typedef enum {
 carState magState = kNormal;
 
 static const uint8_t cycle = 12;
-static float loopSpeed = 8, highSpeed = 9.5, alignSpeed = 7;
+static float loopSpeed = 9.5, highSpeed = 9.5, alignSpeed = 8;
 static float speed = highSpeed;
+static float l1 = 100,l2 = 100,r1 = 100,r2 = 100;
 
 int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
 	static bool left;
@@ -118,6 +119,8 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 		else
 			left = false;
 		state = 2;
+		l1 = master_slope;
+		r1 = slave_slope;
 		break;
 	case 2:
 		currY = magnetic->GetYSum();
@@ -127,6 +130,8 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 		lastY = currY;
 		if (rateY < 0){
 			state = 3;
+			l2 = master_slope;
+			r2 = slave_slope;
 		}
 		break;
 	case 3:
@@ -335,8 +340,8 @@ int main() {
 		forwardR = true;
 
 		middleServo = 1045;
-		leftServo = 1330;
-		rightServo = 695;
+		leftServo = 1340;
+		rightServo = 705;
 
 		mag.InitMag(1);
 	} else {
@@ -368,7 +373,7 @@ int main() {
 	}
 
 	uint32_t lastTime = 0, approachTime = 0;
-	bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false;
+	bool approaching = false, isFirst = false, firstArrived = false, secondArrived = true, USsent = false;
 	bool cali = false;
 
 	float angle = middleServo, angleX = 0, angleY = 0;
@@ -483,10 +488,14 @@ int main() {
 	menuV2.AddItem("AY", &angleY, menuV2.home_page.submenu_items[2].next_page, false);
 //	menuV2.AddItem("temp", &temp, menuV2.home_page.submenu_items[2].next_page, true);
 //	menuV2.AddItem("tempf", &tempf, menuV2.home_page.submenu_items[2].next_page, true);
+
 	menuV2.AddItem("loop", &(menuV2.home_page), true);
 	menuV2.AddItem("state", &current_loop_state, menuV2.home_page.submenu_items[3].next_page, false);
 	menuV2.AddItem("cam_con", &camera_control, menuV2.home_page.submenu_items[3].next_page, false);
-
+	menuV2.AddItem("L1", &l1, menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem("L2", &l2, menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem("R1", &r1, menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem("R2", &r2, menuV2.home_page.submenu_items[3].next_page, false);
 
 	int intmagState = (int)magState;
 	int* pmagState = &intmagState;
@@ -741,19 +750,6 @@ int main() {
 							buzz.SetBeep(false);
 						}
 						if (magState == kExitLoop){
-//							if (left_loop){
-//								if (mag.GetXSum() < 100){
-//									angle = 200;
-//								} else{
-//									angle *= 2.3;
-//								}
-//							} else {
-//								if (mag.GetXSum() < 100){
-//									angle = -200;
-//								} else{
-//									angle *= 2.3;
-//								}
-//							}
 							buzz.SetNote(659);
 							buzz.SetBeep(true);
 						}
@@ -768,6 +764,9 @@ int main() {
 						angle = servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));
 					} else if (magState == kSide){
 						if (mag.GetYSum() > 15){
+//							angleX = servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));//right
+//							angleY = 4 * servoPIDAlignCurve.getPID(0, mag.GetMag(Mag::magPos::x_left));//left
+//							angle = 100 + angleY;
 							angle = 100 + 4 * servoPIDAlignCurve.getPID(0, mag.GetMag(Mag::magPos::x_left));
 							buzz.SetNote(100);
 							buzz.SetBeep(true);
@@ -775,7 +774,8 @@ int main() {
 							angle = servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));
 							buzz.SetBeep(false);
 							if (mag.GetMag(Mag::magPos::x_right) < 25){
-								angle *= 1.5;
+//								angle *= 1.5;
+								angle *= 1 + ((25-mag.GetMag(Mag::magPos::x_right)) * 0.005);
 								buzz.SetNote(300);
 								buzz.SetBeep(true);
 							}
