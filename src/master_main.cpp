@@ -227,10 +227,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			}
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
-				camera_angle = difference*100;
+				camera_angle = difference*150;
 			}
 			else{
-				camera_angle = difference*200;
+				camera_angle = difference*250;
 			}
 			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 50){
 				state = 0;
@@ -244,10 +244,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			}
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
-				camera_angle = difference*100;
+				camera_angle = difference*150;
 			}
 			else{
-				camera_angle = difference*200;
+				camera_angle = difference*250;
 			}
 			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 50){
 				state = 0;
@@ -541,6 +541,10 @@ int main() {
 	right_motorPID.setkI(right_motor_pid[1]);
 	right_motorPID.setkD(right_motor_pid[2]);
 	uint32_t dTime = 0;
+
+
+	bool bumpy_road = false;
+
 	while (1) {
 		if (System::Time() != lastTime) {
 
@@ -662,12 +666,21 @@ int main() {
 				vector<Corner> master_corner;
 				master_corner = check_corner(camBuffer, 30, 60, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
+				if((mpu_data>3000)||(mpu_data<-3000)){
+					bumpy_road = true;
+					led0.SetEnable(0);
+				}
+				else{
+					bumpy_road = false;
+					led0.SetEnable(1);
+				}
 
 				//alignment
-				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()!=0)&& (slave_corner.size()!=0) && !start_count_corner){
+				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()!=0)&& (slave_corner.size()!=0) && (!start_count_corner)&&(!bumpy_road)){
 					dot_time = 0;
 					start_count_corner = true;
 				}
+
 
 				if(start_count_corner){
 					dot_time++;
@@ -708,7 +721,7 @@ int main() {
 				master_slope = find_slope(master_edge);
 				slave_slope = m_master_bluetooth.get_m_slope();
 
-				if(mag.isLoop() && !in_loop){
+				if(mag.isLoop() && !in_loop && !bumpy_road){
 					in_loop = true;
 				}
 
