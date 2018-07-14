@@ -120,6 +120,9 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 	int top_line = topline;
 	int bottom_line = bottomline;//height==60
 
+	if(edge.size()<5){
+		return m_corner;
+	}
 //	bool left_fail = false;
 //	bool right_fail = false;
 //	if(type==true){
@@ -243,7 +246,6 @@ vector<Corner> check_cornerv2(const Byte* camBuffer, int topline, int bottomline
 	}
 	return m_corner;
 }
-
 
 
 
