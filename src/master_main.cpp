@@ -327,8 +327,8 @@ int main() {
 	    right_motor_pid[1] = 0.012;
 	    right_motor_pid[2] = 0.03;
 
-	    x_servo_pd[0] = 9800;
-	    x_servo_pd[1] = 740000;
+	    x_servo_pd[0] = 9700;
+	    x_servo_pd[1] = 820000;
 
 	    y_servo_pd[0] = 3.85;
 	    y_servo_pd[1] = 228.73725;
