@@ -348,7 +348,7 @@ int main() {
 		mag.InitMag(2);
 	}
 
-	float camera_angle = middleServo;
+	float camera_angle = 0;
 	float lastServo = 0;
 
 	uint8_t cycleTime = 0;
@@ -582,48 +582,8 @@ int main() {
 					speed = 0;
 				}
 
-				//for alignment
+				//changes state for alignment
 				mag.CheckState();
-//				if (magState == kNormal && approaching) {
-//					magState = kLeave;
-//					leaveCount = 0;
-//				} else if (magState == kLeave && mag.GetMag(Mag::magPos::x_left) < 15 && mag.GetMag(Mag::magPos::x_right) < mag.GetEMin()) {
-//					if (isFirst){
-//						magState = kStop;
-//						speed = 0;
-//					} else {
-//						magState = kSide;
-//						secondArrived = true;
-//						uart0.Send_bool(DualCar_UART::BOOLEAN::b2, true);
-//					}
-//				} else if (magState == kStop && secondArrived){
-//					magState = kSide;
-//					speed = alignSpeed;
-//					approachTime = lastTime;
-//				} else if (magState == kAlign && abs(mag.GetYDiff()) < 4 && abs(angle-middleServo) < 50){
-//					magState = kSide;
-//					approachTime = lastTime;
-//				} else if (magState == kSide && !approaching) {
-//					magState = kNormal;
-//					if (isFirst || firstArrived || secondArrived){
-//						isFirst = false;
-//						firstArrived = false;
-//						secondArrived = false;
-//						if (isFirst) {
-//							lcd.SetRegion(Lcd::Rect(0,0,100,50));
-//							lcd.FillColor(0xFF00);
-//						}
-//						if (firstArrived) {
-//							lcd.SetRegion(Lcd::Rect(0,50,100,50));
-//							lcd.FillColor(0xFF00);
-//						}
-//						if (secondArrived) {
-//							lcd.SetRegion(Lcd::Rect(0,100,100,50));
-//							lcd.FillColor(0xFF00);
-//						}
-//					}
-//					speed = highSpeed;
-//				}
 
 				if (approaching){
 					if (isFirst && firstArrived){
@@ -723,55 +683,6 @@ int main() {
 					} else{
 						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY);
 					}
-//					} else if (magState == kNormal || magState == kLoop || magState == kExitLoop) {
-////						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));
-//						float target = 0.0;
-//						if (magState == kLoop || magState ==kExitLoop){
-//							if (left_loop){
-//								target = 0.02;
-//							} else{
-//								target = -0.02;
-//							}
-//						}
-//						angleX = servoPIDx.getPID(target, mag.GetXLinear());
-//						angleY = servoPIDy.getPID(0, mag.GetYLinear());
-//						if (mag.isTwoLine() && magState == kNormal){
-//							angle = 0.25*angleX + 0.25 * angleY;
-//						} else if (mag.GetYSum() > 15 && mag.GetXSum() < 80 && ((angleX > 0) ^ (angleY > 0)) && magState == kNormal){
-//							angle = angleY;
-//						} else{
-//							angle = 0.5*angleX + 0.5*angleY;
-//							buzz.SetBeep(false);
-//						}
-//					} else if (magState == kEnter){
-//						angleY = servoPIDy.getPID(0, mag.GetYLinear());
-//						angle = angleY;
-//					} else if (magState == kLeave){
-////						angle = 150;
-//						angle = max(300-leaveCount*20, 100);
-//						leaveCount++;
-//					} else if (magState == kStop){
-//						angle = -400;
-//					} else if (magState == kAlign){
-//						angle = -servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));
-//					} else if (magState == kSide){
-//						if (mag.GetYSum() > 15){
-//							angle = 100 - 5 * servoPIDAlignCurve.getPID(0, mag.GetMag(Mag::magPos::x_left));
-//							angleY = angle;
-//							buzz.SetNote(100);
-//							buzz.SetBeep(true);
-//						} else{
-//							angle = -servoPIDAlignCurve.getPID(40, mag.GetMag(Mag::magPos::x_right));
-//							buzz.SetBeep(false);
-//							if (mag.GetMag(Mag::magPos::x_right) < 25){
-////								angle *= 1.5;
-//								angle *= 1 + ((25-mag.GetMag(Mag::magPos::x_right)) * 0.005);
-//								buzz.SetNote(300);
-//								buzz.SetBeep(true);
-//							}
-//							angleX = angle;
-//						}
-//					}
 				} else{
 					angle = camera_angle;
 					buzz.SetNote(440);
