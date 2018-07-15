@@ -10,11 +10,6 @@
 
 #include "PID.h"
 
-PID servoPIDx(0, 0);
-static PID servoPIDy(0, 0);
-static PID servoPIDAlignCurve(0, 0);
-static float x_servo_pd[2],y_servo_pd[2],align_servo_pd[2];
-
 typedef enum {
 	kNormal = 0,
 	kLeave,
@@ -34,7 +29,6 @@ static bool approaching = false, isFirst = false, firstArrived = false, secondAr
 static bool left_loop = false;
 static uint8_t leaveCount = 0;
 static uint32_t lastTime = 0, approachTime = 0;
-static float angle = 0, angleX = 0, angleY = 0;
 static float l1 = 100,l2 = 100,r1 = 100,r2 = 100;
 
 #endif /* INC_VARIABLE_H_ */

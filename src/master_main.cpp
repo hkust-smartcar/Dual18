@@ -278,6 +278,9 @@ int main() {
 
 	DirEncoder encoderR(myConfig::GetEncoderConfig(0));
 	DirEncoder encoderL(myConfig::GetEncoderConfig(1));
+	PID servoPIDx(0, 0);
+	PID servoPIDy(0, 0);
+	PID servoPIDAlign(0, 0);
 	PID cameraPID(0,0);
 	PID left_motorPID(0, 0, 0, &encoderL, false);
 	PID right_motorPID(0, 0, 0, &encoderR, true);
@@ -286,9 +289,10 @@ int main() {
 
 	//pid value
 
-	float left_motor_pid[3],right_motor_pid[3];
+	float left_motor_pid[3],right_motor_pid[3],x_servo_pd[2],y_servo_pd[2],align_servo_pd[2];
 	bool forwardL, forwardR;
 	uint16_t middleServo, leftServo, rightServo;
+	float angle = 0, angleX = 0, angleY = 0;
 
 	if (board.isCar1()) {
 	    left_motor_pid[0] = 0.55;
@@ -504,8 +508,8 @@ int main() {
 	servoPIDx.setkD(x_servo_pd[1]);
 	servoPIDy.setkP(y_servo_pd[0]);
 	servoPIDy.setkD(y_servo_pd[1]);
-	servoPIDAlignCurve.setkP(align_servo_pd[0]);
-	servoPIDAlignCurve.setkD(align_servo_pd[1]);
+	servoPIDAlign.setkP(align_servo_pd[0]);
+	servoPIDAlign.setkD(align_servo_pd[1]);
 	left_motorPID.setkP(left_motor_pid[0]);
 	left_motorPID.setkI(left_motor_pid[1]);
 	left_motorPID.setkD(left_motor_pid[2]);
@@ -634,8 +638,8 @@ int main() {
 					servoPIDx.setkD(x_servo_pd[1]);
 					servoPIDy.setkP(y_servo_pd[0]);
 					servoPIDy.setkD(y_servo_pd[1]);
-					servoPIDAlignCurve.setkP(align_servo_pd[0]);
-					servoPIDAlignCurve.setkD(align_servo_pd[1]);
+					servoPIDAlign.setkP(align_servo_pd[0]);
+					servoPIDAlign.setkD(align_servo_pd[1]);
 					left_motorPID.setkP(left_motor_pid[0]);
 					left_motorPID.setkI(left_motor_pid[1]);
 					left_motorPID.setkD(left_motor_pid[2]);
@@ -717,7 +721,7 @@ int main() {
 					if (current_page->identity == "Calibrate" || mag.noMagField()) {
 						angle = 0;
 					} else{
-						mag.GetAngle();
+						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY);
 					}
 //					} else if (magState == kNormal || magState == kLoop || magState == kExitLoop) {
 ////						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));

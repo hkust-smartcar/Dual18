@@ -143,7 +143,8 @@ void Mag::CheckState(){
 	}
 }
 
-void Mag::GetAngle(){
+float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX, float &angleY){
+	float servoAngle = 0;
 	if (magState == kNormal || magState == kLoop || magState == kExitLoop){
 		float target = 0.0;
 		if (magState == kLoop || magState ==kExitLoop){
@@ -153,35 +154,36 @@ void Mag::GetAngle(){
 				target = -0.02;
 			}
 		}
-		angleX = servoPIDx.getPID(target, xLinear);
-		angleY = servoPIDy.getPID(0, yLinear);
+		angleX = x_servo.getPID(target, xLinear);
+		angleY = y_servo.getPID(0, yLinear);
 		if (Mag::isTwoLine() && magState == kNormal){
-			angle = 0.25*angleX + 0.25 * angleY;
+			servoAngle = 0.25*angleX + 0.25 * angleY;
 		} else if (Mag::GetYSum() > 15 && Mag::GetXSum() < 80 && ((angleX > 0) ^ (angleY > 0)) && magState == kNormal){
-			angle = angleY;
+			servoAngle = angleY;
 		} else{
-			angle = 0.5*angleX + 0.5*angleY;
+			servoAngle = 0.5*angleX + 0.5*angleY;
 		}
 	} else if (magState == kEnter){
-		angleY = servoPIDy.getPID(0, yLinear);
-		angle = angleY;
+		angleY = y_servo.getPID(0, yLinear);
+		servoAngle = angleY;
 	} else if (magState == kLeave){
-		angle = Max(300-(leaveCount*20), 100);
+		servoAngle = Max(300-(leaveCount*20), 100);
 		leaveCount++;
 	} else if (magState == kStop){
-		angle = -400;
+		servoAngle = -400;
 	} else if (magState == kAlign){
-		angle = -servoPIDAlignCurve.getPID(40, v[Mag::magPos::x_right]);
+		servoAngle = -align_servo.getPID(40, v[Mag::magPos::x_right]);
 	} else if (magState == kSide){
 		if (Mag::GetYSum() > 15){
-			angle = 100 - 5 * servoPIDAlignCurve.getPID(0, v[Mag::magPos::x_left]);
-			angleY = angle;
+			servoAngle = 100 - 5 * align_servo.getPID(0, v[Mag::magPos::x_left]);
+			angleY = servoAngle;
 		} else{
-			angle = -servoPIDAlignCurve.getPID(40, v[Mag::magPos::x_right]);
+			servoAngle = -align_servo.getPID(40, v[Mag::magPos::x_right]);
 			if (v[Mag::magPos::x_right] < 25){
-				angle *= 1 + ((25-v[Mag::magPos::x_right]) * 0.005);
+				servoAngle *= 1 + ((25-v[Mag::magPos::x_right]) * 0.005);
 			}
-			angleX = angle;
+			angleX = servoAngle;
 		}
 	}
+	return servoAngle;
  }
