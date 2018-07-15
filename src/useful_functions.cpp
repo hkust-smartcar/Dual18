@@ -267,3 +267,28 @@ std::vector<std::pair<int,int>> susan_corner_detection(const Byte* camBuffer){
 	return cornerv;
 }
 
+
+float sqrt(int num){//less resource-intensive (in return of less accuracy) implementation of square root
+	float lower_bon = 0;
+	float upper_bon = num;
+	float temp = 0;
+
+	int count = 20;
+	while (count != 0){
+		temp = (lower_bon + upper_bon)/2;
+		if (temp*temp == num){
+			return temp;
+		}
+
+		else if (temp*temp > num){
+			upper_bon = temp;
+		}
+		else{
+			lower_bon = temp;
+		}
+		count --;
+	}
+	return temp;
+}
+
+

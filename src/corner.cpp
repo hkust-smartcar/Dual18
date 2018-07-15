@@ -7,8 +7,8 @@
 
 #include "corner.h"
 #include "edge.h"
-#include "edge.h"
 #include <vector>
+#include "useful_functions.h"
 using namespace libsc;
 using namespace libbase::k60;
 using namespace std;
@@ -161,7 +161,7 @@ vector<Corner> check_corner(const Byte* camBuffer, int topline, int bottomline, 
 				}
 			}
 			percent = percent/49.0;
-			if (((percent<0.25)&&(percent>0.15))||((percent>0.75)&&(percent<0.85))){
+			if (((percent<0.25)&&(percent>0.1))||((percent>0.75)&&(percent<0.85))){
 				Corner temp(edge[i].first,edge[i].second, percent);
 				m_corner.push_back(temp);
 			}
@@ -234,16 +234,62 @@ float slope(uint8_t originx, uint8_t originy, uint8_t x2, uint8_t y2){
 	return slope;
 }
 
+float distance(int x1, int y1, int x2, int y2){
+	return sqrt((((x2-x1)*(x2-x1))+((y2-y1)*(y2-y1))));
+}
+
 vector<Corner> check_cornerv2(const Byte* camBuffer, int topline, int bottomline, vector<pair<int,int>> edge){
 	vector<Corner> m_corner;
-	for(int i=1; i<edge.size()-1; i++){
-		float slope1 = 0;
-		float slope2 = 0;
-		slope1 = slope(edge[i].first, edge[i].second, edge[i-1].first, edge[i-1].second);
-		slope2 = slope(edge[i].first, edge[i].second, edge[i+1].first, edge[i+1].second);
-
-
+	if(edge.size()<6){
+		return m_corner;
 	}
+	for(int i=3; i<edge.size()-3; i++){
+		float distance1 = 0;
+		float distance2 = 0;
+		float distance3 = 0;
+		float cos = 0;
+		distance1 = distance(edge[i].first, edge[i].second, edge[i-3].first, edge[i-3].second);
+		distance2 = distance(edge[i].first, edge[i].second, edge[i+3].first, edge[i+3].second);
+		distance3 = distance(edge[i-3].first, edge[i-3].second, edge[i+3].first, edge[i+3].second);
+
+		if(distance1==0||distance2==0){
+			continue;
+		}
+
+		cos = ((distance1*distance1)+(distance2*distance2)-(distance3*distance3))/(2*((distance1*distance2)));
+
+		if(cos>-0.5){
+			Corner temp(edge[i].first,edge[i].second, cos);
+			m_corner.push_back(temp);
+		}
+	}
+
+	int k = m_corner.size();
+
+	for (int i=0; i<k;){
+		int flag = 0;
+		for (int p=i+1; p<k; ){
+			if((m_corner[i].get_xcoord()-m_corner[p].get_xcoord()<=5)&&(m_corner[i].get_xcoord()-m_corner[p].get_xcoord()>=-5)&&(m_corner[i].get_ycoord()-m_corner[p].get_ycoord()<=5)&&(m_corner[i].get_ycoord()-m_corner[p].get_ycoord()>=-5)){
+				if(m_corner[i].get_percentage() > m_corner[p].get_percentage()){
+					m_corner.erase(m_corner.begin()+p);
+					k--;
+				}
+				else{
+					m_corner.erase(m_corner.begin()+i);
+					k--;
+					flag = 1;
+					break;
+				}
+			}
+			else{
+				p++;
+			}
+		}
+		if (flag == 0){
+			i++;
+		}
+	}
+
 	return m_corner;
 }
 
