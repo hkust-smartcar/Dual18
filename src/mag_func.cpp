@@ -5,7 +5,8 @@
  *      Author: PWS
  */
 
-#include "../inc/mag_func.h"
+#include "mag_func.h"
+#include "func.h"
 
 void Mag::TakeSample(){
 	filterCounter++;
@@ -39,14 +40,10 @@ void Mag::Calibrate(){
 			max[i] = raw[i];
 		}
 	}
-	if (v[Mag::magPos::x_left] == v[Mag::magPos::x_right]){
-		if (v[Mag::magPos::x_left] < emin){
-			emin = v[Mag::magPos::x_left];
-		}
-		if (v[Mag::magPos::x_left] > emax){
-			emax = v[Mag::magPos::x_left];
-		}
-	}
+	multi[Mag::magPos::x_left] = 80.0/(max[Mag::magPos::x_left]-min[Mag::magPos::x_left]);
+	multi[Mag::magPos::x_right] = 80.0/(max[Mag::magPos::y_right]-min[Mag::magPos::y_right]);
+	multi[Mag::magPos::y_left] = 80.0/(max[Mag::magPos::y_left]-min[Mag::magPos::y_left]);
+	multi[Mag::magPos::y_right] = 80.0/(max[Mag::magPos::y_right]-min[Mag::magPos::y_right]);
 }
 
 bool Mag::noMagField(){
@@ -60,8 +57,6 @@ bool Mag::noMagField(){
 
  void Mag::InitMag(uint8_t car_id){
 	if (car_id == 1){
-		emin = 52;
-		emax = 55;
 		min[Mag::magPos::x_left] = 7;
 		min[Mag::magPos::x_right] = 7;
 		max[Mag::magPos::x_left] = 62;
@@ -72,8 +67,6 @@ bool Mag::noMagField(){
 		max[Mag::magPos::y_left] = 72;
 		max[Mag::magPos::y_right] = 72;
 	}else if (car_id == 2){
-		emin = 48;
-		emax = 50;
 		min[Mag::magPos::x_left] = 10;
 		min[Mag::magPos::x_right] = 7;
 		max[Mag::magPos::x_left] = 56;
@@ -84,8 +77,6 @@ bool Mag::noMagField(){
 		max[Mag::magPos::y_left] = 72;
 		max[Mag::magPos::y_right] = 70;
 //initial value for calibration
-//		emin = 200;
-//		emax = 4;
 //		min[Mag::magPos::x_left] = 70;
 //		min[Mag::magPos::x_right] = 70;
 //		max[Mag::magPos::x_left] = 6;
@@ -121,3 +112,76 @@ bool Mag::outLoop(){
 bool Mag::isMidLoop(){
 	return (v[Mag::magPos::y_left] < 20 || v[Mag::magPos::y_right] < 20);
 }
+
+void Mag::CheckState(){
+	if (magState == kNormal && approaching) {
+		magState = kLeave;
+		leaveCount = 0;
+	} else if (magState == kLeave && v[Mag::magPos::x_left] < 15 && v[Mag::magPos::x_right] < 45){
+		if (isFirst){
+			magState = kStop;
+			speed = 0;
+		} else {
+			magState = kSide;
+			secondArrived = true;
+		}
+	} else if (magState == kStop && secondArrived){
+		magState = kSide;
+		speed = alignSpeed;
+		approachTime = lastTime;
+	} else if (magState == kAlign && abs(Mag::GetYDiff()) < 4){
+		magState = kSide;
+		approachTime = lastTime;
+	} else if (magState == kSide && !approaching) {
+		magState = kNormal;
+		if (isFirst || firstArrived || secondArrived){
+			isFirst = false;
+			firstArrived = false;
+			secondArrived = false;
+		}
+		speed = highSpeed;
+	}
+}
+
+float Mag::GetAngle(){
+	if (magState == kNormal || magState == kLoop || magState == kExitLoop){
+		float target = 0.0;
+		if (magState == kLoop || magState ==kExitLoop){
+			if (left_loop){
+				target = 0.02;
+			} else{
+				target = -0.02;
+			}
+		}
+		angleX = servoPIDx.getPID(target, xLinear);
+		angleY = servoPIDy.getPID(0, yLinear);
+		if (Mag::isTwoLine() && magState == kNormal){
+			angle = 0.25*angleX + 0.25 * angleY;
+		} else if (Mag::GetYSum() > 15 && Mag::GetXSum() < 80 && ((angleX > 0) ^ (angleY > 0)) && magState == kNormal){
+			angle = angleY;
+		} else{
+			angle = 0.5*angleX + 0.5*angleY;
+		}
+	} else if (magState == kEnter){
+		angleY = servoPIDy.getPID(0, yLinear);
+		angle = angleY;
+	} else if (magState == kLeave){
+		angle = Max(300-(leaveCount*20), 100);
+		leaveCount++;
+	} else if (magState == kStop){
+		angle = -400;
+	} else if (magState == kAlign){
+		angle = -servoPIDAlignCurve.getPID(40, v[Mag::magPos::x_right]);
+	} else if (magState == kSide){
+		if (Mag::GetYSum() > 15){
+			angle = 100 - 5 * servoPIDAlignCurve.getPID(0, v[Mag::magPos::x_left]);
+			angleY = angle;
+		} else{
+			angle = -servoPIDAlignCurve.getPID(40, v[Mag::magPos::x_right]);
+			if (v[Mag::magPos::x_right] < 25){
+				angle *= 1 + ((25-v[Mag::magPos::x_right]) * 0.005);
+			}
+			angleX = angle;
+		}
+	}
+ }

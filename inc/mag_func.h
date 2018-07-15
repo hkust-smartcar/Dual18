@@ -10,6 +10,7 @@
 
 #include "libbase/k60/adc.h"
 #include "config.h"
+#include "variable.h"
 
 class Mag{
 public:
@@ -52,13 +53,13 @@ public:
 	uint8_t GetRaw(uint8_t id){return raw[id];}
 	uint8_t GetMin(uint8_t id){return min[id];}
 	uint8_t GetMax(uint8_t id){return max[id];}
-	uint8_t GetEMin(){return emin;}
-	uint8_t GetEMax(){return emax;}
 	uint8_t GetXSum(){return v[magPos::x_left]+v[magPos::x_right];}
 	uint8_t GetYSum(){return v[magPos::y_left]+v[magPos::y_right];}
 	uint8_t GetXDiff(){return v[magPos::x_left]-v[magPos::x_right];}
 	uint8_t GetYDiff(){return v[magPos::y_left]-v[magPos::y_right];}
 	bool isTwoLine();
+	void CheckState();
+	float GetAngle();
 
 private:
 	Adc mag0;
@@ -73,7 +74,6 @@ private:
 	float multi[6] = {1.0,1.0,1.0,1.0,1.0,1.0};
 	float xLinear = 0, yLinear = 0;
 	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0,0,0,0,0,0};
-	uint8_t emin = 255, emax = 0;
 };
 
 #endif /* INC_MAG_FUNC_H_ */
