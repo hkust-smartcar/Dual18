@@ -645,7 +645,7 @@ int main() {
 				}
 				master_edge = left_edge.check_edge(camBuffer, 30, 60);
 				vector<Corner> master_corner;
-				master_corner = check_corner(camBuffer, 30, 60, master_edge);
+				master_corner = check_cornerv2(camBuffer, 30, 60, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
 				if((mpu_data > 3000 || mpu_data <- 3000) && board.isCar1()){
 					bumpy_road = true;
