@@ -648,6 +648,14 @@ int main() {
 					speed = highSpeed;
 				}
 
+				if (approaching){
+					if (isFirst && firstArrived){
+						uart0.Send_bool(DualCar_UART::BOOLEAN::b1, true);
+					} else if (!isFirst && secondArrived){
+						uart0.Send_bool(DualCar_UART::BOOLEAN::b2, true);
+					}
+				}
+
 				if (!rubbishJoseph){
 					servoPIDx.setkP(x_servo_pd[0]);
 					servoPIDx.setkD(x_servo_pd[1]);
@@ -666,7 +674,7 @@ int main() {
 				vector<Corner> master_corner;
 				master_corner = check_corner(camBuffer, 30, 60, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
-				if((mpu_data>3000)||(mpu_data<-3000)){
+				if(((mpu_data>3000)||(mpu_data<-3000)) && board.isCar1()){
 					bumpy_road = true;
 					led0.SetEnable(0);
 				}
@@ -688,7 +696,6 @@ int main() {
 						if(accumulate_corner > 5){
 							buzz.SetBeep(true);
 							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (lastTime - approachTime >= 10000 || approachTime == 0)){
-								approaching = true;
 								if (!firstArrived){
 									isFirst = true;
 									firstArrived = true;
