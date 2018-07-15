@@ -59,7 +59,7 @@ public:
 	uint8_t GetYDiff(){return v[magPos::y_left]-v[magPos::y_right];}
 	bool isTwoLine();
 	void CheckState();
-	float GetAngle();
+	void GetAngle();
 
 private:
 	Adc mag0;

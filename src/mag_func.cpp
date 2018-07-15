@@ -143,7 +143,7 @@ void Mag::CheckState(){
 	}
 }
 
-float Mag::GetAngle(){
+void Mag::GetAngle(){
 	if (magState == kNormal || magState == kLoop || magState == kExitLoop){
 		float target = 0.0;
 		if (magState == kLoop || magState ==kExitLoop){

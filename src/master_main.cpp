@@ -478,10 +478,10 @@ int main() {
 	menuV2.AddItem("minXR", &(min_xR), menuV2.home_page.submenu_items[6].next_page, false);
 	menuV2.AddItem("minYL", &(min_yL), menuV2.home_page.submenu_items[6].next_page, false);
 	menuV2.AddItem("minYR", &(min_yR), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("minXL", &(min_xL), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("minXR", &(min_xR), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("minYL", &(min_yL), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("minYR", &(min_yR), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("maxXL", &(max_xL), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("maxXR", &(max_xR), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("maxYL", &(max_yL), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("maxYR", &(max_yR), menuV2.home_page.submenu_items[6].next_page, false);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -717,7 +717,7 @@ int main() {
 					if (current_page->identity == "Calibrate" || mag.noMagField()) {
 						angle = 0;
 					} else{
-						angle = mag.GetAngle();
+						mag.GetAngle();
 					}
 //					} else if (magState == kNormal || magState == kLoop || magState == kExitLoop) {
 ////						angle = servoPIDAlignCurve.getPID(mag.GetEMin(0)*mag.GetMulti(0), mag.GetMag(0));

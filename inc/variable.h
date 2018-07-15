@@ -10,7 +10,7 @@
 
 #include "PID.h"
 
-static PID servoPIDx(0, 0);
+PID servoPIDx(0, 0);
 static PID servoPIDy(0, 0);
 static PID servoPIDAlignCurve(0, 0);
 static float x_servo_pd[2],y_servo_pd[2],align_servo_pd[2];
