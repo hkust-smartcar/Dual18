@@ -27,6 +27,7 @@
 #include "config.h"
 #include <libbase/k60/flash.h>
 #include <cstring>
+#include "corner.h"
 using namespace std;
 
 class DualCarMenu {
@@ -78,6 +79,10 @@ public:
 		this->edge = edge;
 	}
 
+	void SetCorner(vector<Corner> corner) {
+		this->corner = corner;
+	}
+
 	void SetJoystickState(Joystick::State state) {
 		joystick_state = state;
 	}
@@ -97,6 +102,7 @@ private:
 	bool pressed = false;
 	vector<SubMenu*> memory;
 	vector<pair<int, int>> edge;
+	vector<Corner> corner;
 
 	int8_t change_number_row = 0;
 	int8_t change_number_column = 0;

@@ -312,6 +312,11 @@ void DualCarMenu::PrintCamImage() {
 		lcd->FillColor(Lcd::kRed);
 	}
 
+	for (uint16_t i = 0; i < corner.size(); i++) {
+		lcd->SetRegion(Lcd::Rect(corner[i].get_xcoord(), corner[i].get_ycoord(), 2, 2));
+		lcd->FillColor(Lcd::kBlue);
+	}
+
 }
 
 inline char * DualCarMenu::change_number_getOpt(const int8_t &row, const int8_t &column, uint8_t &action) {

@@ -227,10 +227,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			}
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
-				camera_angle = difference*150;
+				camera_angle = difference*50;
 			}
 			else{
-				camera_angle = difference*250;
+				camera_angle = difference*150;
 			}
 			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 50){
 				state = 0;
@@ -244,12 +244,12 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			}
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
-				camera_angle = difference*150;
+				camera_angle = difference*50;
 			}
 			else{
-				camera_angle = difference*250;
+				camera_angle = difference*150;
 			}
-			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){
+			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35 && magnetic->isBigStraight()){
 				state = 0;
 				camera_control = false;
 				is_loop = false;
@@ -463,8 +463,10 @@ int main() {
 	menuV2.AddItem("OpenMotor", menuV2.home_page.submenu_items[0].next_page, true);
 	menuV2.AddItem("CloseMotor", menuV2.home_page.submenu_items[0].next_page, true);
 
+	int corner_size = 0;
 	menuV2.AddItem("camera", &(menuV2.home_page), true);
 	menuV2.AddItem("image", menuV2.home_page.submenu_items[1].next_page, true);
+	menuV2.AddItem("corner", &corner_size, menuV2.home_page.submenu_items[1].next_page->submenu_items[0].next_page, false);
 
 	menuV2.AddItem("magnetic", &(menuV2.home_page), true);
 	int mag_xL = mag.GetMag(Mag::magPos::x_left);
@@ -737,11 +739,6 @@ int main() {
 					in_loop = true;
 				}
 
-				if (current_loop_state > 0 && current_loop_state < 6){
-					buzz.SetNote(440);
-					buzz.SetBeep(true);
-				}
-
 				if(slave_edge_size<2){
 					s_edge_xmid = 80;
 				}
@@ -772,10 +769,6 @@ int main() {
 						} else{
 							angle = 0.5*angleX + 0.5*angleY;
 							buzz.SetBeep(false);
-						}
-						if (magState == kExitLoop){
-							buzz.SetNote(659);
-							buzz.SetBeep(true);
 						}
 					} else if (magState == kEnter){
 						angleY = servoPIDy.getPID(0, mag.GetYLinear());
@@ -808,7 +801,8 @@ int main() {
 					}
 				} else{
 					angle = camera_angle;
-					buzz.SetBeep(false);
+					buzz.SetNote(440);
+					buzz.SetBeep(true);
 				}
 				angle = 0.75*angle + 0.25*lastServo;
 				angle = max(rightServo-middleServo, min(leftServo-middleServo, angle));
@@ -850,8 +844,10 @@ int main() {
 				mag_xSum = mag.GetXSum();
 				mag_ySum = mag.GetYSum();
 				distance = UltrasonicSensor.getDistance();
+				corner_size = master_corner.size();
 				menuV2.SetCamBuffer(camBuffer);
 				menuV2.SetEdge(master_edge);
+				menuV2.SetCorner(master_corner);
 				current_page = menuV2.PrintSubMenu(current_page);
 				batteryVoltage = batterySum/batteryCount;
 				if(current_page->identity == "OpenMotor"){
