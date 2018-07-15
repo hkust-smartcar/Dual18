@@ -11,6 +11,7 @@
 #include "libbase/k60/adc.h"
 #include "config.h"
 #include "variable.h"
+#include "PID.h"
 
 class Mag{
 public:
@@ -58,8 +59,8 @@ public:
 	uint8_t GetXDiff(){return v[magPos::x_left]-v[magPos::x_right];}
 	uint8_t GetYDiff(){return v[magPos::y_left]-v[magPos::y_right];}
 	bool isTwoLine();
-	void CheckState();
-	float GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX, float &angleY);
+	void CheckState(uint32_t &lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived);
+	float GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX, float &angleY, carState &magState, bool &left_loop);
 
 private:
 	Adc mag0;
@@ -73,7 +74,9 @@ private:
 	uint8_t v[6] = {255,255,255,255,255,255}, raw[6] = {255,255,255,255,255,255};
 	float multi[6] = {1.0,1.0,1.0,1.0,1.0,1.0};
 	float xLinear = 0, yLinear = 0;
-	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0,0,0,0,0,0};
+	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0,0,0,0,0,0};\
+	uint8_t leaveCount = 0;
+	float aSpeed = 9, hSpeed = 9;
 };
 
 #endif /* INC_MAG_FUNC_H_ */

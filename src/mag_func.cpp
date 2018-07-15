@@ -113,7 +113,7 @@ bool Mag::isMidLoop(){
 	return (v[Mag::magPos::y_left] < 20 || v[Mag::magPos::y_right] < 20);
 }
 
-void Mag::CheckState(){
+void Mag::CheckState(uint32_t &lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived){
 	if (magState == kNormal && approaching) {
 		magState = kLeave;
 		leaveCount = 0;
@@ -127,7 +127,7 @@ void Mag::CheckState(){
 		}
 	} else if (magState == kStop && secondArrived){
 		magState = kSide;
-		speed = alignSpeed;
+		speed = aSpeed;
 		approachTime = lastTime;
 	} else if (magState == kAlign && abs(Mag::GetYDiff()) < 4){
 		magState = kSide;
@@ -139,11 +139,11 @@ void Mag::CheckState(){
 			firstArrived = false;
 			secondArrived = false;
 		}
-		speed = highSpeed;
+		speed = hSpeed;
 	}
 }
 
-float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX, float &angleY){
+float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX, float &angleY, carState &magState, bool &left_loop){
 	float servoAngle = 0;
 	if (magState == kNormal || magState == kLoop || magState == kExitLoop){
 		float target = 0.0;

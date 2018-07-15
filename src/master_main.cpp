@@ -74,6 +74,17 @@ bool camptr[Height][Width];
 
 int mode = 0;
 
+carState magState = kNormal;
+
+const uint8_t cycle = 12;
+float loopSpeed = 9, highSpeed = 9, alignSpeed = 9;
+float speed = highSpeed;
+bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false;
+bool left_loop = false;
+uint8_t leaveCount = 0;
+uint32_t lastTime = 0, approachTime = 0;
+float l1 = 100,l2 = 100,r1 = 100,r2 = 100;
+
 inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
 	return ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1); //return 1 if black
 }
@@ -583,7 +594,7 @@ int main() {
 				}
 
 				//changes state for alignment
-				mag.CheckState();
+				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived);
 
 				if (approaching){
 					if (isFirst && firstArrived){
@@ -681,8 +692,9 @@ int main() {
 					if (current_page->identity == "Calibrate" || mag.noMagField()) {
 						angle = 0;
 					} else{
-						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY);
+						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop);
 					}
+					buzz.SetBeep(false);
 				} else{
 					angle = camera_angle;
 					buzz.SetNote(440);
