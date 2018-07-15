@@ -97,7 +97,7 @@ typedef enum {
 carState magState = kNormal;
 
 static const uint8_t cycle = 12;
-static float loopSpeed = 9.5, highSpeed = 9.5, alignSpeed = 9;
+static float loopSpeed = 9, highSpeed = 9, alignSpeed = 9;
 static float speed = highSpeed;
 static float l1 = 100,l2 = 100,r1 = 100,r2 = 100;
 
@@ -249,7 +249,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			else{
 				camera_angle = difference*250;
 			}
-			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 50){
+			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){
 				state = 0;
 				camera_control = false;
 				is_loop = false;
@@ -443,7 +443,7 @@ int main() {
 	uint8_t dot_time = 0;
 	bool start_count_corner = false;
 
-	bool rubbishJoseph = false;//two car
+	bool rubbishJoseph = true;//two car
 
 	//for loop ver2
 	bool left_loop = false;
@@ -567,6 +567,9 @@ int main() {
 				buzz.SetNote(1040);
 				buzz.SetBeep(true);
 
+				if (firstArrived || secondArrived){
+					uart0.Send_bool(DualCar_UART::BOOLEAN::b4, true);
+				}
 				approaching = false;
 				isFirst = false;
 				firstArrived = false;
@@ -674,7 +677,7 @@ int main() {
 				vector<Corner> master_corner;
 				master_corner = check_corner(camBuffer, 30, 60, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
-				if(((mpu_data>3000)||(mpu_data<-3000)) && board.isCar1()){
+				if((mpu_data > 3000 || mpu_data <- 3000) && board.isCar1()){
 					bumpy_road = true;
 					led0.SetEnable(0);
 				}
@@ -696,6 +699,7 @@ int main() {
 						if(accumulate_corner > 5){
 							buzz.SetBeep(true);
 							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (lastTime - approachTime >= 10000 || approachTime == 0)){
+								approaching = true;
 								if (!firstArrived){
 									isFirst = true;
 									firstArrived = true;
@@ -732,7 +736,7 @@ int main() {
 					in_loop = true;
 				}
 
-				if (current_loop_state > 0 && current_loop_state < 6 && left_loop){
+				if (current_loop_state > 0 && current_loop_state < 6){
 					buzz.SetNote(440);
 					buzz.SetBeep(true);
 				}
@@ -761,7 +765,7 @@ int main() {
 						angleX = servoPIDx.getPID(target, mag.GetXLinear());
 						angleY = servoPIDy.getPID(0, mag.GetYLinear());
 						if (mag.isTwoLine() && magState == kNormal){
-							angle = 0.25*angleX + angleY;
+							angle = 0.25*angleX + 0.25 * angleY;
 						} else if (mag.GetYSum() > 15 && mag.GetXSum() < 80 && ((angleX > 0) ^ (angleY > 0)) && magState == kNormal){
 							angle = angleY;
 						} else{

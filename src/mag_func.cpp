@@ -103,7 +103,7 @@ bool Mag::noMagField(){
  }
 
 bool Mag::isLoop(){
-	return (v[Mag::magPos::x_left] > 60 && v[Mag::magPos::x_right] > 60);
+	return ((v[Mag::magPos::x_left] > 60 && v[Mag::magPos::x_right] > 60) || Mag::GetXSum() > 160);
 }
 
 bool Mag::isTwoLine(){
