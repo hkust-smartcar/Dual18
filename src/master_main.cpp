@@ -235,7 +235,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 			else{
 				camera_angle = difference*150;
 			}
-			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35 && magnetic->isBigStraight()){
+			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){//&& magnetic->isBigStraight()
 				state = 0;
 				camera_control = false;
 				is_loop = false;
@@ -632,7 +632,7 @@ int main() {
 				}
 
 				//alignment
-				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()!=0)&& (slave_corner.size()!=0) && (!start_count_corner)&&(!bumpy_road)){
+				if(((master_corner.size()>2 || slave_corner.size()>2))&&(master_corner.size()!=0)&& (slave_corner.size()!=0) && (!start_count_corner)&&(!bumpy_road)){
 					dot_time = 0;
 					start_count_corner = true;
 				}
@@ -640,8 +640,8 @@ int main() {
 
 				if(start_count_corner){
 					dot_time++;
-					if(dot_time==10){
-						if(accumulate_corner > 5){
+					if(dot_time==5){
+						if(accumulate_corner > 8){
 							buzz.SetBeep(true);
 							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (lastTime - approachTime >= 10000 || approachTime == 0)){
 								approaching = true;

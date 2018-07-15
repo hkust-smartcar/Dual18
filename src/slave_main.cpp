@@ -160,12 +160,12 @@ int main() {
 
 	// init mpu
 
-	Mpu6050::Config MpuConfig;
-	MpuConfig.accel_range = Mpu6050::Config::Range::kExtreme;
-	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
-	MpuConfig.cal_drift = true;
-	Mpu6050 mpu(MpuConfig);
-	System::DelayMs(200);
+//	Mpu6050::Config MpuConfig;
+//	MpuConfig.accel_range = Mpu6050::Config::Range::kExtreme;
+//	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
+//	MpuConfig.cal_drift = true;
+//	Mpu6050 mpu(MpuConfig);
+//	System::DelayMs(200);
 
 	while (1) {
 		if (System::Time() != lastTime) {
@@ -179,9 +179,14 @@ int main() {
 // bluetooth send image
 
 
-				mpu.Update(1);
-				std::array<int32_t, 3> mpuAccel = mpu.GetAccel();
-				mpuAccel[2] -= 2630;
+
+				//mpu
+//				mpu.Update(1);
+//				std::array<int32_t, 3> mpuAccel = mpu.GetAccel();
+//				mpuAccel[2] -= 2630;
+				std::array<int32_t, 3> mpuAccel;
+				mpuAccel[2] = 0;
+				//
 
 				float slave_slope;
 				bool right_fail;
