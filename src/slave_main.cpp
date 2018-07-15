@@ -187,7 +187,7 @@ int main() {
 				bool right_fail;
 				m_slave_vector = right_edge.check_edge(camBuffer, 30, 60);
 				vector<Corner> m_corner;
-				m_corner = check_corner(camBuffer, 30, 60, m_slave_vector);
+				m_corner = check_cornerv2(camBuffer, 30, 60, m_slave_vector);
 				slave_slope = find_slope(m_slave_vector);
 				send_ms++;
 //				if(send_ms%2==0) {
