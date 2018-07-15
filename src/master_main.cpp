@@ -139,10 +139,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			camera_control = true;
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
-				camera_angle = difference*110;
+				camera_angle = difference*80;
 			}
 			else{
-				camera_angle = difference*210;
+				camera_angle = difference*160;
 			}
 			if(slave_edge_size<4){
 				state = 4;
@@ -153,10 +153,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 			camera_control = true;
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
-				camera_angle = difference*110;
+				camera_angle = difference*80;
 			}
 			else{
-				camera_angle = difference*210;
+				camera_angle = difference*160;
 			}
 			if(master_edge_size<4){
 				state = 4;
@@ -169,10 +169,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 		if(left){
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
-				camera_angle = difference*150;
+				camera_angle = difference*120;
 			}
 			else{
-				camera_angle = difference*250;
+				camera_angle = difference*220;
 			}
 			if((slave_edge_size>5)||(slave_corner_size==1)){
 				cameraReady = true;
@@ -189,10 +189,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 		else{
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
-				camera_angle = difference*150;
+				camera_angle = difference*120;
 			}
 			else{
-				camera_angle = difference*250;
+				camera_angle = difference*220;
 			}
 			if((master_edge_size>5)||(master_corner_size==1)){
 				state = 5;
@@ -267,7 +267,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, bool &left_loop, int &
 //main
 int main() {
 
-	System::Init();
+ 	System::Init();
 
 	BoardID board;
 
@@ -422,6 +422,7 @@ int main() {
 	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
 
 	uart0.add(DualCar_UART::FLOAT::f20, &speed, false);
+//	uart0.add(DualCar_UART::FLOAT::f21, &angle, true);
 
 	uart0.parseValues();
 
