@@ -74,7 +74,7 @@ private:
 	uint8_t v[6] = {255,255,255,255,255,255}, raw[6] = {255,255,255,255,255,255};
 	float multi[6] = {1.0,1.0,1.0,1.0,1.0,1.0};
 	float xLinear = 0, yLinear = 0;
-	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0,0,0,0,0,0};\
+	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0,0,0,0,0,0};
 	uint8_t leaveCount = 0;
 	float aSpeed = 9, hSpeed = 9;
 };

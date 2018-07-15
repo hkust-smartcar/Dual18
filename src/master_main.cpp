@@ -218,7 +218,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 			else{
 				camera_angle = difference*150;
 			}
-			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 50){
+			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){
 				state = 0;
 				camera_control = false;
 				is_loop = false;
