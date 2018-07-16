@@ -118,7 +118,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		if (rateY < 0){
 			magReady = true;
 		}
-		if (magReady && magnetic->GetYSum() > 40){
+		if (magReady && magnetic->GetYSum() > 30){
 			state = 3;
 			l2 = master_slope;
 			r2 = slave_slope;
