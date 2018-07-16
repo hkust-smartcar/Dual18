@@ -105,6 +105,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		else
 			left_loop = false;
 		state = 2;
+		magReady = false;
 		l1 = master_slope;
 		r1 = slave_slope;
 		break;
@@ -115,6 +116,9 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		rateY = 0.7*rateY + 0.3*prevRateY;
 		lastY = currY;
 		if (rateY < 0){
+			magReady = true;
+		}
+		if (magReady && magnetic->GetYSum() > 40){
 			state = 3;
 			l2 = master_slope;
 			r2 = slave_slope;
@@ -125,10 +129,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 			camera_control = true;
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
-				camera_angle = difference*80;
+				camera_angle = difference*50;
 			}
 			else{
-				camera_angle = difference*160;
+				camera_angle = difference*150;
 			}
 			if(slave_edge_size<4){
 				state = 4;
@@ -139,10 +143,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 			camera_control = true;
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
-				camera_angle = difference*80;
+				camera_angle = difference*50;
 			}
 			else{
-				camera_angle = difference*160;
+				camera_angle = difference*150;
 			}
 			if(master_edge_size<4){
 				state = 4;
@@ -180,7 +184,14 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 			else{
 				camera_angle = difference*220;
 			}
+
 			if((master_edge_size>5)||(master_corner_size==1)){
+				cameraReady = true;
+			}
+			if (magnetic->GetXSum() < 100){
+				magReady = true;
+			}
+			if(cameraReady && magReady){
 				state = 5;
 				camera_control = false;
 				magState = carState::kLoop;
@@ -209,14 +220,14 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 	case 7:
 		if(left_loop){
 			if(slave_edge_size<2){
-				s_edge_xmid = 0;
+				s_edge_xmid = 80;
 			}
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
 				camera_angle = difference*50;
 			}
 			else{
-				camera_angle = difference*150;
+				camera_angle = difference*100;
 			}
 			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){
 				state = 0;
@@ -226,14 +237,14 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		}
 		else{
 			if(master_edge_size<2){
-				m_edge_xmid = 80;
+				m_edge_xmid = 0;
 			}
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
 				camera_angle = difference*50;
 			}
 			else{
-				camera_angle = difference*150;
+				camera_angle = difference*100;
 			}
 			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){//&& magnetic->isBigStraight()
 				state = 0;
@@ -640,8 +651,8 @@ int main() {
 
 				if(start_count_corner){
 					dot_time++;
-					if(dot_time==5){
-						if(accumulate_corner > 8){
+					if(dot_time==4){
+						if(accumulate_corner > 6){
 							buzz.SetBeep(true);
 							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (lastTime - approachTime >= 10000 || approachTime == 0)){
 								approaching = true;
