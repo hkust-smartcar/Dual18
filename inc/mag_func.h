@@ -59,8 +59,8 @@ public:
 	uint8_t GetXDiff(){return v[magPos::x_left]-v[magPos::x_right];}
 	uint8_t GetYDiff(){return v[magPos::y_left]-v[magPos::y_right];}
 	bool isTwoLine();
-	void CheckState(uint32_t &lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived);
-	float GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX, float &angleY, carState &magState, bool &left_loop);
+	void CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived);
+	float GetAngle(PID x_servo, PID y_servo, PID align_servo, float &angleX, float &angleY, carState magState, bool left_loop, bool in_loop, float yTarget);
 
 private:
 	Adc mag0;

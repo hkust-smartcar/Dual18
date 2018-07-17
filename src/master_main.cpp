@@ -79,6 +79,7 @@ carState magState = kNormal;
 const uint8_t cycle = 12;
 float loopSpeed = 9, highSpeed = 9, alignSpeed = 9;
 float speed = highSpeed;
+float yTarget = 0;
 bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false;
 bool left_loop = false;
 uint8_t leaveCount = 0;
@@ -97,19 +98,19 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		if(is_loop){
 			state = 1;
 			magState = kEnter;
+			yTarget = magnetic->GetYLinear();
+			if(master_slope < (-slave_slope)){
+				left_loop = true;
+			}else{
+				left_loop = false;
+			}
+			magReady = false;
+			l1 = master_slope;
+			r1 = slave_slope;
+			lastY = magnetic->GetYSum();
 		}
 		break;
 	case 1:
-		if(master_slope < (-slave_slope))
-			left_loop = true;
-		else
-			left_loop = false;
-		state = 2;
-		magReady = false;
-		l1 = master_slope;
-		r1 = slave_slope;
-		break;
-	case 2:
 		currY = magnetic->GetYSum();
 		prevRateY = rateY;
 		rateY = currY - lastY;
@@ -119,14 +120,14 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 			magReady = true;
 		}
 		if (magReady && magnetic->GetYSum() > 30){
-			state = 3;
+			state = 2;
+			camera_control = true;
 			l2 = master_slope;
 			r2 = slave_slope;
 		}
 		break;
-	case 3:
+	case 2:
 		if(left_loop){
-			camera_control = true;
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
 				camera_angle = difference*50;
@@ -135,12 +136,11 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 				camera_angle = difference*150;
 			}
 			if(slave_edge_size<4){
-				state = 4;
+				state = 3;
 				cameraReady = false;
 				magReady = false;
 			}
 		}else{
-			camera_control = true;
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
 				camera_angle = difference*50;
@@ -149,13 +149,13 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 				camera_angle = difference*150;
 			}
 			if(master_edge_size<4){
-				state = 4;
+				state = 3;
 				cameraReady = false;
 				magReady = false;
 			}
 		}
 		break;
-	case 4:
+	case 3:
 		if(left_loop){
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
@@ -166,14 +166,6 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 			}
 			if((slave_edge_size>5)||(slave_corner_size==1)){
 				cameraReady = true;
-			}
-			if (magnetic->GetXSum() < 100){
-				magReady = true;
-			}
-			if(cameraReady && magReady){
-				state = 5;
-				camera_control = false;
-				magState = carState::kLoop;
 			}
 		}
 		else{
@@ -188,36 +180,36 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 			if((master_edge_size>5)||(master_corner_size==1)){
 				cameraReady = true;
 			}
-			if (magnetic->GetXSum() < 100){
-				magReady = true;
-			}
-			if(cameraReady && magReady){
-				state = 5;
-				camera_control = false;
-				magState = carState::kLoop;
-			}
+		}
+		if (magnetic->GetXSum() < 120){
+			magReady = true;
+		}
+		if(cameraReady && magReady){
+			state = 4;
+			camera_control = false;
+			magState = carState::kLoop;
 		}
 		break;
-	case 5:
+	case 4:
 		if(magnetic->outLoop()){
-			state = 6;
+			state = 5;
 			magState = carState::kExitLoop;
 			lastY = magnetic->GetYSum();
 		}
 		break;
-	case 6:
+	case 5:
 		currY = magnetic->GetYSum();
 		prevRateY = rateY;
 		rateY = currY - lastY;
 		rateY = 0.7*rateY + 0.3*prevRateY;
 		lastY = currY;
 		if (rateY < 0 && magnetic->GetYSum() < 110){
-			state = 7;
+			state = 6;
 			camera_control = true;
 			magState = carState::kNormal;
 		}
 		break;
-	case 7:
+	case 6:
 		if(left_loop){
 			if(slave_edge_size<2){
 				s_edge_xmid = 80;
@@ -339,7 +331,7 @@ int main() {
 
 		middleServo = 1045;
 		leftServo = 1340;
-		rightServo = 705;
+		rightServo = 710;
 
 		mag.InitMag(1);
 	} else {
@@ -436,7 +428,7 @@ int main() {
 	uint8_t dot_time = 0;
 	bool start_count_corner = false;
 
-	bool rubbishJoseph = true;//two car
+	bool isTunning = true;//two car
 
 	//for loop ver2
 	bool in_loop = false;
@@ -498,16 +490,16 @@ int main() {
 	menuV2.AddItem("mpu", pmpu_data, menuV2.home_page.submenu_items[5].next_page, false);
 
 	menuV2.AddItem("Calibrate", &(menuV2.home_page), true);
-	int min_xL, min_xR, min_yL, min_yR;
-	int max_xL, max_xR, max_yL, max_yR;
-	menuV2.AddItem("minXL", &(min_xL), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("minXR", &(min_xR), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("minYL", &(min_yL), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("minYR", &(min_yR), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("maxXL", &(max_xL), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("maxXR", &(max_xR), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("maxYL", &(max_yL), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("maxYR", &(max_yR), menuV2.home_page.submenu_items[6].next_page, false);
+	int mXL, mXR, mYL, mYR;
+	int rXL, rXR, rYL, rYR;
+	menuV2.AddItem("rXL", &(rXL), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("rXR", &(rXR), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("rYL", &(rYL), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("rYR", &(rYR), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("mXL", &(mXL), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("mXR", &(mXR), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("mYL", &(mYL), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem("mYR", &(mYR), menuV2.home_page.submenu_items[6].next_page, false);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -589,16 +581,6 @@ int main() {
 				const Byte* camBuffer = camera.LockBuffer();
 				camera.UnlockBuffer();
 				mag.Update();
-//				if (menu.get_mode() != DualCar_Menu::Page::kStart){
-//					lcd.SetRegion(Lcd::Rect(100,100,10,10));
-//					if (mag.isLoop()){
-//						lcd.FillColor(0xFF00);
-//					}else if (mag.unlikelyCrossRoad()){
-//						lcd.FillColor(0x00FF);
-//					}else {
-//						lcd.FillColor(0x0000);
-//					}
-//				}
 				on9lastMain = lastTime;
 				if (mag.noMagField() && current_page->identity == "OpenMotor") {
 					speed = 0;
@@ -615,7 +597,7 @@ int main() {
 					}
 				}
 
-				if (!rubbishJoseph){
+				if (isTunning){
 					servoPIDx.setkP(x_servo_pd[0]);
 					servoPIDx.setkD(x_servo_pd[1]);
 					servoPIDy.setkP(y_servo_pd[0]);
@@ -629,6 +611,9 @@ int main() {
 					right_motorPID.setkI(right_motor_pid[1]);
 					right_motorPID.setkD(right_motor_pid[2]);
 				}
+
+
+				//LOOP v2
 				master_edge = left_edge.check_edge(camBuffer, 30, 60);
 				vector<Corner> master_corner;
 				master_corner = check_cornerv2(camBuffer, 30, 60, master_edge);
@@ -642,8 +627,45 @@ int main() {
 					led0.SetEnable(1);
 				}
 
+				//loop ver2
+				float master_slope = 0;
+				float slave_slope = 0;
+				int s_edge_xmid = m_master_bluetooth.get_edge_xmid();
+				int m_edge_xmid = 0;
+				if(master_edge.size()>0)
+					m_edge_xmid = master_edge[master_edge.size()/2].first;
+				int slave_edge_size = m_master_bluetooth.get_edge_size();
+				master_slope = find_slope(master_edge);
+				slave_slope = m_master_bluetooth.get_m_slope();
+
+				if(mag.isLoop() && !in_loop && !bumpy_road){
+					in_loop = true;
+				}
+
+				if(slave_edge_size<2){
+					s_edge_xmid = 80;
+				}
+
+				if (in_loop){
+					current_loop_state = loop_control(current_loop_state, in_loop, &mag, camera_control, camera_angle, master_edge.size(), slave_edge_size, m_edge_xmid, s_edge_xmid, master_corner.size(), slave_corner.size(),master_slope, slave_slope);
+				}
+
+				if(camera_control){
+					angle = camera_angle;
+					buzz.SetNote(440);
+					buzz.SetBeep(true);
+				} else{
+					if (current_page->identity == "Calibrate" || mag.noMagField()) {
+						angle = 0;
+					} else{
+						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop, in_loop, yTarget);
+					}
+					buzz.SetBeep(false);
+				}
+
 				//alignment
-				if(((master_corner.size()>2 || slave_corner.size()>2))&&(master_corner.size()!=0)&& (slave_corner.size()!=0) && (!start_count_corner)&&(!bumpy_road)){
+				if(((master_corner.size()>2 || slave_corner.size()>2))&&(master_corner.size()!=0)
+						&& (slave_corner.size()!=0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)){
 					dot_time = 0;
 					start_count_corner = true;
 				}
@@ -676,41 +698,7 @@ int main() {
 				(*pmpu_data) = m_master_bluetooth.get_mpu_data();
 
 
-				//loop ver2
-				float master_slope = 0;
-				float slave_slope = 0;
-				int s_edge_xmid = m_master_bluetooth.get_edge_xmid();
-				int m_edge_xmid = 0;
-				if(master_edge.size()>0)
-					m_edge_xmid = master_edge[master_edge.size()/2].first;
-				int slave_edge_size = m_master_bluetooth.get_edge_size();
-				master_slope = find_slope(master_edge);
-				slave_slope = m_master_bluetooth.get_m_slope();
 
-				if(mag.isLoop() && !in_loop && !bumpy_road){
-					in_loop = true;
-				}
-
-				if(slave_edge_size<2){
-					s_edge_xmid = 80;
-				}
-
-				if (in_loop){
-					current_loop_state = loop_control(current_loop_state, in_loop, &mag, camera_control, camera_angle, master_edge.size(), slave_edge_size, m_edge_xmid, s_edge_xmid, master_corner.size(), slave_corner.size(),master_slope, slave_slope);
-				}
-
-				if(!camera_control){
-					if (current_page->identity == "Calibrate" || mag.noMagField()) {
-						angle = 0;
-					} else{
-						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop);
-					}
-					buzz.SetBeep(false);
-				} else{
-					angle = camera_angle;
-					buzz.SetNote(440);
-					buzz.SetBeep(true);
-				}
 				angle = 0.75*angle + 0.25*lastServo;
 				angle = Max(rightServo-middleServo, Min(leftServo-middleServo, angle));
 				lastServo = angle;
@@ -747,14 +735,31 @@ int main() {
 				}
 				if (current_page->identity == "Calibrate"){
 					mag.Calibrate();
-					min_xL = mag.GetMin(Mag::magPos::x_left);
-					min_xR = mag.GetMin(Mag::magPos::x_right);
-					min_yL = mag.GetMin(Mag::magPos::y_left);
-					min_yR = mag.GetMin(Mag::magPos::y_right);
-					max_xL = mag.GetMax(Mag::magPos::x_left);
-					max_xR = mag.GetMax(Mag::magPos::x_right);
-					max_yL = mag.GetMax(Mag::magPos::y_left);
-					max_yR = mag.GetMax(Mag::magPos::y_right);
+					rXL = mag.GetRaw(Mag::magPos::x_left);
+					rXR = mag.GetRaw(Mag::magPos::x_right);
+					rYL = mag.GetRaw(Mag::magPos::y_left);
+					rYR = mag.GetRaw(Mag::magPos::y_right);
+					if (rXL > 20){
+						mXL = mag.GetMax(Mag::magPos::x_left);
+					} else{
+						mXL = mag.GetMin(Mag::magPos::x_left);
+					}
+					if (rXR > 20){
+						mXR = mag.GetMax(Mag::magPos::x_right);
+					} else{
+						mXR = mag.GetMin(Mag::magPos::x_right);
+					}
+					if (rYL > 20){
+						mYL = mag.GetMax(Mag::magPos::y_left);
+					} else{
+						mYL = mag.GetMin(Mag::magPos::y_left);
+					}
+					if (rYR > 20){
+						mYR = mag.GetMax(Mag::magPos::y_right);
+					} else{
+						mYR = mag.GetMin(Mag::magPos::y_right);
+					}
+					buzz.SetBeep(false);
 				}
 				distance = UltrasonicSensor.getDistance();
 				corner_size = master_corner.size();

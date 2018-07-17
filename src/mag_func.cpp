@@ -58,24 +58,24 @@ bool Mag::noMagField(){
  void Mag::InitMag(uint8_t car_id){
 	if (car_id == 1){
 		min[Mag::magPos::x_left] = 7;
-		min[Mag::magPos::x_right] = 7;
-		max[Mag::magPos::x_left] = 62;
-		max[Mag::magPos::x_right] = 66;
-
-		min[Mag::magPos::y_left] = 7;
-		min[Mag::magPos::y_right] = 8;
-		max[Mag::magPos::y_left] = 72;
-		max[Mag::magPos::y_right] = 72;
-	}else if (car_id == 2){
-		min[Mag::magPos::x_left] = 10;
-		min[Mag::magPos::x_right] = 7;
-		max[Mag::magPos::x_left] = 56;
-		max[Mag::magPos::x_right] = 58;
+		min[Mag::magPos::x_right] = 9;
+		max[Mag::magPos::x_left] = 57;
+		max[Mag::magPos::x_right] = 63;
 
 		min[Mag::magPos::y_left] = 8;
+		min[Mag::magPos::y_right] = 8;
+		max[Mag::magPos::y_left] = 69;
+		max[Mag::magPos::y_right] = 65;
+	}else if (car_id == 2){
+		min[Mag::magPos::x_left] = 7;
+		min[Mag::magPos::x_right] = 7;
+		max[Mag::magPos::x_left] = 59;
+		max[Mag::magPos::x_right] = 65;
+
+		min[Mag::magPos::y_left] = 6;
 		min[Mag::magPos::y_right] = 7;
-		max[Mag::magPos::y_left] = 72;
-		max[Mag::magPos::y_right] = 70;
+		max[Mag::magPos::y_left] = 35;
+		max[Mag::magPos::y_right] = 40;
 //initial value for calibration
 //		min[Mag::magPos::x_left] = 70;
 //		min[Mag::magPos::x_right] = 70;
@@ -88,7 +88,7 @@ bool Mag::noMagField(){
 //		max[Mag::magPos::y_right] = 6;
 	}
 	multi[Mag::magPos::x_left] = 80.0/(max[Mag::magPos::x_left]-min[Mag::magPos::x_left]);
-	multi[Mag::magPos::x_right] = 80.0/(max[Mag::magPos::y_right]-min[Mag::magPos::y_right]);
+	multi[Mag::magPos::x_right] = 80.0/(max[Mag::magPos::x_right]-min[Mag::magPos::x_right]);
 	multi[Mag::magPos::y_left] = 80.0/(max[Mag::magPos::y_left]-min[Mag::magPos::y_left]);
 	multi[Mag::magPos::y_right] = 80.0/(max[Mag::magPos::y_right]-min[Mag::magPos::y_right]);
  }
@@ -113,7 +113,7 @@ bool Mag::isMidLoop(){
 	return (v[Mag::magPos::y_left] < 20 || v[Mag::magPos::y_right] < 20);
 }
 
-void Mag::CheckState(uint32_t &lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived){
+void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived){
 	if (magState == kNormal && approaching) {
 		magState = kLeave;
 		leaveCount = 0;
@@ -143,11 +143,11 @@ void Mag::CheckState(uint32_t &lastTime, uint32_t &approachTime, carState &magSt
 	}
 }
 
-float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX, float &angleY, carState &magState, bool &left_loop){
+float Mag::GetAngle(PID x_servo, PID y_servo, PID align_servo, float &angleX, float &angleY, carState magState, bool left_loop, bool in_loop, float yTarget){
 	float servoAngle = 0;
 	if (magState == kNormal || magState == kLoop || magState == kExitLoop){
 		float target = 0.0;
-		if (magState == kLoop || magState ==kExitLoop){
+		if (magState == kLoop || magState == kExitLoop){
 			if (left_loop){
 				target = 0.02;
 			} else{
@@ -164,7 +164,8 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 			servoAngle = 0.5*angleX + 0.5*angleY;
 		}
 	} else if (magState == kEnter){
-		angleY = y_servo.getPID(0, yLinear);
+//		angleX = x_servo.getPID(0, xLinear);
+		angleY = y_servo.getPID(yTarget, yLinear);
 		servoAngle = angleY;
 	} else if (magState == kLeave){
 		servoAngle = Max(300-(leaveCount*20), 100);
