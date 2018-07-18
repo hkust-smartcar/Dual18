@@ -5,10 +5,10 @@
  *      Author: morristseng
  */
 
-#define slave
+//#define slave
 
 #ifdef slave
-//#ifndef Master
+
 #define temp_cam_fix
 
 #include <cmath>

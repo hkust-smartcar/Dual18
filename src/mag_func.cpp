@@ -57,14 +57,25 @@ bool Mag::noMagField(){
  void Mag::InitMag(uint8_t car_id){
 	if (car_id == 1){
 		min[Mag::magPos::x_left] = 7;
-		min[Mag::magPos::x_right] = 9;
-		max[Mag::magPos::x_left] = 57;
-		max[Mag::magPos::x_right] = 63;
+		min[Mag::magPos::x_right] = 5;
+		max[Mag::magPos::x_left] = 78;
+		max[Mag::magPos::x_right] = 78;
 
-		min[Mag::magPos::y_left] = 8;
-		min[Mag::magPos::y_right] = 8;
-		max[Mag::magPos::y_left] = 69;
-		max[Mag::magPos::y_right] = 65;
+		min[Mag::magPos::y_left] = 11;
+		min[Mag::magPos::y_right] = 7;
+		max[Mag::magPos::y_left] = 87;
+		max[Mag::magPos::y_right] = 81;
+
+//		min[Mag::magPos::x_left] = 255;
+//		min[Mag::magPos::x_right] = 255;
+//		max[Mag::magPos::x_left] = 0;
+//		max[Mag::magPos::x_right] = 0;
+//
+//		min[Mag::magPos::y_left] = 255;
+//		min[Mag::magPos::y_right] = 255;
+//		max[Mag::magPos::y_left] = 0;
+//		max[Mag::magPos::y_right] = 0;
+
 	}else if (car_id == 2){
 		min[Mag::magPos::x_left] = 12;
 		min[Mag::magPos::x_right] = 10;
@@ -76,15 +87,15 @@ bool Mag::noMagField(){
 		max[Mag::magPos::y_left] = 73;
 		max[Mag::magPos::y_right] = 78;
 //initial value for calibration
-//		min[Mag::magPos::x_left] = 70;
-//		min[Mag::magPos::x_right] = 70;
-//		max[Mag::magPos::x_left] = 6;
-//		max[Mag::magPos::x_right] = 6;
+//		min[Mag::magPos::x_left] = 255;
+//		min[Mag::magPos::x_right] = 255;
+//		max[Mag::magPos::x_left] = 0;
+//		max[Mag::magPos::x_right] = 0;
 //
-//		min[Mag::magPos::y_left] = 70;
-//		min[Mag::magPos::y_right] = 80;
-//		max[Mag::magPos::y_left] = 6;
-//		max[Mag::magPos::y_right] = 6;
+//		min[Mag::magPos::y_left] = 255;
+//		min[Mag::magPos::y_right] = 255;
+//		max[Mag::magPos::y_left] = 0;
+//		max[Mag::magPos::y_right] = 0;
 	}
 	multi[Mag::magPos::x_left] = 80.0/(max[Mag::magPos::x_left]-min[Mag::magPos::x_left]);
 	multi[Mag::magPos::x_right] = 80.0/(max[Mag::magPos::x_right]-min[Mag::magPos::x_right]);

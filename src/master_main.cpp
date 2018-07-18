@@ -5,8 +5,8 @@
  *      Author: morristseng
  */
 
-//#define Master
-//combined
+#define Master
+
 #ifdef Master
 
 #define temp_cam_fix
@@ -313,7 +313,7 @@ int main() {
 	uint16_t middleServo, leftServo, rightServo;
 	float angle = 0, angleX = 0, angleY = 0;
 
-	if (board.isCar1()) {
+	if (1) {//board.isCar1()
 	    left_motor_pid[0] = 0.55;
 	    left_motor_pid[1] = 0.012;
 	    left_motor_pid[2] = 0.03;
@@ -331,7 +331,7 @@ int main() {
 		align_servo_pd[0] = 5.8;
 		align_servo_pd[1] = 750;
 
-		forwardL = false;
+		forwardL = true;
 		forwardR = false;
 
 		middleServo = 1045;
@@ -351,14 +351,14 @@ int main() {
 	    x_servo_pd[0] = 12000;
 	    x_servo_pd[1] = 1100000;
 
-	    y_servo_pd[0] = 4.4;
+	    y_servo_pd[0] = 4.8;
 	    y_servo_pd[1] = 190;
 
 		align_servo_pd[0] = 5.8;
 		align_servo_pd[1] = 750;//car1 value
 
-		forwardL = true;
-		forwardR = false;
+		forwardL = false;
+		forwardR = true;
 
 		middleServo = 840;
 		leftServo = 1130;
@@ -637,7 +637,7 @@ int main() {
 				vector<Corner> master_corner;
 				master_corner = check_cornerv2(camBuffer, 30, 60, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
-				if((mpu_data > 3000 || mpu_data <- 3000) && board.isCar1()){
+				if((mpu_data > 3000 || mpu_data <- 3000)){
 					bumpy_road = true;
 					led0.SetEnable(0);
 				}
@@ -675,7 +675,7 @@ int main() {
 					buzz.SetBeep(true);
 				} else{
 					if (current_page->identity == "Calibrate" || mag.noMagField()) {
-						angle = 0;
+						angle = middleServo;
 					} else{
 						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop, in_loop, yTarget);
 					}
