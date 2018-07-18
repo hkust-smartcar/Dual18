@@ -78,9 +78,9 @@ bool Mag::noMagField(){
 
 	}else if (car_id == 2){
 		min[Mag::magPos::x_left] = 6;
-		min[Mag::magPos::x_right] = 4;
-		max[Mag::magPos::x_left] = 67;
-		max[Mag::magPos::x_right] = 74;
+		min[Mag::magPos::x_right] = 6;
+		max[Mag::magPos::x_left] = 74;
+		max[Mag::magPos::x_right] = 75;
 
 		min[Mag::magPos::y_left] = 5;
 		min[Mag::magPos::y_right] = 6;
@@ -116,7 +116,7 @@ bool Mag::unlikelyCrossRoad(){
 }
 
 bool Mag::outLoop(){
-	return (Mag::GetXSum()+Mag::GetYSum() > 200);
+	return (Mag::GetXSum()+Mag::GetYSum() > 250);
 }
 
 bool Mag::isMidLoop(){
@@ -157,11 +157,17 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 	float servoAngle = 0;
 	if (magState == kNormal || magState == kLoop || magState == kExitLoop){
 		float target = 0.0;
-		if (magState == kLoop || magState == kExitLoop){
+		if (magState == kLoop){
 			if (left_loop){
-				target = 0.02;
+				target = 0.015;
 			} else{
-				target = -0.02;
+				target = -0.015;
+			}
+		} else if (magState == kExitLoop){
+			if (left_loop){
+				target = 0.011;
+			} else{
+				target = -0.011;
 			}
 		}
 		angleX = x_servo.getPID(target, xLinear);

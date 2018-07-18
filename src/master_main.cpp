@@ -86,7 +86,7 @@ bool approaching = false, isFirst = false, firstArrived = false, secondArrived =
 bool left_loop = false;
 uint8_t leaveCount = 0;
 uint32_t lastTime = 0, approachTime = 0;
-float l1 = 100,l2 = 100,r1 = 100,r2 = 100;
+float l1 = 100,l2 = 100,r1 = 100,r2 = 100, ry;
 
 inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
 
@@ -119,9 +119,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		currY = magnetic->GetYSum();
 		prevRateY = rateY;
 		rateY = currY - lastY;
-		rateY = 0.7*rateY + 0.3*prevRateY;
+		rateY = 0.5*rateY + 0.5*prevRateY;
+		ry = rateY;
 		lastY = currY;
-		if (rateY < 0){
+		if (rateY > 0){
 			magReady = true;
 		}
 		if (magReady && magnetic->GetYSum() > 30){
@@ -135,10 +136,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		if(left_loop){
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
-				camera_angle = difference*50;
+				camera_angle = difference*100;
 			}
 			else{
-				camera_angle = difference*150;
+				camera_angle = difference*200;
 			}
 			if(slave_edge_size<4){
 				state = 3;
@@ -148,10 +149,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		}else{
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
-				camera_angle = difference*50;
+				camera_angle = difference*100;
 			}
 			else{
-				camera_angle = difference*150;
+				camera_angle = difference*200;
 			}
 			if(master_edge_size<4){
 				state = 3;
@@ -164,10 +165,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		if(left_loop){
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
-				camera_angle = difference*120;
+				camera_angle = difference*150;
 			}
 			else{
-				camera_angle = difference*220;
+				camera_angle = difference*250;
 			}
 			if((slave_edge_size>5)||(slave_corner_size==1)){
 				cameraReady = true;
@@ -176,17 +177,17 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		else{
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
-				camera_angle = difference*120;
+				camera_angle = difference*150;
 			}
 			else{
-				camera_angle = difference*220;
+				camera_angle = difference*250;
 			}
 
 			if((master_edge_size>5)||(master_corner_size==1)){
 				cameraReady = true;
 			}
 		}
-		if (magnetic->GetXSum() < 120){
+		if (magnetic->GetXSum() < 140){
 			magReady = true;
 		}
 		if(cameraReady && magReady){
@@ -206,22 +207,35 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		currY = magnetic->GetYSum();
 		prevRateY = rateY;
 		rateY = currY - lastY;
-		rateY = 0.7*rateY + 0.3*prevRateY;
+		rateY = 0.4*rateY + 0.6*prevRateY;
+		ry = rateY;
 		lastY = currY;
-		if (rateY < 0 && magnetic->GetYSum() < 110){
+		if (rateY < -3 && magnetic->GetYSum() < 120){
 			state = 6;
-			camera_control = true;
 			magState = carState::kNormal;
 		}
 		break;
 	case 6:
 		if(left_loop){
+//			if(slave_edge_size<40){
+				state = 7;
+				camera_control = true;
+//			}
+		}
+		else{
+//			if(master_edge_size<40){
+				state = 7;
+				camera_control = true;
+//			}
+		}
+	case 7:
+		if(left_loop){
 			if(slave_edge_size<2){
 				s_edge_xmid = 80;
 			}
-			float difference = (40 - s_edge_xmid)/40.0;
+			float difference = (50 - s_edge_xmid)/40.0;
 			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
-				camera_angle = difference*50;
+					camera_angle = difference*50;
 			}
 			else{
 				camera_angle = difference*100;
@@ -236,7 +250,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 			if(master_edge_size<2){
 				m_edge_xmid = 0;
 			}
-			float difference = (40 - m_edge_xmid)/40.0;
+			float difference = (30 - m_edge_xmid)/40.0;
 			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
 				camera_angle = difference*50;
 			}
@@ -553,7 +567,8 @@ int main() {
 				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
 				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 				uart0.Send_float(DualCar_UART::FLOAT::f12, mag.GetXLinear());
-				uart0.Send_float(DualCar_UART::FLOAT::f13, mag.GetYLinear());
+				uart0.Send_float(DualCar_UART::FLOAT::f13, ry);
+//				uart0.Send_float(DualCar_UART::FLOAT::f13, mag.GetYLinear());
 				uart0.Send_float(DualCar_UART::FLOAT::f21, servoPIDx.getpTerm());
 				uart0.Send_float(DualCar_UART::FLOAT::f22, servoPIDx.getdTerm());
 				uart0.Send_float(DualCar_UART::FLOAT::f23, servoPIDy.getpTerm());
