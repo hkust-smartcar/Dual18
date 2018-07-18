@@ -49,7 +49,7 @@ public:
 	}
 
 	bool isCar1() {
-		return m_isCar1;
+		return false;
 	}
 
 	bool isBoardA() {

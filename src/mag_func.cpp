@@ -18,7 +18,7 @@ void Mag::TakeSample(){
 }
 
 void Mag::Update(){
-	for (int i = 0; i < 6; i++){
+	for (int i = 0; i < 5; i++){
 		raw[i] = sum[i] / filterCounter;
 		if (raw[i] > min[i]){
 			v[i] = multi[i] * (raw[i] - min[i]);
@@ -48,7 +48,7 @@ void Mag::Calibrate(){
 bool Mag::noMagField(){
 	bool b = true;
 	for (int i = 0; i < 5; i++){
-		if (i != 2 && i != 3)
+		if (i != 4)
 			b = b && (v[i] < 10);
 	}
 	return b;
@@ -66,15 +66,15 @@ bool Mag::noMagField(){
 		max[Mag::magPos::y_left] = 69;
 		max[Mag::magPos::y_right] = 65;
 	}else if (car_id == 2){
-		min[Mag::magPos::x_left] = 8;
-		min[Mag::magPos::x_right] = 6;
-		max[Mag::magPos::x_left] = 60;
-		max[Mag::magPos::x_right] = 63;
+		min[Mag::magPos::x_left] = 12;
+		min[Mag::magPos::x_right] = 10;
+		max[Mag::magPos::x_left] = 72;
+		max[Mag::magPos::x_right] = 75;
 
-		min[Mag::magPos::y_left] = 8;
-		min[Mag::magPos::y_right] = 7;
-		max[Mag::magPos::y_left] = 41;
-		max[Mag::magPos::y_right] = 46;
+		min[Mag::magPos::y_left] = 18;
+		min[Mag::magPos::y_right] = 16;
+		max[Mag::magPos::y_left] = 73;
+		max[Mag::magPos::y_right] = 78;
 //initial value for calibration
 //		min[Mag::magPos::x_left] = 70;
 //		min[Mag::magPos::x_right] = 70;
