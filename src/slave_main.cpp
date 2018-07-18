@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define slave
+#define slave
 
 #ifdef slave
 //#ifndef Master
@@ -90,8 +90,27 @@ inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
 
 int main() {
 	System::Init();
+
+	St7735r lcd(myConfig::GetLcdConfig());
+	LcdTypewriter writer(myConfig::GetWriterConfig(&lcd));
+	LcdConsole console(myConfig::GetConsoleConfig(&lcd));
+
+	{
+		lcd.SetRegion(Lcd::Rect(0, 0, 80, 15));
+		char t[15];
+		sprintf(t, "init camera");
+		writer.WriteBuffer(t, 15);
+	}
+
 	Ov7725 camera(myConfig::getCameraConfig(Width, Height));
 	camera.Start();
+
+	{
+		lcd.SetRegion(Lcd::Rect(0, 15, 80, 15));
+		char t[15];
+		sprintf(t, "camera init done");
+		writer.WriteBuffer(t, 15);
+	}
 
 	Led led0(myConfig::GetLedConfig(0));
 	Led led1(myConfig::GetLedConfig(1));
@@ -109,9 +128,6 @@ int main() {
 	PassiveBuzzer buzz(config);
 	buzz.SetNote(523);
 
-	St7735r lcd(myConfig::GetLcdConfig());
-	LcdTypewriter writer(myConfig::GetWriterConfig(&lcd));
-	LcdConsole console(myConfig::GetConsoleConfig(&lcd));
 	uint32_t lastTime = 0;
 	uint8_t cycle = 12;
 	uint8_t cycleTime = 0;
@@ -161,12 +177,41 @@ int main() {
 
 	// init mpu
 
+	{
+		lcd.SetRegion(Lcd::Rect(0, 30, 80, 15));
+		char t[15];
+		sprintf(t, "init mpu");
+		writer.WriteBuffer(t, 15);
+	}
+
 	Mpu6050::Config MpuConfig;
 	MpuConfig.accel_range = Mpu6050::Config::Range::kExtreme;
 	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
 	MpuConfig.cal_drift = true;
 	Mpu6050 mpu(MpuConfig);
+
+	{
+		lcd.SetRegion(Lcd::Rect(0, 45, 80, 15));
+		char t[15];
+		sprintf(t, "mpu init done");
+		writer.WriteBuffer(t, 15);
+	}
+
+	{
+		lcd.SetRegion(Lcd::Rect(0, 60, 80, 15));
+		char t[15];
+		sprintf(t, "delay 200 ms...");
+		writer.WriteBuffer(t, 15);
+	}
+
 	System::DelayMs(200);
+
+	{
+		lcd.SetRegion(Lcd::Rect(0, 75, 80, 15));
+		char t[15];
+		sprintf(t, "delay ended");
+		writer.WriteBuffer(t, 15);
+	}
 
 	while (1) {
 		if (System::Time() != lastTime) {
@@ -178,7 +223,7 @@ int main() {
 				const Byte* camBuffer_Original = camera.LockBuffer();
 				camera.UnlockBuffer();
 
-				Byte * camBuffer = new Byte [Width * Height / 8];
+				Byte * camBuffer = new Byte[Width * Height / 8];
 				for (uint16_t i = 0; i < Width * Height / 8; i++) {
 					Byte t = *(camBuffer_Original + i);
 					*(camBuffer + i) = t << 3 | t >> 5;
@@ -189,8 +234,6 @@ int main() {
 #endif
 
 // bluetooth send image
-
-
 
 				//mpu
 				mpu.Update(1);
@@ -212,10 +255,12 @@ int main() {
 //				m_slave_bluetooth.send_edge(m_slave_vector);
 				m_slave_bluetooth.send_slope(slave_slope);
 				m_slave_bluetooth.send_corner(m_corner);
-				m_slave_bluetooth.send_int_data(m_slave_vector.size(), Informations::edge_size);
+				m_slave_bluetooth.send_int_data(m_slave_vector.size(),
+						Informations::edge_size);
 				m_slave_bluetooth.send_int_data(mpuAccel[2], Informations::mpu);
 				if (m_slave_vector.size() > 0) {
-					m_slave_bluetooth.send_int_data(m_slave_vector[m_slave_vector.size() / 2].first,
+					m_slave_bluetooth.send_int_data(
+							m_slave_vector[m_slave_vector.size() / 2].first,
 							Informations::edge_xmid);
 				} else {
 					m_slave_bluetooth.send_int_data(0, Informations::edge_xmid);
@@ -230,7 +275,8 @@ int main() {
 //					Items item3("line", menu.get_line());
 					Items item2("corner", m_corner.size());
 					Items item3("S_es", m_slave_vector.size());
-					Items item4("xmid", m_slave_vector[m_slave_vector.size() / 2].first);
+					Items item4("xmid",
+							m_slave_vector[m_slave_vector.size() / 2].first);
 					Items item5("xmid", 0);
 					Items item6("mpu", mpuAccel[2]);
 
@@ -258,26 +304,37 @@ int main() {
 					lcd.SetRegion(Lcd::Rect(0, 0, Width, Height));
 					lcd.FillBits(0x0000, 0xFFFF, camBuffer, Width * Height);
 					for (int i = 0; i < m_slave_vector.size(); i++) {
-						lcd.SetRegion(Lcd::Rect(m_slave_vector[i].first, m_slave_vector[i].second, 2, 2));
+						lcd.SetRegion(
+								Lcd::Rect(m_slave_vector[i].first,
+										m_slave_vector[i].second, 2, 2));
 						lcd.FillColor(Lcd::kRed);
 					}
 
 					for (int i = 0; i < m_corner.size(); i++) {
-						lcd.SetRegion(Lcd::Rect(m_corner[i].get_xcoord(), m_corner[i].get_ycoord(), 2, 2));
+						lcd.SetRegion(
+								Lcd::Rect(m_corner[i].get_xcoord(),
+										m_corner[i].get_ycoord(), 2, 2));
 						lcd.FillColor(Lcd::kBlue);
 					}
 
-					for (int i = 0; i < menu.m_menu[menu.get_mode()]->get_max_line(); i++) {
+					for (int i = 0;
+							i < menu.m_menu[menu.get_mode()]->get_max_line();
+							i++) {
 						lcd.SetRegion(Lcd::Rect(0, 60 + 15 * i, 88, 15));
-						writer.WriteBuffer(menu.m_menu[0]->m_items[i]->get_message(), 15);
+						writer.WriteBuffer(
+								menu.m_menu[0]->m_items[i]->get_message(), 15);
 					}
 				} else if (menu.get_mode() == 1) {
 					if (menu.change_screen()) {
 						lcd.Clear();
 					}
-					for (int i = 0; i < menu.m_menu[menu.get_mode()]->get_max_line(); i++) {
+					for (int i = 0;
+							i < menu.m_menu[menu.get_mode()]->get_max_line();
+							i++) {
 						lcd.SetRegion(Lcd::Rect(0, 15 * i, 88, 15));
-						writer.WriteBuffer(menu.m_menu[menu.get_mode()]->m_items[i]->get_message(), 15);
+						writer.WriteBuffer(
+								menu.m_menu[menu.get_mode()]->m_items[i]->get_message(),
+								15);
 					}
 				} else {
 					if (menu.change_screen()) {
