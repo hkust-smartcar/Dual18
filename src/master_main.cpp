@@ -742,7 +742,8 @@ int main() {
 				angle = 0.75*angle + 0.25*lastServo;
 				angle = Max(rightServo-middleServo, Min(leftServo-middleServo, angle));
 				lastServo = angle;
-				servo.SetDegree(angle+middleServo);
+				angle += middleServo;
+				servo.SetDegree(angle);
 
 				if (angle > middleServo) {
 					float angleRatio = 0.0013 * (angle - middleServo);
