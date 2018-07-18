@@ -212,56 +212,53 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		lastY = currY;
 		if (rateY < -3 && magnetic->GetYSum() < 120){
 			state = 6;
-			magState = carState::kNormal;
+			yTarget = magnetic->GetYLinear();
+			magState = carState::kOutLoop;
 		}
 		break;
 	case 6:
 		if(left_loop){
 //			if(slave_edge_size<40){
 				state = 7;
-				camera_control = true;
+//				camera_control = true;
 //			}
 		}
 		else{
 //			if(master_edge_size<40){
 				state = 7;
-				camera_control = true;
+//				camera_control = true;
 //			}
 		}
 	case 7:
 		if(left_loop){
-			if(slave_edge_size<2){
-				s_edge_xmid = 80;
-			}
-			float difference = (50 - s_edge_xmid)/40.0;
-			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
-					camera_angle = difference*50;
-			}
-			else{
-				camera_angle = difference*100;
-			}
-			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){
-				state = 0;
-				camera_control = false;
-				is_loop = false;
-			}
+//			if(slave_edge_size<2){
+//				s_edge_xmid = 80;
+//			}
+//			float difference = (50 - s_edge_xmid)/40.0;
+//			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
+//					camera_angle = difference*50;
+//			}
+//			else{
+//				camera_angle = difference*100;
+//			}
 		}
 		else{
-			if(master_edge_size<2){
-				m_edge_xmid = 0;
-			}
-			float difference = (30 - m_edge_xmid)/40.0;
-			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
-				camera_angle = difference*50;
-			}
-			else{
-				camera_angle = difference*100;
-			}
-			if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){//&& magnetic->isBigStraight()
-				state = 0;
-				camera_control = false;
-				is_loop = false;
-			}
+//			if(master_edge_size<2){
+//				m_edge_xmid = 0;
+//			}
+//			float difference = (30 - m_edge_xmid)/40.0;
+//			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
+//				camera_angle = difference*50;
+//			}
+//			else{
+//				camera_angle = difference*100;
+//			}
+		}
+		if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){
+			state = 0;
+			camera_control = false;
+			is_loop = false;
+			magState = kNormal;
 		}
 		break;
 	default:
@@ -365,7 +362,7 @@ int main() {
 	    x_servo_pd[0] = 12000;
 	    x_servo_pd[1] = 1100000;
 
-	    y_servo_pd[0] = 4.8;
+	    y_servo_pd[0] = 5.2;
 	    y_servo_pd[1] = 190;
 
 		align_servo_pd[0] = 5.8;
@@ -374,7 +371,7 @@ int main() {
 		forwardL = true;
 		forwardR = false;
 
-		middleServo = 840;
+		middleServo = 850;
 		leftServo = 1130;
 		rightServo = 560;
 
@@ -390,7 +387,7 @@ int main() {
 	int32_t powerL, powerR;
 	float batterySum = 0;
 	uint16_t batteryCount = 0;
-
+	bool isCrossRoad = false;
 
 	// below sync data to the computer side
 	DualCar_UART uart0(2); // << BT related
@@ -447,7 +444,7 @@ int main() {
 	uint8_t dot_time = 0;
 	bool start_count_corner = false;
 
-	bool isTunning = true;//two car
+	bool isTunning = true;
 
 	//for loop ver2
 	bool in_loop = false;
@@ -487,6 +484,7 @@ int main() {
 	menuV2.AddItem("SY", &mag_ySum, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("AX", &angleX, menuV2.home_page.submenu_items[2].next_page, false);
 	menuV2.AddItem("AY", &angleY, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem("A", &angle, menuV2.home_page.submenu_items[2].next_page, false);
 
 	menuV2.AddItem("loop", &(menuV2.home_page), true);
 	menuV2.AddItem("state", &current_loop_state, menuV2.home_page.submenu_items[3].next_page, false);
@@ -567,8 +565,8 @@ int main() {
 				uart0.Send_float(DualCar_UART::FLOAT::f10, left_motorPID.getcurrentVelocity());
 				uart0.Send_float(DualCar_UART::FLOAT::f11, right_motorPID.getcurrentVelocity());
 				uart0.Send_float(DualCar_UART::FLOAT::f12, mag.GetXLinear());
-				uart0.Send_float(DualCar_UART::FLOAT::f13, ry);
-//				uart0.Send_float(DualCar_UART::FLOAT::f13, mag.GetYLinear());
+//				uart0.Send_float(DualCar_UART::FLOAT::f13, ry);
+				uart0.Send_float(DualCar_UART::FLOAT::f13, mag.GetYLinear());
 				uart0.Send_float(DualCar_UART::FLOAT::f21, servoPIDx.getpTerm());
 				uart0.Send_float(DualCar_UART::FLOAT::f22, servoPIDx.getdTerm());
 				uart0.Send_float(DualCar_UART::FLOAT::f23, servoPIDy.getpTerm());
@@ -622,6 +620,14 @@ int main() {
 
 				//changes state for alignment
 				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived);
+
+				if (magState == kNormal && !isCrossRoad && mag.isTwoLine()){
+					yTarget = mag.GetYLinear();
+					isCrossRoad = true;
+				} else if (magState == kNormal && isCrossRoad && !mag.isTwoLine()){
+					yTarget = 0;
+					isCrossRoad = false;
+				}
 
 				if (approaching){
 					if (isFirst && firstArrived){
@@ -690,9 +696,9 @@ int main() {
 					buzz.SetBeep(true);
 				} else{
 					if (current_page->identity == "Calibrate" || mag.noMagField()) {
-						angle = middleServo;
+						angle = 0;
 					} else{
-						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop, in_loop, yTarget);
+						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop, in_loop, isCrossRoad, yTarget);
 					}
 					buzz.SetBeep(false);
 				}
@@ -736,8 +742,7 @@ int main() {
 				angle = 0.75*angle + 0.25*lastServo;
 				angle = Max(rightServo-middleServo, Min(leftServo-middleServo, angle));
 				lastServo = angle;
-				angle += middleServo;
-				servo.SetDegree(angle);
+				servo.SetDegree(angle+middleServo);
 
 				if (angle > middleServo) {
 					float angleRatio = 0.0013 * (angle - middleServo);
@@ -809,8 +814,8 @@ int main() {
 					powerR = voltR/batteryVoltage*1000;
 					powerL = voltL/batteryVoltage*1000;
 					if (powerR > 0) {
-						right_motor.SetClockwise(forwardR);
-						right_motor.SetPower(Min(powerR,1000));
+							right_motor.SetClockwise(forwardR);
+							right_motor.SetPower(Min(powerR,1000));
 					} else {
 						right_motor.SetClockwise(!forwardR);
 						right_motor.SetPower(Min(-powerR,1000));
@@ -822,7 +827,7 @@ int main() {
 						left_motor.SetClockwise(!forwardL);
 						left_motor.SetPower(Min(-powerL,1000));
 					}
-				}
+}
 				else{
 					encoderL.Update();
 					encoderR.Update();

@@ -16,7 +16,8 @@ typedef enum {
 	kSide,
 	kEnter,
 	kLoop,
-	kExitLoop
+	kExitLoop,
+	kOutLoop
 } carState;
 
 #endif /* INC_VARIABLE_H_ */
