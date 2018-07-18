@@ -104,7 +104,7 @@ public:
     static JyMcuBt106::Config GetSlaveBluetoothConfig() {
         //TODO: finish it
     	JyMcuBt106::Config config;
-    	config.id = 1;
+    	config.id = 0;
     	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
     	return config;
     }
@@ -128,25 +128,19 @@ public:
     	Adc::Config config;
     	switch (id) {
     			case 0:
-    				config.adc = Adc::Name::kAdc0Ad4B;
-    				break;
-    			case 1:
-    				config.adc = Adc::Name::kAdc1Ad4B;
-    				break;
-    			case 2:
-    				config.adc = Adc::Name::kAdc1Ad5B;
-    				break;
-    			case 3:
-   					config.adc = Adc::Name::kAdc1Ad6B;
-    				break;
-    			case 4:
-   					config.adc = Adc::Name::kAdc1Ad7B;
-    				break;
-    			case 5:
     				config.adc = Adc::Name::kAdc0Ad5B;
     				break;
-    			case 6:
+    			case 1:
+    				config.adc = Adc::Name::kAdc0Ad7B;
+    				break;
+    			case 2:
     				config.adc = Adc::Name::kAdc0Ad6B;
+    				break;
+    			case 3:
+   					config.adc = Adc::Name::kAdc0Ad18;
+    				break;
+    			case 4:
+   					config.adc = Adc::Name::kAdc0Ad17;
     				break;
     			default:
     				break;

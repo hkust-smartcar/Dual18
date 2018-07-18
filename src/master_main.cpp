@@ -9,6 +9,8 @@
 //combined
 #ifdef Master
 
+#define temp_cam_fix
+
 #include <cmath>
 #include <vector>
 #include <cassert>
@@ -87,7 +89,10 @@ uint32_t lastTime = 0, approachTime = 0;
 float l1 = 100,l2 = 100,r1 = 100,r2 = 100;
 
 inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
-	return ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1); //return 1 if black
+
+	Byte t = ((camBuffer[y * 10 + x / 8] >> (7 - (x % 8))) & 1);
+//	t = (t << 3) || (t >> 5); // temp fix
+	return t; //return 1 if black
 }
 
 int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, float &camera_angle, int master_edge_size, int slave_edge_size, int m_edge_xmid, int s_edge_xmid, int master_corner_size, int slave_corner_size, float master_slope, float slave_slope){
@@ -265,13 +270,13 @@ int main() {
 
 	Led led0(myConfig::GetLedConfig(0));
 	Led led1(myConfig::GetLedConfig(1));
-	Led led2(myConfig::GetLedConfig(2));
-	Led led3(myConfig::GetLedConfig(3));
+//	Led led2(myConfig::GetLedConfig(2));
+//	Led led3(myConfig::GetLedConfig(3));
 
 	led0.SetEnable(1);
 	led1.SetEnable(1);
-	led2.SetEnable(1);
-	led3.SetEnable(1);
+//	led2.SetEnable(1);
+//	led3.SetEnable(1);
 
 	Mag mag;
 
@@ -446,10 +451,12 @@ int main() {
 	menuV2.AddItem("OpenMotor", menuV2.home_page.submenu_items[0].next_page, true);
 	menuV2.AddItem("CloseMotor", menuV2.home_page.submenu_items[0].next_page, true);
 
-	int corner_size = 0;
+	int left_corner_size = 0;
+	int right_corner_size = 0;
 	menuV2.AddItem("camera", &(menuV2.home_page), true);
 	menuV2.AddItem("image", menuV2.home_page.submenu_items[1].next_page, true);
-	menuV2.AddItem("corner", &corner_size, menuV2.home_page.submenu_items[1].next_page->submenu_items[0].next_page, false);
+	menuV2.AddItem("Lcorner", &left_corner_size, menuV2.home_page.submenu_items[1].next_page->submenu_items[0].next_page, false);
+	menuV2.AddItem("Rcorner", &right_corner_size, menuV2.home_page.submenu_items[1].next_page->submenu_items[0].next_page, false);
 
 	menuV2.AddItem("Magnetic", &(menuV2.home_page), true);
 	int mag_xL = mag.GetMag(Mag::magPos::x_left);
@@ -571,15 +578,27 @@ int main() {
 			uart0.RunEveryMS();
 			led0.SetEnable(!approaching);
 			led1.SetEnable(!isFirst);
-			led2.SetEnable(!firstArrived);
-			led3.SetEnable(!secondArrived);
+//			led2.SetEnable(!firstArrived);
+//			led3.SetEnable(!secondArrived);
 			mag.TakeSample();
 			batterySum += batteryMeter.GetVoltage();
 			batteryCount++;
 
 			if (lastTime - on9lastMain >= cycle) {
-				const Byte* camBuffer = camera.LockBuffer();
+#ifdef temp_cam_fix
+				const Byte* camBuffer_Original = camera.LockBuffer();
 				camera.UnlockBuffer();
+
+				Byte * camBuffer = new Byte [Width * Height / 8];
+				for (uint16_t i = 0; i < Width * Height / 8; i++) {
+					Byte t = *(camBuffer_Original + i);
+					*(camBuffer + i) = t << 3 | t >> 5;
+				}
+#else
+				const Byte* camBuffer_Original = camera.LockBuffer();
+				camera.UnlockBuffer();
+#endif
+
 				mag.Update();
 				on9lastMain = lastTime;
 				if (mag.noMagField() && current_page->identity == "OpenMotor") {
@@ -721,8 +740,8 @@ int main() {
 				if(left_loop){
 					led0.SetEnable(0);
 					led1.SetEnable(0);
-					led2.SetEnable(0);
-					led3.SetEnable(0);
+//					led2.SetEnable(0);
+//					led3.SetEnable(0);
 				}
 				*pmagState = (int)magState;
 				if (current_page->identity == "Magnetic"){
@@ -762,7 +781,8 @@ int main() {
 					buzz.SetBeep(false);
 				}
 				distance = UltrasonicSensor.getDistance();
-				corner_size = master_corner.size();
+				left_corner_size = master_corner.size();
+				right_corner_size = slave_corner.size();
 				menuV2.SetCamBuffer(camBuffer);
 				menuV2.SetEdge(master_edge);
 				menuV2.SetCorner(master_corner);
@@ -799,6 +819,10 @@ int main() {
 					right_motor.SetPower(0);
 				}
 				/////
+
+#ifdef temp_cam_fix
+				delete[] camBuffer;
+#endif
 
 				master_edge.clear();
 				slave_edge.clear();

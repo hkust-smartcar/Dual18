@@ -74,8 +74,8 @@ public:
 
 private:
 	const int sentPeriod = 100;
-	const Pin::Name TRIG_PIN = Pin::Name::kPtc14;
-	const Pin::Name ECHO_PIN = Pin::Name::kPtc15;
+	const Pin::Name TRIG_PIN = Pin::Name::kPte27;
+	const Pin::Name ECHO_PIN = Pin::Name::kPte28;
 
 	typedef std::function<void(Gpi *gpi)> Listener;
 	Listener m_echo_listener;

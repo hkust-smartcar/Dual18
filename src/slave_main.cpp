@@ -9,6 +9,7 @@
 
 #ifdef slave
 //#ifndef Master
+#define temp_cam_fix
 
 #include <cmath>
 #include <vector>
@@ -94,15 +95,15 @@ int main() {
 
 	Led led0(myConfig::GetLedConfig(0));
 	Led led1(myConfig::GetLedConfig(1));
-	Led led2(myConfig::GetLedConfig(2));
-	Led led3(myConfig::GetLedConfig(3));
+//	Led led2(myConfig::GetLedConfig(2));
+//	Led led3(myConfig::GetLedConfig(3));
 
 	Edge right_edge(true);
 
 	led0.SetEnable(1);
 	led1.SetEnable(1);
-	led2.SetEnable(1);
-	led3.SetEnable(1);
+//	led2.SetEnable(1);
+//	led3.SetEnable(1);
 
 	PassiveBuzzer::Config config;
 	PassiveBuzzer buzz(config);
@@ -155,17 +156,17 @@ int main() {
 
 	vector<pair<int, int>> m_slave_vector;
 	int pre_x_coord = 40;
-
+	led0.SetEnable(0);
 //	int servo_degree = 1000;
 
 	// init mpu
 
-//	Mpu6050::Config MpuConfig;
-//	MpuConfig.accel_range = Mpu6050::Config::Range::kExtreme;
-//	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
-//	MpuConfig.cal_drift = true;
-//	Mpu6050 mpu(MpuConfig);
-//	System::DelayMs(200);
+	Mpu6050::Config MpuConfig;
+	MpuConfig.accel_range = Mpu6050::Config::Range::kExtreme;
+	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
+	MpuConfig.cal_drift = true;
+	Mpu6050 mpu(MpuConfig);
+	System::DelayMs(200);
 
 	while (1) {
 		if (System::Time() != lastTime) {
@@ -173,19 +174,30 @@ int main() {
 			lastTime = System::Time();
 
 			if (lastTime % cycle == 0) {
-				const Byte* camBuffer = camera.LockBuffer();
+#ifdef temp_cam_fix
+				const Byte* camBuffer_Original = camera.LockBuffer();
 				camera.UnlockBuffer();
+
+				Byte * camBuffer = new Byte [Width * Height / 8];
+				for (uint16_t i = 0; i < Width * Height / 8; i++) {
+					Byte t = *(camBuffer_Original + i);
+					*(camBuffer + i) = t << 3 | t >> 5;
+				}
+#else
+				const Byte* camBuffer_Original = camera.LockBuffer();
+				camera.UnlockBuffer();
+#endif
 
 // bluetooth send image
 
 
 
 				//mpu
-//				mpu.Update(1);
-//				std::array<int32_t, 3> mpuAccel = mpu.GetAccel();
-//				mpuAccel[2] -= 2630;
-				std::array<int32_t, 3> mpuAccel;
-				mpuAccel[2] = 0;
+				mpu.Update(1);
+				std::array<int32_t, 3> mpuAccel = mpu.GetAccel();
+				mpuAccel[2] -= 2630;
+//				std::array<int32_t, 3> mpuAccel;
+//				mpuAccel[2] = 0;
 				//
 
 				float slave_slope;
@@ -281,6 +293,10 @@ int main() {
 				mode0.clear();
 				mode1.clear();
 				m_slave_vector.clear();
+
+#ifdef temp_cam_fix
+				delete[] camBuffer;
+#endif
 
 				cycleTime = System::Time() - lastTime;
 			}

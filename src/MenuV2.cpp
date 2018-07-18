@@ -245,7 +245,7 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 	if (menu->identity == "image") {
 		PrintCamImage();
 		for (uint16_t i = 0; i < (menu->submenu_items.size()) && (i < max_line - 4); i++) {
-			PrintItem(menu->submenu_items[i], i + 4);
+			PrintItem(menu->submenu_items[i], i + 4, current_line == i);
 		}
 	} else if ((menu->identity == "OpenMotor") || (menu->identity == "CloseMotor")) {
 	} else if (menu->identity == "changed") {

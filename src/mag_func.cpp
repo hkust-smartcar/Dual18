@@ -15,7 +15,6 @@ void Mag::TakeSample(){
 	sum[2] += mag2.GetResult();
 	sum[3] += mag3.GetResult();
 	sum[4] += mag4.GetResult();
-	sum[5] += mag5.GetResult();
 }
 
 void Mag::Update(){
@@ -32,7 +31,7 @@ void Mag::Update(){
 }
 
 void Mag::Calibrate(){
-	for (int i = 0; i < 6; i++){
+	for (int i = 0; i < 5; i++){
 		if (raw[i] < min[i]){
 			min[i] = raw[i];
 		}
@@ -48,7 +47,7 @@ void Mag::Calibrate(){
 
 bool Mag::noMagField(){
 	bool b = true;
-	for (int i = 0; i < 6; i++){
+	for (int i = 0; i < 5; i++){
 		if (i != 2 && i != 3)
 			b = b && (v[i] < 10);
 	}

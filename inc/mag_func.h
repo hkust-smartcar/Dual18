@@ -20,21 +20,19 @@ public:
 		mag1(myConfig::GetAdcConfig(1)),
 		mag2(myConfig::GetAdcConfig(2)),
 		mag3(myConfig::GetAdcConfig(3)),
-		mag4(myConfig::GetAdcConfig(4)),
-		mag5(myConfig::GetAdcConfig(5)){
+		mag4(myConfig::GetAdcConfig(4)){
 
 		mag0.StartConvert();
 		mag1.StartConvert();
 		mag2.StartConvert();
 		mag3.StartConvert();
 		mag4.StartConvert();
-		mag5.StartConvert();
 	};
 	typedef enum{
-		x_left = 1,
-		x_right = 5,
-		y_left = 0,
-		y_right = 4
+		x_left = 0,
+		x_right = 1,
+		y_left = 2,
+		y_right = 3
 	} magPos;
 	void TakeSample();
 	void Update();
@@ -68,13 +66,12 @@ private:
 	Adc mag2;
 	Adc mag3;
 	Adc mag4;
-	Adc mag5;
-	uint16_t sum[6] = {0,0,0,0,0,0};
+	uint16_t sum[5] = {0,0,0,0,0};
 	uint8_t filterCounter = 0;
-	uint8_t v[6] = {255,255,255,255,255,255}, raw[6] = {255,255,255,255,255,255};
-	float multi[6] = {1.0,1.0,1.0,1.0,1.0,1.0};
+	uint8_t v[5] = {255,255,255,255,255}, raw[5] = {255,255,255,255,255};
+	float multi[5] = {1.0,1.0,1.0,1.0,1.0};
 	float xLinear = 0, yLinear = 0;
-	uint8_t min[6] = {15,15,15,15,15,15}, max[6] = {0,0,0,0,0,0};
+	uint8_t min[5] = {15,15,15,15,15}, max[5] = {0,0,0,0,0};
 	uint8_t leaveCount = 0;
 	float aSpeed = 9, hSpeed = 9;
 };
