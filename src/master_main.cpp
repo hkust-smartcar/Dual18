@@ -79,7 +79,7 @@ int mode = 0;
 carState magState = kNormal;
 
 const uint8_t cycle = 12;
-float loopSpeed = 9, highSpeed = 8, alignSpeed = 9;
+float loopSpeed = 9, highSpeed = 9.5, alignSpeed = 9;
 float speed = highSpeed;
 float yTarget = 0;
 bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false;
