@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define slave
+#define slave
 
 #ifdef slave
 //#ifndef Master
@@ -189,6 +189,7 @@ int main() {
 	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
 	MpuConfig.cal_drift = true;
 	Mpu6050 mpu(MpuConfig);
+	bool led_toggle = true;
 
 	{
 		lcd.SetRegion(Lcd::Rect(0, 45, 80, 15));
@@ -250,8 +251,12 @@ int main() {
 				m_corner = check_cornerv2(camBuffer, 30, 60, m_slave_vector);
 				slave_slope = find_slope(m_slave_vector);
 				send_ms++;
-//				if(send_ms%2==0) {
-//					send_ms = 0;
+				if(send_ms%10==0) {
+					send_ms = 0;
+					led0.Switch();
+				}
+
+
 //				m_slave_bluetooth.send_edge(m_slave_vector);
 				m_slave_bluetooth.send_slope(slave_slope);
 				m_slave_bluetooth.send_corner(m_corner);
