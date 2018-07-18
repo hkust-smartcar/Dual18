@@ -313,7 +313,7 @@ int main() {
 	uint16_t middleServo, leftServo, rightServo;
 	float angle = 0, angleX = 0, angleY = 0;
 
-	if (1) {//board.isCar1()
+	if (0) {//board.isCar1()
 	    left_motor_pid[0] = 0.55;
 	    left_motor_pid[1] = 0.012;
 	    left_motor_pid[2] = 0.03;
@@ -357,8 +357,8 @@ int main() {
 		align_servo_pd[0] = 5.8;
 		align_servo_pd[1] = 750;//car1 value
 
-		forwardL = false;
-		forwardR = true;
+		forwardL = true;
+		forwardR = false;
 
 		middleServo = 840;
 		leftServo = 1130;
@@ -379,7 +379,7 @@ int main() {
 
 
 	// below sync data to the computer side
-	DualCar_UART uart0(1); // << BT related
+	DualCar_UART uart0(2); // << BT related
 
 	// joseph: chnaged the 3 below to false, better send implicitly
 	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, false);
