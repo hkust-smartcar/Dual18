@@ -79,12 +79,12 @@ bool Mag::noMagField(){
 	}else if (car_id == 2){
 		min[Mag::magPos::x_left] = 8;
 		min[Mag::magPos::x_right] = 7;
-		max[Mag::magPos::x_left] = 75;
-		max[Mag::magPos::x_right] = 75;
+		max[Mag::magPos::x_left] = 81;
+		max[Mag::magPos::x_right] = 79;
 //8 9
 		min[Mag::magPos::y_left] = 0;
 		min[Mag::magPos::y_right] = 0;
-		max[Mag::magPos::y_left] = 75;
+		max[Mag::magPos::y_left] = 76;
 		max[Mag::magPos::y_right] = 75;
 //initial value for calibration
 //		min[Mag::magPos::x_left] = 255;
