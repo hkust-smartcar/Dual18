@@ -125,7 +125,7 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 	if (magState == kNormal && approaching) {
 		magState = kLeave;
 		leaveCount = 0;
-	} else if (magState == kLeave && v[Mag::magPos::x_left] < 15 && v[Mag::magPos::x_right] < 45){
+	} else if (magState == kLeave && v[Mag::magPos::x_left] < 15 && v[Mag::magPos::x_right] < 50){
 		if (isFirst){
 			magState = kStop;
 			speed = 0;

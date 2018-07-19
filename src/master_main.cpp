@@ -359,11 +359,11 @@ int main() {
 	    right_motor_pid[1] = 0.025;
 	    right_motor_pid[2] = 0.0001;
 
-	    x_servo_pd[0] = 13500;
-	    x_servo_pd[1] = 1190000;
+	    x_servo_pd[0] = 13800;
+	   x_servo_pd[1] = 1360000;
 
-	    y_servo_pd[0] = 5.8;
-	    y_servo_pd[1] = 210;
+	    y_servo_pd[0] = 6.2;
+	    y_servo_pd[1] = 220;
 
 		align_servo_pd[0] = 5.8;
 		align_servo_pd[1] = 750;//car1 value
@@ -704,8 +704,8 @@ int main() {
 				}
 
 				//alignment
-				if(((master_corner.size()>2 || slave_corner.size()>2))&&(master_corner.size()!=0)
-						&& (slave_corner.size()!=0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)){
+				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()>0)
+						&& (slave_corner.size()>0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)){
 					dot_time = 0;
 					start_count_corner = true;
 				}
