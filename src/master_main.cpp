@@ -359,11 +359,11 @@ int main() {
 	    right_motor_pid[1] = 0.025;
 	    right_motor_pid[2] = 0.0001;
 
-	    x_servo_pd[0] = 12000;
-	    x_servo_pd[1] = 1100000;
+	    x_servo_pd[0] = 13500;
+	    x_servo_pd[1] = 1190000;
 
-	    y_servo_pd[0] = 5.2;
-	    y_servo_pd[1] = 190;
+	    y_servo_pd[0] = 5.8;
+	    y_servo_pd[1] = 210;
 
 		align_servo_pd[0] = 5.8;
 		align_servo_pd[1] = 750;//car1 value

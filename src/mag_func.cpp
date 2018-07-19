@@ -9,12 +9,14 @@
 #include "func.h"
 
 void Mag::TakeSample(){
-	filterCounter++;
-	sum[0] += mag0.GetResult();
-	sum[1] += mag1.GetResult();
-	sum[2] += mag2.GetResult();
-	sum[3] += mag3.GetResult();
-	sum[4] += mag4.GetResult();
+	for (int i = 0; i < 20; i++){
+		filterCounter++;
+		sum[0] += mag0.GetResult();
+		sum[1] += mag1.GetResult();
+		sum[2] += mag2.GetResult();
+		sum[3] += mag3.GetResult();
+		sum[4] += mag4.GetResult();
+	}
 }
 
 void Mag::Update(){
@@ -77,15 +79,15 @@ bool Mag::noMagField(){
 //		max[Mag::magPos::y_right] = 0;
 
 	}else if (car_id == 2){
-		min[Mag::magPos::x_left] = 8;
-		min[Mag::magPos::x_right] = 7;
-		max[Mag::magPos::x_left] = 81;
-		max[Mag::magPos::x_right] = 79;
+		min[Mag::magPos::x_left] = 9;
+		min[Mag::magPos::x_right] = 8;
+		max[Mag::magPos::x_left] = 65;
+		max[Mag::magPos::x_right] = 67;
 //8 9
-		min[Mag::magPos::y_left] = 0;
-		min[Mag::magPos::y_right] = 0;
-		max[Mag::magPos::y_left] = 76;
-		max[Mag::magPos::y_right] = 75;
+		min[Mag::magPos::y_left] = 9;
+		min[Mag::magPos::y_right] = 10;
+		max[Mag::magPos::y_left] = 70;
+		max[Mag::magPos::y_right] = 71;
 //initial value for calibration
 //		min[Mag::magPos::x_left] = 255;
 //		min[Mag::magPos::x_right] = 255;
