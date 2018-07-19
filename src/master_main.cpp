@@ -654,9 +654,9 @@ int main() {
 
 
 				//LOOP v2
-				master_edge = left_edge.check_edge(camBuffer, 30, 60);
+				master_edge = left_edge.check_edge(camBuffer, 25, 60);
 				vector<Corner> master_corner;
-				master_corner = check_cornerv2(camBuffer, 30, 60, master_edge);
+				master_corner = check_cornerv2(camBuffer, 25, 60, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
 				if((mpu_data > 3000 || mpu_data <- 3000)){
 					bumpy_road = true;
@@ -693,29 +693,33 @@ int main() {
 				if(camera_control){
 					angle = camera_angle;
 					buzz.SetNote(440);
-					buzz.SetBeep(true);
+//					buzz.SetBeep(true);
 				} else{
 					if (current_page->identity == "Calibrate" || mag.noMagField()) {
 						angle = 0;
 					} else{
 						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop, in_loop, isCrossRoad, yTarget);
 					}
-					buzz.SetBeep(false);
+//					buzz.SetBeep(false);
 				}
 
 				//alignment
 				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()>0)
 						&& (slave_corner.size()>0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)){
 					dot_time = 0;
+					buzz.SetNote(440);
+					buzz.SetBeep(true);
 					start_count_corner = true;
 				}
 
 
 				if(start_count_corner){
 					dot_time++;
-					if(dot_time==4){
+					if(dot_time==6){
 						if(accumulate_corner > 6){
-							buzz.SetBeep(true);
+//							buzz.SetBeep(true);
+							buzz.SetBeep(false);
+							start_count_corner = false;
 							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (lastTime - approachTime >= 10000 || approachTime == 0)){
 								approaching = true;
 								if (!firstArrived){
@@ -725,7 +729,6 @@ int main() {
 							}
 						}
 						accumulate_corner = 0;
-						start_count_corner = false;
 						dot_time = 0;
 					}
 					else{

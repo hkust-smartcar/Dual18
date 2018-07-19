@@ -29,14 +29,14 @@ bool check_if_fail(int topline, int bottomline, vector<pair<int,int>> intput_vec
 	return !fail;
 
 }
-void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, const Byte* camBuffer){
+void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, int topline, int bottomline, const Byte* camBuffer){
 	uint8_t wrong_way1 = 0;
 	uint8_t wrong_way2 = 0;
 	uint8_t wrong_way3 = 0;
 	uint8_t start_point = 0;
 	uint8_t end_point = 0;
 
-	if((ycoord>58)||(ycoord<=30)||(xcoord<2)||(xcoord>77)){
+	if((ycoord>bottomline-2)||(ycoord<=topline)||(xcoord>77)||(xcoord<2)){
 		return;
 	}
 
@@ -89,7 +89,7 @@ void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_directio
 					if(!traveled[tempx][tempy-30]){
 						traveled[tempx][tempy-30] = true;
 						m_edge.push_back(make_pair(tempx,tempy));
-						traveling_right(tempx, tempy, Direction::Left, camBuffer);
+						traveling_right(tempx, tempy, Direction::Left, topline, bottomline,camBuffer);
 					}
 				}
 			}
@@ -100,7 +100,7 @@ void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_directio
 					if(!traveled[tempx][tempy-30]){
 						traveled[tempx][tempy-30] = true;
 						m_edge.push_back(make_pair(tempx,tempy));
-						traveling_right(tempx, tempy, Direction::DownLeft, camBuffer);
+						traveling_right(tempx, tempy, Direction::DownLeft, topline, bottomline,camBuffer);
 					}
 				}
 			}
@@ -111,7 +111,7 @@ void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_directio
 					if(!traveled[tempx][tempy-30]){
 						traveled[tempx][tempy-30] = true;
 						m_edge.push_back(make_pair(tempx,tempy));
-						traveling_right(tempx, tempy, Direction::Down, camBuffer);
+						traveling_right(tempx, tempy, Direction::Down, topline, bottomline,camBuffer);
 					}
 				}
 			}
@@ -122,7 +122,7 @@ void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_directio
 					if(!traveled[tempx][tempy-30]){
 						traveled[tempx][tempy-30] = true;
 						m_edge.push_back(make_pair(tempx,tempy));
-						traveling_right(tempx, tempy, Direction::DownRight, camBuffer);
+						traveling_right(tempx, tempy, Direction::DownRight, topline, bottomline, camBuffer);
 					}
 				}
 			}
@@ -133,7 +133,7 @@ void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_directio
 					if(!traveled[tempx][tempy-30]){
 						traveled[tempx][tempy-30] = true;
 						m_edge.push_back(make_pair(tempx,tempy));
-						traveling_right(tempx, tempy, Direction::Right, camBuffer);
+						traveling_right(tempx, tempy, Direction::Right, topline, bottomline,camBuffer);
 					}
 				}
 			}
@@ -144,7 +144,7 @@ void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_directio
 					if(!traveled[tempx][tempy-30]){
 						traveled[tempx][tempy-30] = true;
 						m_edge.push_back(make_pair(tempx,tempy));
-						traveling_right(tempx, tempy, Direction::UpRight, camBuffer);
+						traveling_right(tempx, tempy, Direction::UpRight, topline, bottomline,camBuffer);
 					}
 				}
 			}
@@ -155,7 +155,7 @@ void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_directio
 					if(!traveled[tempx][tempy-30]){
 						traveled[tempx][tempy-30] = true;
 						m_edge.push_back(make_pair(tempx,tempy));
-						traveling_right(tempx, tempy, Direction::Up, camBuffer);
+						traveling_right(tempx, tempy, Direction::Up, topline, bottomline,camBuffer);
 					}
 				}
 			}
@@ -166,7 +166,7 @@ void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_directio
 					if(!traveled[tempx][tempy-30]){
 						traveled[tempx][tempy-30] = true;
 						m_edge.push_back(make_pair(tempx,tempy));
-						traveling_right(tempx, tempy, Direction::UpLeft, camBuffer);
+						traveling_right(tempx, tempy, Direction::UpLeft, topline, bottomline,camBuffer);
 					}
 				}
 			}
@@ -178,15 +178,15 @@ void Edge::traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_directio
 	return;
 }
 
-
-void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, const Byte* camBuffer){
+//master
+void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, int topline, int bottomline, const Byte* camBuffer){
 		uint8_t wrong_way1 = 0;
 		uint8_t wrong_way2 = 0;
 		uint8_t wrong_way3 = 0;
 		uint8_t start_point = 0;
 		uint8_t end_point = 0;
 
-		if((ycoord>58)||(ycoord<=30)||(xcoord<2)||(xcoord>77)){
+		if((ycoord>bottomline-2)||(ycoord<=topline)||(xcoord>77)||(xcoord<2)){
 			return;
 		}
 
@@ -239,7 +239,7 @@ void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction
 						if(!traveled[tempx][tempy-30]){
 							traveled[tempx][tempy-30] = true;
 							m_edge.push_back(make_pair(tempx,tempy));
-							traveling_left(tempx, tempy, Direction::Left, camBuffer);
+							traveling_left(tempx, tempy, Direction::Left, topline, bottomline,camBuffer);
 						}
 					}
 				}
@@ -250,7 +250,7 @@ void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction
 						if(!traveled[tempx][tempy-30]){
 							traveled[tempx][tempy-30] = true;
 							m_edge.push_back(make_pair(tempx,tempy));
-							traveling_left(tempx, tempy, Direction::DownLeft, camBuffer);
+							traveling_left(tempx, tempy, Direction::DownLeft,topline, bottomline, camBuffer);
 						}
 					}
 				}
@@ -261,7 +261,7 @@ void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction
 						if(!traveled[tempx][tempy-30]){
 							traveled[tempx][tempy-30] = true;
 							m_edge.push_back(make_pair(tempx,tempy));
-							traveling_left(tempx, tempy, Direction::Down, camBuffer);
+							traveling_left(tempx, tempy, Direction::Down, topline, bottomline,camBuffer);
 						}
 					}
 				}
@@ -272,7 +272,7 @@ void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction
 						if(!traveled[tempx][tempy-30]){
 							traveled[tempx][tempy-30] = true;
 							m_edge.push_back(make_pair(tempx,tempy));
-							traveling_left(tempx, tempy, Direction::DownRight, camBuffer);
+							traveling_left(tempx, tempy, Direction::DownRight,topline, bottomline, camBuffer);
 						}
 					}
 				}
@@ -283,7 +283,7 @@ void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction
 						if(!traveled[tempx][tempy-30]){
 							traveled[tempx][tempy-30] = true;
 							m_edge.push_back(make_pair(tempx,tempy));
-							traveling_left(tempx, tempy, Direction::Right, camBuffer);
+							traveling_left(tempx, tempy, Direction::Right, topline, bottomline,camBuffer);
 						}
 					}
 				}
@@ -294,7 +294,7 @@ void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction
 						if(!traveled[tempx][tempy-30]){
 							traveled[tempx][tempy-30] = true;
 							m_edge.push_back(make_pair(tempx,tempy));
-							traveling_left(tempx, tempy, Direction::UpRight, camBuffer);
+							traveling_left(tempx, tempy, Direction::UpRight, topline, bottomline,camBuffer);
 						}
 					}
 				}
@@ -305,7 +305,7 @@ void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction
 						if(!traveled[tempx][tempy-30]){
 							traveled[tempx][tempy-30] = true;
 							m_edge.push_back(make_pair(tempx,tempy));
-							traveling_left(tempx, tempy, Direction::Up, camBuffer);
+							traveling_left(tempx, tempy, Direction::Up, topline, bottomline,camBuffer);
 						}
 					}
 				}
@@ -316,11 +316,12 @@ void Edge::traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction
 						if(!traveled[tempx][tempy-30]){
 							traveled[tempx][tempy-30] = true;
 							m_edge.push_back(make_pair(tempx,tempy));
-							traveling_left(tempx, tempy, Direction::UpLeft, camBuffer);
+							traveling_left(tempx, tempy, Direction::UpLeft,topline, bottomline, camBuffer);
 						}
 					}
 				}
 			}
+
 			if(i==end_point){
 				return;
 			}
@@ -336,7 +337,7 @@ vector<pair<int,int>> Edge::check_edge(const Byte* camBuffer, int topline, int b
 	uint8_t bottom_line = bottomline;
 	if(bottomline>=59)
 		{bottom_line = 58;}
-	if(!type){
+	if(!type){//master
 		bool found = false;
 		uint8_t start_point_i = 78;
 		uint8_t start_point_j = bottom_line;
@@ -355,7 +356,26 @@ vector<pair<int,int>> Edge::check_edge(const Byte* camBuffer, int topline, int b
 				if(found)
 					break;
 			}
-			traveling_left(start_point_i, start_point_j, Direction::Down, camBuffer);
+			traveling_left(start_point_i, start_point_j, Direction::Down, topline, bottomline, camBuffer);
+
+			if(m_edge[m_edge.size()-1].first<3){
+				found = false;
+				int last = m_edge[m_edge.size()-1].second;
+				for(int j =last; j>top_line; j--){
+					for(int i=78; i>2; i--){
+						if((ret_cam_bit(i, j,camBuffer)!=(ret_cam_bit(i-1, j,camBuffer)))&&(ret_cam_bit(i, j,camBuffer)==0)){
+							start_point_i = i;
+							start_point_j = j;
+							m_edge.push_back(make_pair(start_point_i,start_point_j));
+							found = true;
+							break;
+						}
+					}
+					if(found)
+						break;
+				}
+				traveling_left(start_point_i, start_point_j, Direction::Down, topline, bottomline, camBuffer);
+			}
 		}
 		else{
 			return m_edge;
@@ -380,7 +400,26 @@ vector<pair<int,int>> Edge::check_edge(const Byte* camBuffer, int topline, int b
 				if(found)
 					break;
 			}
-			traveling_right(start_point_i, start_point_j, Direction::Down, camBuffer);
+			traveling_right(start_point_i, start_point_j, Direction::Down, topline, bottomline, camBuffer);
+			if(m_edge[m_edge.size()-1].first>76){
+				found = false;
+				int last = m_edge[m_edge.size()-1].second;
+				for(int j =last; j>top_line; j--){
+					int here;
+					for(int i=1; i<78; i++){
+						if((ret_cam_bit(i, j,camBuffer)!=(ret_cam_bit(i+1, j,camBuffer)))&&(ret_cam_bit(i, j,camBuffer)==0)){
+							start_point_i = i;
+							start_point_j = j;
+							m_edge.push_back(make_pair(start_point_i,start_point_j));
+							found = true;
+							break;
+						}
+					}
+					if(found)
+						break;
+				}
+				traveling_right(start_point_i, start_point_j, Direction::Down, topline, bottomline, camBuffer);
+			}
 		}
 		else{
 			return m_edge;

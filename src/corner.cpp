@@ -248,9 +248,9 @@ vector<Corner> check_cornerv2(const Byte* camBuffer, int topline, int bottomline
 		float distance2 = 0;
 		float distance3 = 0;
 		float cos = 0;
-		distance1 = distance(edge[i].first, edge[i].second, edge[i-3].first, edge[i-3].second);
-		distance2 = distance(edge[i].first, edge[i].second, edge[i+3].first, edge[i+3].second);
-		distance3 = distance(edge[i-3].first, edge[i-3].second, edge[i+3].first, edge[i+3].second);
+		distance1 = distance(edge[i].first, edge[i].second, (edge[i-3].first+edge[i-2].first+edge[i-1].first)/3, (edge[i-3].second+edge[i-2].second+edge[i-1].second)/3);
+		distance2 = distance(edge[i].first, edge[i].second, (edge[i+3].first+edge[i+2].first+edge[i+1].first)/3, (edge[i+3].second+edge[i+2].second+edge[i+1].second)/3);
+		distance3 = distance((edge[i-3].first+edge[i-2].first+edge[i-1].first)/3, (edge[i-3].second+edge[i-2].second+edge[i-1].second)/3, (edge[i+3].first+edge[i+2].first+edge[i+1].first)/3, (edge[i+3].second+edge[i+2].second+edge[i+1].second)/3);
 
 		if(distance1==0||distance2==0){
 			continue;
@@ -260,6 +260,19 @@ vector<Corner> check_cornerv2(const Byte* camBuffer, int topline, int bottomline
 
 		if(cos>-0.5){
 			Corner temp(edge[i].first,edge[i].second, cos);
+			m_corner.push_back(temp);
+		}
+	}
+
+	if(edge[0].first>3&& edge[0].first<76 && edge[0].second<58){
+		int check = 0;
+		for(int j = 0; j<2; j++){
+			for(int i=-3; i<4; i++){
+				check += ret_cam_bit((edge[0].first)+i,edge[0].second+j, camBuffer);
+			}
+		}
+		if(check<3){
+			Corner temp(edge[0].first,edge[0].second, 0);
 			m_corner.push_back(temp);
 		}
 	}

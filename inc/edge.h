@@ -33,9 +33,9 @@ public:
 		}
 	}
 
-	void traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, const Byte* camBuffer);
+	void traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, int topline, int bottomline, const Byte* camBuffer);
 
-	void traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, const Byte* camBuffer);
+	void traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, int topline, int bottomline, const Byte* camBuffer);
 
 
 	vector<pair<int,int>>check_edge(const Byte* camBuffer, int topline, int bottomline);
