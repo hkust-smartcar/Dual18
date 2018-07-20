@@ -688,7 +688,7 @@ int main() {
 //					buzz.SetNote(440);
 //					buzz.SetBeep(true);
 				} else{
-					if (current_page->identity == "Calibrate" || (mag.noMagField() && magState != kStop)) {
+					if (current_page->identity == "Calibrate") {
 						angle = 0;
 					} else{
 						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop, in_loop, yTarget);
