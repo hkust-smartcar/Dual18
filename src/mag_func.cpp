@@ -58,15 +58,15 @@ bool Mag::noMagField(){
 
  void Mag::InitMag(uint8_t car_id){
 	if (car_id == 1){
-		min[Mag::magPos::x_left] = 7;
-		min[Mag::magPos::x_right] = 5;
-		max[Mag::magPos::x_left] = 78;
-		max[Mag::magPos::x_right] = 78;
+		min[Mag::magPos::x_left] = 9;
+		min[Mag::magPos::x_right] = 8;
+		max[Mag::magPos::x_left] = 71;
+		max[Mag::magPos::x_right] = 71;
 
 		min[Mag::magPos::y_left] = 11;
-		min[Mag::magPos::y_right] = 7;
-		max[Mag::magPos::y_left] = 87;
-		max[Mag::magPos::y_right] = 81;
+		min[Mag::magPos::y_right] = 9;
+		max[Mag::magPos::y_left] = 69;
+		max[Mag::magPos::y_right] = 68;
 
 //		min[Mag::magPos::x_left] = 255;
 //		min[Mag::magPos::x_right] = 255;

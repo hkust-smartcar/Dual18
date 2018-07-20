@@ -287,7 +287,7 @@ int main() {
 	uint16_t middleServo, leftServo, rightServo;
 	float angle = 0, angleX = 0, angleY = 0;
 
-	if (0) {//board.isCar1()
+	if (1) {//board.isCar1()
 	    left_motor_pid[0] = 0.55;
 	    left_motor_pid[1] = 0.012;
 	    left_motor_pid[2] = 0.03;
