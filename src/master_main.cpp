@@ -387,7 +387,6 @@ int main() {
 	int32_t powerL, powerR;
 	float batterySum = 0;
 	uint16_t batteryCount = 0;
-	bool isCrossRoad = false;
 
 	// below sync data to the computer side
 	DualCar_UART uart0(2); // << BT related
@@ -574,8 +573,8 @@ int main() {
 			}
 
 			if (USsent) {
-				buzz.SetNote(1040);
-				buzz.SetBeep(true);
+//				buzz.SetNote(1040);
+//				buzz.SetBeep(true);
 
 				if (firstArrived || secondArrived){
 					uart0.Send_bool(DualCar_UART::BOOLEAN::b4, true);
@@ -621,15 +620,7 @@ int main() {
 				//changes state for alignment
 				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived);
 
-				buzz.SetBeep(magState == kOutLoop);
-
-				if (magState == kNormal && !isCrossRoad && mag.isTwoLine()){
-					yTarget = mag.GetYLinear();
-					isCrossRoad = true;
-				} else if (magState == kNormal && isCrossRoad && !mag.isTwoLine()){
-					yTarget = 0;
-					isCrossRoad = false;
-				}
+				buzz.SetBeep(magState == kStop);
 
 				if (approaching){
 					if (isFirst && firstArrived){
@@ -694,13 +685,13 @@ int main() {
 
 				if(camera_control){
 					angle = camera_angle;
-					buzz.SetNote(440);
+//					buzz.SetNote(440);
 //					buzz.SetBeep(true);
 				} else{
-					if (current_page->identity == "Calibrate" || mag.noMagField()) {
+					if (current_page->identity == "Calibrate" || (mag.noMagField() && magState != kStop)) {
 						angle = 0;
 					} else{
-						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop, in_loop, isCrossRoad, yTarget);
+						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop, in_loop, yTarget);
 					}
 //					buzz.SetBeep(false);
 				}
@@ -720,7 +711,7 @@ int main() {
 					if(dot_time==6){
 						if(accumulate_corner > 6){
 //							buzz.SetBeep(true);
-							buzz.SetBeep(false);
+//							buzz.SetBeep(false);
 							start_count_corner = false;
 							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (lastTime - approachTime >= 10000 || approachTime == 0)){
 								approaching = true;
@@ -804,7 +795,7 @@ int main() {
 					} else{
 						mYR = mag.GetMin(Mag::magPos::y_right);
 					}
-					buzz.SetBeep(false);
+//					buzz.SetBeep(false);
 				}
 				distance = UltrasonicSensor.getDistance();
 				left_corner_size = master_corner.size();
