@@ -59,6 +59,7 @@ public:
 	static LcdTypewriter::Config GetWriterConfig(St7735r *lcd){
 		LcdTypewriter::Config config;
 		config.lcd = lcd;
+		config.bg_color = 0x00ff;
 		return config;
 	}
 	static LcdConsole::Config GetConsoleConfig(St7735r *lcd){
