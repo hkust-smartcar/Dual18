@@ -171,7 +171,7 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 		angleX = x_servo.getPID(target, xLinear);
 		angleY = y_servo.getPID(yTarget, yLinear);
 		if (isCrossRoad && magState == kNormal){
-			servoAngle = 0.25*angleX + 0.25*angleY;
+			servoAngle = 0.3*angleX;
 		} else{
 			servoAngle = 0.5*angleX + 0.5*angleY;
 		}

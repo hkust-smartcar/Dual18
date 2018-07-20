@@ -79,7 +79,7 @@ int mode = 0;
 carState magState = kNormal;
 
 const uint8_t cycle = 12;
-float loopSpeed = 9, highSpeed = 9.5, alignSpeed = 9;
+float loopSpeed = 9, highSpeed = 8.8, alignSpeed = 9;
 float speed = highSpeed;
 float yTarget = 0;
 bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false;
@@ -351,29 +351,30 @@ int main() {
 
 		mag.InitMag(1);
 	} else {
-	    left_motor_pid[0] = 0.72;
-	    left_motor_pid[1] = 0.025;
+	    left_motor_pid[0] = 0.8;
+	    left_motor_pid[1] = 0.02;
 	    left_motor_pid[2] = 0.0001;
 
-	    right_motor_pid[0] = 0.72;
-	    right_motor_pid[1] = 0.025;
+	    right_motor_pid[0] = 0.8;
+	    right_motor_pid[1] = 0.02;
 	    right_motor_pid[2] = 0.0001;
 
-	    x_servo_pd[0] = 13800;
-	   x_servo_pd[1] = 1360000;
+	    x_servo_pd[0] = 13300;
+	    x_servo_pd[1] = 2450000;
 
-	    y_servo_pd[0] = 6.2;
-	    y_servo_pd[1] = 220;
+	    y_servo_pd[0] = 7.9;
+	    y_servo_pd[1] = 380;
 
-		align_servo_pd[0] = 5.8;
-		align_servo_pd[1] = 750;//car1 value
+
+	    align_servo_pd[0] = 5.8;
+	    align_servo_pd[1] = 750;
 
 		forwardL = true;
 		forwardR = false;
 
-		middleServo = 850;
-		leftServo = 1130;
-		rightServo = 560;
+		middleServo = 830;
+		leftServo = 1145;
+		rightServo = 540;
 
 		mag.InitMag(2);
 	}
@@ -422,7 +423,7 @@ int main() {
 	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
 
 	uart0.add(DualCar_UART::FLOAT::f20, &speed, false);
-//	uart0.add(DualCar_UART::FLOAT::f21, &angle, true);
+//	uart0.add(DualCar_UART::FLOAT::f25, &angle, false);
 
 	uart0.parseValues();
 
@@ -707,8 +708,8 @@ int main() {
 				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()>0)
 						&& (slave_corner.size()>0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)){
 					dot_time = 0;
-					buzz.SetNote(440);
-					buzz.SetBeep(true);
+//					buzz.SetNote(440);
+//					buzz.SetBeep(true);
 					start_count_corner = true;
 				}
 
