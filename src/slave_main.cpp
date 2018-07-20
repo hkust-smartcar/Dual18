@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define slave
+#define slave
 
 #ifdef slave
 
@@ -92,6 +92,8 @@ int main() {
 	System::Init();
 
 	St7735r lcd(myConfig::GetLcdConfig());
+	lcd.SetRegion(Lcd::Rect(0, 0, 128, 160));
+	lcd.FillColor(0x00FF);
 	LcdTypewriter writer(myConfig::GetWriterConfig(&lcd));
 	LcdConsole console(myConfig::GetConsoleConfig(&lcd));
 

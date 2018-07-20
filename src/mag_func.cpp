@@ -118,7 +118,7 @@ bool Mag::unlikelyCrossRoad(){
 }
 
 bool Mag::outLoop(){
-	return (Mag::GetXSum()+Mag::GetYSum() > 250);
+	return (Mag::GetXSum()+Mag::GetYSum() > 240);
 }
 
 void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived){
@@ -159,15 +159,15 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 		float target = 0.0;
 		if (magState == kLoop){
 			if (left_loop){
-				target = 0.009;
+				target = 0.008;
 			} else{
-				target = -0.009;
+				target = -0.008;
 			}
 		} else if (magState == kExitLoop){
 			if (left_loop){
-				target = 0.004;
+				target = 0.016;
 			} else{
-				target = -0.004;
+				target = -0.016;
 			}
 		}
 		if (v[Mag::magPos::x_left] < 10 || v[Mag::magPos::x_right] < 10 ){
@@ -188,10 +188,11 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 	} else if (magState == kOutLoop){
 		float target = 0.0;
 		if (left_loop){
-			target = -0.003;
+			target = -0.004;
 		} else{
-			target = 0.003;
-		}		angleX = x_servo.getPID(0, xLinear);
+			target = 0.004;
+		}
+		angleX = x_servo.getPID(0, xLinear);
 		angleY = y_servo.getPID(yTarget, yLinear);
 		servoAngle = 0.5*angleX + 0.25*angleY;
 	} else if (magState == kLeave){

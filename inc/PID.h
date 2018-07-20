@@ -50,6 +50,7 @@ private:
 	float pTerm = 0.0;
 	float iTerm = 0.0;
 	float dTerm = 0.0;
+	float lastD = 0.0;
 	DirEncoder * encoder = nullptr;
 };
 

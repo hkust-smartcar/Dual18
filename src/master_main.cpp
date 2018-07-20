@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-#define Master
+//#define Master
 
 #ifdef Master
 
@@ -187,7 +187,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 				cameraReady = true;
 			}
 		}
-		if (magnetic->GetXSum() < 140){
+		if (magnetic->GetXSum() < 125){
 			magReady = true;
 		}
 		if(cameraReady && magReady){
@@ -207,54 +207,17 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		currY = magnetic->GetYSum();
 		prevRateY = rateY;
 		rateY = currY - lastY;
-		rateY = 0.4*rateY + 0.6*prevRateY;
+		rateY = 0.9*rateY + 0.1*prevRateY;
 		ry = rateY;
 		lastY = currY;
-		if (rateY < -1){
+		if (rateY < 0.5){
 			state = 6;
 			yTarget = magnetic->GetYLinear();
 			magState = carState::kOutLoop;
 		}
 		break;
 	case 6:
-		if(left_loop){
-//			if(slave_edge_size<40){
-				state = 7;
-//				camera_control = true;
-//			}
-		}
-		else{
-//			if(master_edge_size<40){
-				state = 7;
-//				camera_control = true;
-//			}
-		}
-	case 7:
-		if(left_loop){
-//			if(slave_edge_size<2){
-//				s_edge_xmid = 80;
-//			}
-//			float difference = (50 - s_edge_xmid)/40.0;
-//			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
-//					camera_angle = difference*50;
-//			}
-//			else{
-//				camera_angle = difference*100;
-//			}
-		}
-		else{
-//			if(master_edge_size<2){
-//				m_edge_xmid = 0;
-//			}
-//			float difference = (30 - m_edge_xmid)/40.0;
-//			if(((difference<0.5)&&(difference>0))||((difference>-0.5)&&(difference<0))){
-//				camera_angle = difference*50;
-//			}
-//			else{
-//				camera_angle = difference*100;
-//			}
-		}
-		if (magnetic->GetXSum() < 125 && magnetic->GetYSum() < 35){
+		if (magnetic->GetXSum() < 140 && magnetic->GetYSum() < 35){
 			state = 0;
 			camera_control = false;
 			is_loop = false;
@@ -272,7 +235,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 //main
 int main() {
 
- 	System::Init();
+	System::Init();
 
 	BoardID board;
 
@@ -620,7 +583,7 @@ int main() {
 				//changes state for alignment
 				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived);
 
-				buzz.SetBeep(magState == kStop);
+				buzz.SetBeep(magState == kOutLoop);
 
 				if (approaching){
 					if (isFirst && firstArrived){
