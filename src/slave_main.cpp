@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-#define slave
+//#define slave
 
 #ifdef slave
 
