@@ -157,15 +157,15 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 		float target = 0.0;
 		if (magState == kLoop){
 			if (left_loop){
-				target = 0.015;
+				target = 0.009;
 			} else{
-				target = -0.015;
+				target = -0.009;
 			}
 		} else if (magState == kExitLoop){
 			if (left_loop){
-				target = 0.011;
+				target = 0.004;
 			} else{
-				target = -0.011;
+				target = -0.004;
 			}
 		}
 		angleX = x_servo.getPID(target, xLinear);
@@ -181,13 +181,13 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 	} else if (magState == kOutLoop){
 		float target = 0.0;
 		if (left_loop){
-			target = -0.02;
+			target = -0.003;
 		} else{
-			target = 0.02;
+			target = 0.003;
 		}
 		angleX = x_servo.getPID(0, xLinear);
 		angleY = y_servo.getPID(yTarget, yLinear);
-		servoAngle = 0.5*angleX + 0.5*angleY;
+		servoAngle = 0.5*angleX + 0.25*angleY;
 	} else if (magState == kLeave){
 		servoAngle = Max(300-(leaveCount*20), 100);
 		leaveCount++;

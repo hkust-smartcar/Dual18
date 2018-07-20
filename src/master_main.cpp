@@ -125,7 +125,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		if (rateY > 0){
 			magReady = true;
 		}
-		if (magReady && magnetic->GetYSum() > 30){
+		if (magReady && magnetic->GetYSum() > 27){
 			state = 2;
 			camera_control = true;
 			l2 = master_slope;
@@ -210,7 +210,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		rateY = 0.4*rateY + 0.6*prevRateY;
 		ry = rateY;
 		lastY = currY;
-		if (rateY < -3 && magnetic->GetYSum() < 120){
+		if (rateY < -1){
 			state = 6;
 			yTarget = magnetic->GetYLinear();
 			magState = carState::kOutLoop;
@@ -254,7 +254,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 //				camera_angle = difference*100;
 //			}
 		}
-		if (magnetic->GetXSum() < 105 && magnetic->GetYSum() < 35){
+		if (magnetic->GetXSum() < 125 && magnetic->GetYSum() < 35){
 			state = 0;
 			camera_control = false;
 			is_loop = false;
@@ -359,12 +359,11 @@ int main() {
 	    right_motor_pid[1] = 0.02;
 	    right_motor_pid[2] = 0.0001;
 
-	    x_servo_pd[0] = 13300;
+	    x_servo_pd[0] = 13500;
 	    x_servo_pd[1] = 2450000;
 
-	    y_servo_pd[0] = 7.9;
-	    y_servo_pd[1] = 380;
-
+	    y_servo_pd[0] = 7.8;
+	    y_servo_pd[1] = 420;
 
 	    align_servo_pd[0] = 5.8;
 	    align_servo_pd[1] = 750;
@@ -622,6 +621,8 @@ int main() {
 				//changes state for alignment
 				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived);
 
+				buzz.SetBeep(magState == kOutLoop);
+
 				if (magState == kNormal && !isCrossRoad && mag.isTwoLine()){
 					yTarget = mag.GetYLinear();
 					isCrossRoad = true;
@@ -743,7 +744,7 @@ int main() {
 
 
 
-				angle = 0.75*angle + 0.25*lastServo;
+				angle = 0.8*angle + 0.2*lastServo;
 				angle = Max(rightServo-middleServo, Min(leftServo-middleServo, angle));
 				lastServo = angle;
 				angle += middleServo;
