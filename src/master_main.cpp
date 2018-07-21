@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define Master
+#define Master
 
 #ifdef Master
 
@@ -238,9 +238,13 @@ int main() {
 	System::Init();
 
 	BoardID board;
+	int cam_contrast = 0x40;
+	int pre_contrast = 0x40;
 
 	Ov7725 camera(myConfig::getCameraConfig(Width, Height));
 	camera.Start();
+	camera.ChangeSecialDigitalEffect(0x00, cam_contrast);
+
 
 	Led led0(myConfig::GetLedConfig(0));
 	Led led1(myConfig::GetLedConfig(1));
@@ -427,9 +431,9 @@ int main() {
 	int left_corner_size = 0;
 	int right_corner_size = 0;
 	menuV2.AddItem("camera", &(menuV2.home_page), true);
-	menuV2.AddItem("image", menuV2.home_page.submenu_items[1].next_page, true);
-	menuV2.AddItem("Lcorner", &left_corner_size, menuV2.home_page.submenu_items[1].next_page->submenu_items[0].next_page, false);
-	menuV2.AddItem("Rcorner", &right_corner_size, menuV2.home_page.submenu_items[1].next_page->submenu_items[0].next_page, false);
+	menuV2.AddItem("Ctr", &cam_contrast, menuV2.home_page.submenu_items[1].next_page, true);
+	menuV2.AddItem("Lcorner", &left_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
+	menuV2.AddItem("Rcorner", &right_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
 
 	menuV2.AddItem("Magnetic", &(menuV2.home_page), true);
 	int mag_xL = mag.GetMag(Mag::magPos::x_left);
@@ -573,6 +577,11 @@ int main() {
 				const Byte* camBuffer_Original = camera.LockBuffer();
 				camera.UnlockBuffer();
 #endif
+
+				if(pre_contrast!=cam_contrast){
+					camera.ChangeSecialDigitalEffect(0x00, cam_contrast);
+					pre_contrast = cam_contrast;
+				}
 
 				mag.Update();
 				on9lastMain = lastTime;
