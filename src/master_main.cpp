@@ -291,7 +291,7 @@ int main() {
 	uint16_t middleServo, leftServo, rightServo;
 	float angle = 0, angleX = 0, angleY = 0;
 
-	if (1) {//board.isCar1()
+	if (0) {//board.isCar1()
 	    left_motor_pid[0] = 0.55;
 	    left_motor_pid[1] = 0.012;
 	    left_motor_pid[2] = 0.03;
@@ -430,10 +430,13 @@ int main() {
 
 	int left_corner_size = 0;
 	int right_corner_size = 0;
+	int dotted_lineV2 = 0;
 	menuV2.AddItem("camera", &(menuV2.home_page), true);
 	menuV2.AddItem("Ctr", &cam_contrast, menuV2.home_page.submenu_items[1].next_page, true);
 	menuV2.AddItem("Lcorner", &left_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
 	menuV2.AddItem("Rcorner", &right_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
+	menuV2.AddItem("dot", &dotted_lineV2, menuV2.home_page.submenu_items[1].next_page, false);
+
 
 	menuV2.AddItem("Magnetic", &(menuV2.home_page), true);
 	int mag_xL = mag.GetMag(Mag::magPos::x_left);
@@ -668,8 +671,48 @@ int main() {
 //					buzz.SetBeep(false);
 				}
 
+				vector<pair<int,int>> junction;
+				int junction_array[35];
+				for(int i=0; i<35; i++){
+					junction_array[i] = 0;
+				}
+				for(int i=0; i<master_edge.size(); i++){
+					if(junction.size() == 0){
+						junction.push_back(make_pair(master_edge[0].first,master_edge[0].second));
+						continue;
+					}
+					bool found = false;
+					for(int j=0; j<junction.size();j++){
+						if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)>5)){
+							junction[j].first = master_edge[i].first;
+							junction_array[master_edge[i].second-25]++;
+							found = true;
+							break;
+						}
+						else if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)<=5)){
+							found = true;
+							break;
+						}
+					}
+					if((master_edge[i].second<60)&&(master_edge[i].second>=25)&&(!found)){
+						junction_array[master_edge[i].second-25] += 1;
+						junction.push_back(make_pair(master_edge[i].first,master_edge[i].second));
+					}
+				}
+
+				for(int i=0; i<35; i++){
+					if(junction_array[i]>2){
+						dotted_lineV2 = true;
+						break;
+					}
+				}
+
+//				if(!dotted_lineV2){
+//					dotted_lineV2 = false;
+//				}
+
 				//alignment
-				if(((master_corner.size()>1 || slave_corner.size()>1))&&(master_corner.size()>0)
+				if(((master_corner.size()>1&&slave_corner.size()>1))&&(master_corner.size()>0)
 						&& (slave_corner.size()>0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)){
 					dot_time = 0;
 //					buzz.SetNote(440);
@@ -680,7 +723,7 @@ int main() {
 
 				if(start_count_corner){
 					dot_time++;
-					if(dot_time==6){
+					if(dot_time==3){
 						if(accumulate_corner > 6){
 //							buzz.SetBeep(true);
 //							buzz.SetBeep(false);
