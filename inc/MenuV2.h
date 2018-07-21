@@ -32,6 +32,8 @@ using namespace std;
 
 class DualCarMenu {
 public:
+	typedef std::function<void()> ACT;
+
 	enum MessageType {
 		TypeInt, TypeFloat, TypeMessage
 	};
@@ -45,6 +47,8 @@ public:
 		uint8_t message_index = 0;
 		bool can_change = false;
 		SubMenu* next_page = nullptr;
+
+		ACT act = [](){};
 	};
 	struct SubMenu {
 		SubMenu* previous_page = nullptr;
@@ -64,6 +68,8 @@ public:
 	void AddItem(char* input_name, float* input_data, SubMenu* under_menu, bool can_change);
 
 	void AddItem(char* input_name, SubMenu* under_menu, bool HavSub);
+
+	void AddItem(char* input_name, ACT act_, SubMenu* under_menu, bool HavSub);
 
 	void PrintItem(Item item, uint8_t row, bool isSelected = false);
 

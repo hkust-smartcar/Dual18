@@ -73,6 +73,22 @@ void DualCarMenu::AddItem(char* input_name, SubMenu* under_menu, bool HavSub) {
 	return;
 }
 
+void DualCarMenu::AddItem(char* input_name, ACT act_, SubMenu* under_menu, bool HavSub) {
+	Item item;
+	item.name = input_name;
+	string m_identity(input_name);
+	item.identity = m_identity;
+	item.type = MessageType::TypeMessage;
+	item.next_page = nullptr;
+	item.act = act_;
+	if ((HavSub) && (under_menu != nullptr)) {
+		item.next_page = new SubMenu;
+		item.next_page->identity = m_identity;
+	}
+	under_menu->submenu_items.push_back(item);
+	return;
+}
+
 void DualCarMenu::PrintItem(Item item, uint8_t row, bool isSelected) {
 	char c[20];
 	for (int i = 0; i < 20; i++) {
@@ -225,7 +241,7 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 		// need better assignment for this VVV
 		change_number_item_ptr = &menu->submenu_items[current_line];
 		uint8_t temp = current_line;
-		menu->submenu_items[temp].next_page->previous_line= current_line;
+		menu->submenu_items[temp].next_page->previous_line = current_line;
 		current_line = 0;
 		menu->submenu_items.erase(menu->submenu_items.end());
 		menu->submenu_items[menu->submenu_items[temp].next_page->previous_line].next_page->previous_page = menu;
@@ -240,9 +256,13 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 		menu->submenu_items.erase(menu->submenu_items.end());
 		lcd->Clear();
 		return menu->previous_page;
+	} else if (pressed) {
+		pressed = false;
+		selected = false;
+		menu->submenu_items[current_line].act();
 	}
 
-	if (menu->identity == "camera") {
+	if (menu->identity == "image") {
 		PrintCamImage();
 		for (uint16_t i = 0; i < (menu->submenu_items.size()) && (i < max_line - 4); i++) {
 			PrintItem(menu->submenu_items[i], i + 4, current_line == i);

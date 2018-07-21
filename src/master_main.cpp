@@ -48,6 +48,7 @@
 #include "MenuV2.h"
 #include "variable.h"
 #include "func.h"
+#include "FlashWrapper.h"
 
 #define pi 3.1415926
 
@@ -237,14 +238,15 @@ int main() {
 
 	System::Init();
 
+	FlashWrapper flash;
+
 	BoardID board;
 	int cam_contrast = 0x40;
 	int pre_contrast = 0x40;
 
 	Ov7725 camera(myConfig::getCameraConfig(Width, Height));
-	camera.Start();
 	camera.ChangeSecialDigitalEffect(0x00, cam_contrast);
-
+	camera.Start();
 
 	Led led0(myConfig::GetLedConfig(0));
 	Led led1(myConfig::GetLedConfig(1));
@@ -485,6 +487,36 @@ int main() {
 	menuV2.AddItem("mXR", &(mXR), menuV2.home_page.submenu_items[6].next_page, false);
 	menuV2.AddItem("mYL", &(mYL), menuV2.home_page.submenu_items[6].next_page, false);
 	menuV2.AddItem("mYR", &(mYR), menuV2.home_page.submenu_items[6].next_page, false);
+
+	// changes below
+	int xddd = 0;
+	flash.link_int(0, &xddd);
+	menuV2.AddItem("Flash", &(menuV2.home_page), true);
+	menuV2.AddItem("MCUVer", &flash.iMCUVer, menuV2.home_page.submenu_items[7].next_page, false);
+	menuV2.AddItem("mainboardID", &flash.imainboardID, menuV2.home_page.submenu_items[7].next_page, false);
+	menuV2.AddItem("mcuPos", &flash.imcuPos, menuV2.home_page.submenu_items[7].next_page, false);
+	menuV2.AddItem("test", [&]() {flash.iMCUVer++;}, menuV2.home_page.submenu_items[7].next_page, false);
+	menuV2.AddItem("Load Data", [&]() {
+		camera.Stop();
+		camera.LockBuffer();
+		flash.readFlash();
+		camera.UnlockBuffer();
+		camera.Start();
+	}, menuV2.home_page.submenu_items[7].next_page, false);
+	menuV2.AddItem("Save Data", [&]() {
+		camera.Stop();
+		camera.LockBuffer();
+		flash.writeFlash();
+		camera.UnlockBuffer();
+		camera.Start();
+	}, menuV2.home_page.submenu_items[7].next_page, false);
+	menuV2.AddItem("Save Config", [&]() {
+		camera.Stop();
+		camera.LockBuffer();
+		flash.saveConfigFromMenu();
+		camera.UnlockBuffer();
+		camera.Start();
+	}, menuV2.home_page.submenu_items[7].next_page, false);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
