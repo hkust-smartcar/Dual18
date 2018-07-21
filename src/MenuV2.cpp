@@ -262,7 +262,7 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 		menu->submenu_items[current_line].act();
 	}
 
-	if (menu->identity == "image") {
+	if (menu->identity == "camera") {
 		PrintCamImage();
 		for (uint16_t i = 0; i < (menu->submenu_items.size()) && (i < max_line - 4); i++) {
 			PrintItem(menu->submenu_items[i], i + 4, current_line == i);
