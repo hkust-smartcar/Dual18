@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define slave
+#define slave
 
 #ifdef slave
 
@@ -186,11 +186,11 @@ int main() {
 		writer.WriteBuffer(t, 15);
 	}
 
-	Mpu6050::Config MpuConfig;
-	MpuConfig.accel_range = Mpu6050::Config::Range::kExtreme;
-	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
-	MpuConfig.cal_drift = true;
-	Mpu6050 mpu(MpuConfig);
+//	Mpu6050::Config MpuConfig;
+//	MpuConfig.accel_range = Mpu6050::Config::Range::kExtreme;
+//	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
+//	MpuConfig.cal_drift = true;
+//	Mpu6050 mpu(MpuConfig);
 	bool led_toggle = true;
 
 	{
@@ -239,11 +239,11 @@ int main() {
 // bluetooth send image
 
 				//mpu
-				mpu.Update(1);
-				std::array<int32_t, 3> mpuAccel = mpu.GetAccel();
-				mpuAccel[2] -= 2630;
-//				std::array<int32_t, 3> mpuAccel;
-//				mpuAccel[2] = 0;
+//				mpu.Update(1);
+//				std::array<int32_t, 3> mpuAccel = mpu.GetAccel();
+//				mpuAccel[2] -= 2630;
+				std::array<int32_t, 3> mpuAccel;
+				mpuAccel[2] = 0;
 				//
 
 				float slave_slope;
