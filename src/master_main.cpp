@@ -314,19 +314,19 @@ int main() {
 
 		mag.InitMag(1);
 	} else {
-	    left_motor_pid[0] = 0.8;
-	    left_motor_pid[1] = 0.02;
-	    left_motor_pid[2] = 0.0001;
+	    left_motor_pid[0] = 0.62;
+	    left_motor_pid[1] = 0.025;
+	    left_motor_pid[2] = 0.008;
 
-	    right_motor_pid[0] = 0.8;
-	    right_motor_pid[1] = 0.02;
-	    right_motor_pid[2] = 0.0001;
+	    right_motor_pid[0] = 0.62;
+	    right_motor_pid[1] = 0.025;
+	    right_motor_pid[2] = 0.008;
 
-	    x_servo_pd[0] = 13500;
-	    x_servo_pd[1] = 2450000;
+	    x_servo_pd[0] = 12000;
+	    x_servo_pd[1] = 2950000;
 
-	    y_servo_pd[0] = 7.8;
-	    y_servo_pd[1] = 420;
+	    y_servo_pd[0] = 9.4;
+	    y_servo_pd[1] = 640;
 
 	    align_servo_pd[0] = 5.8;
 	    align_servo_pd[1] = 750;
