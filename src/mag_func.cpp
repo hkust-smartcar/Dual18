@@ -9,7 +9,7 @@
 #include "func.h"
 
 void Mag::TakeSample(){
-	for (int i = 0; i < 20; i++){
+	for (int i = 0; i < 3; i++){
 		filterCounter++;
 		sum[0] += mag0.GetResult();
 		sum[1] += mag1.GetResult();
@@ -106,7 +106,7 @@ bool Mag::noMagField(){
  }
 
 bool Mag::isLoop(){
-	return ((v[Mag::magPos::x_left] > 65 && v[Mag::magPos::x_right] > 65) || Mag::GetXSum() > 160);
+	return ((v[Mag::magPos::x_left] > 68 && v[Mag::magPos::x_right] > 68 && Mag::GetYSum() > 25) || Mag::GetXSum() > 160);
 }
 
 bool Mag::isTwoLine(){
@@ -196,7 +196,7 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 		angleY = y_servo.getPID(yTarget, yLinear);
 		servoAngle = 0.5*angleX + 0.25*angleY;
 	} else if (magState == kLeave){
-		servoAngle = Max(300-(leaveCount*20), 100);
+		servoAngle = Max(300-(leaveCount*10), 100);
 		leaveCount++;
 	} else if (magState == kStop){
 		servoAngle = -400;

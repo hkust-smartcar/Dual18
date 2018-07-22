@@ -406,7 +406,7 @@ int main() {
 	});
 
 	//dotted lines
-	uint32_t accumulate_corner = 0;
+	int accumulate_corner = 0;
 	uint8_t dot_time = 0;
 	bool start_count_corner = false;
 
@@ -435,7 +435,7 @@ int main() {
 	menuV2.AddItem("Ctr", &cam_contrast, menuV2.home_page.submenu_items[1].next_page, true);
 	menuV2.AddItem("Lcorner", &left_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
 	menuV2.AddItem("Rcorner", &right_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
-	menuV2.AddItem("dot", &dotted_lineV2, menuV2.home_page.submenu_items[1].next_page, false);
+	menuV2.AddItem("ac", &accumulate_corner, menuV2.home_page.submenu_items[1].next_page, false);
 
 
 	menuV2.AddItem("Magnetic", &(menuV2.home_page), true);
@@ -595,7 +595,7 @@ int main() {
 				//changes state for alignment
 				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived);
 
-				buzz.SetBeep(magState == kOutLoop);
+				buzz.SetBeep(approaching);
 
 				if (approaching){
 					if (isFirst && firstArrived){
@@ -671,7 +671,7 @@ int main() {
 //					buzz.SetBeep(false);
 				}
 
-
+				//alignment
 				//////use this as long as it sees at least one corner
 				vector<pair<int,int>> junction;
 				int junction_array[35];
@@ -705,41 +705,40 @@ int main() {
 				for(int i=0; i<35; i++){
 					if(junction_array[i]>2){
 						dotted_lineV2 = true;
+
 						break;
 					}
 				}
 
+				//
 
-
-				//alignment
-				if(((master_corner.size()>1&&slave_corner.size()>1))&&(master_corner.size()>0)
-						&& (slave_corner.size()>0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)){
+				if((dotted_lineV2)&&(master_corner.size()>0)
+						&& (slave_corner.size()>0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)&&(!approaching)){
 					dot_time = 0;
-//					buzz.SetNote(440);
-//					buzz.SetBeep(true);
+					buzz.SetNote(440);
+					buzz.SetBeep(true);
 					start_count_corner = true;
 				}
 
 
 				if(start_count_corner){
 					dot_time++;
-					if(dot_time==3){
-						if(accumulate_corner > 6){
-//							buzz.SetBeep(true);
-//							buzz.SetBeep(false);
-							start_count_corner = false;
-							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (lastTime - approachTime >= 10000 || approachTime == 0)){
-								approaching = true;
-								if (!firstArrived){
-									isFirst = true;
-									firstArrived = true;
-								}
+					if(dot_time == 10 && accumulate_corner > 20){
+						buzz.SetBeep(false);
+						start_count_corner = false;
+						if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (lastTime - approachTime >= 10000 || approachTime == 0)){
+							approaching = true;
+							if (!firstArrived){
+								isFirst = true;
+								firstArrived = true;
 							}
 						}
 						accumulate_corner = 0;
 						dot_time = 0;
-					}
-					else{
+					}else if (dot_time == 10){
+						accumulate_corner = 0;
+						dot_time = 0;
+					}else{
 						accumulate_corner += master_corner.size();
 						accumulate_corner += slave_corner.size();
 					}
