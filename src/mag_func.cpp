@@ -63,7 +63,7 @@ bool Mag::noMagField(){
 	return (b && (Mag::GetXSum()+Mag::GetYSum() < 40));
 }
 
- void Mag::InitMag(uint8_t car_id, FlashWrapper* flashWrapper){
+ void Mag::InitMag(uint8_t car_id){
 //	flash = flashWrapper;
 //
 //	flash->link_uint8_t(0, &min[Mag::magPos::x_left]);
@@ -91,8 +91,8 @@ bool Mag::noMagField(){
 	}else if (car_id == 2){
 		min[Mag::magPos::x_left] = 9;
 		min[Mag::magPos::x_right] = 8;
-		max[Mag::magPos::x_left] = 65;
-		max[Mag::magPos::x_right] = 67;
+		max[Mag::magPos::x_left] = 68;
+		max[Mag::magPos::x_right] = 73;
 
 		min[Mag::magPos::y_left] = 9;
 		min[Mag::magPos::y_right] = 10;

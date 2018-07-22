@@ -51,8 +51,13 @@ void DualCarMenu::AddItem(char* input_name, int* input_data, SubMenu* under_menu
 	item.message_index = int_data.size();
 	int_data.push_back(input_data);
 	if ((can_change) && (under_menu != nullptr)) {
-		item.next_page = new SubMenu;
-		item.next_page->identity = "changed";
+		if (item.identity!="start"){
+			item.next_page = new SubMenu;
+			item.next_page->identity = "changed";
+		} else{
+			item.next_page = new SubMenu;
+			item.next_page->identity = m_identity;
+		}
 	}
 	under_menu->submenu_items.push_back(item);
 	return;
@@ -267,7 +272,8 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 		for (uint16_t i = 0; i < (menu->submenu_items.size()) && (i < max_line - 4); i++) {
 			PrintItem(menu->submenu_items[i], i + 4, current_line == i);
 		}
-	} else if ((menu->identity == "OpenMotor") || (menu->identity == "CloseMotor")) {
+	} else if (menu->identity == "OpenMotor") {
+	} else if (menu->identity == "CloseMotor") {
 	} else if (menu->identity == "changed") {
 		if (!change_number_isOn) {
 			// init the value

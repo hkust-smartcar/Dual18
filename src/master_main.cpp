@@ -48,7 +48,7 @@
 #include "MenuV2.h"
 #include "variable.h"
 #include "func.h"
-//#include "FlashWrapper.h"
+#include "FlashWrapper.h"
 
 #define pi 3.1415926
 
@@ -235,8 +235,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 
 //main
 int main() {
-
 	System::Init();
+
+	FlashWrapper flashWrapper;
+	int boardID = flashWrapper.getBoardID();
 
 	BoardID board;
 	int cam_contrast = 0x40;
@@ -249,13 +251,9 @@ int main() {
 
 	Led led0(myConfig::GetLedConfig(0));
 	Led led1(myConfig::GetLedConfig(1));
-//	Led led2(myConfig::GetLedConfig(2));
-//	Led led3(myConfig::GetLedConfig(3));
 
 	led0.SetEnable(1);
 	led1.SetEnable(1);
-//	led2.SetEnable(1);
-//	led3.SetEnable(1);
 
 	Mag mag;
 
@@ -292,9 +290,8 @@ int main() {
 	float angle = 0, angleX = 0, angleY = 0;
 
 	//flash
-//	FlashWrapper flashWrapper;
 
-	if (0) {//board.isCar1()
+	if (boardID == 1) {
 	    left_motor_pid[0] = 0.55;
 	    left_motor_pid[1] = 0.012;
 	    left_motor_pid[2] = 0.03;
@@ -319,7 +316,7 @@ int main() {
 		leftServo = 1340;
 		rightServo = 710;
 
-		mag.InitMag(1, nullptr);
+		mag.InitMag(1);
 //		mag.InitMag(1, &flashWrapper);
 	} else {
 	    left_motor_pid[0] = 0.62;
@@ -346,7 +343,7 @@ int main() {
 		leftServo = 1145;
 		rightServo = 540;
 
-		mag.InitMag(2, nullptr);
+		mag.InitMag(2);
 //		mag.InitMag(2, &flashWrapper);
 	}
 
@@ -429,7 +426,7 @@ int main() {
 
 	int temp = 5230;
 	float tempf = 23.24;
-	menuV2.AddItem("start", &(menuV2.home_page), true);
+	menuV2.AddItem("start", &boardID, &(menuV2.home_page), true);
 	menuV2.AddItem("OpenMotor", menuV2.home_page.submenu_items[0].next_page, true);
 	menuV2.AddItem("CloseMotor", menuV2.home_page.submenu_items[0].next_page, true);
 
@@ -562,8 +559,10 @@ int main() {
 			}
 
 			uart0.RunEveryMS();
-			led0.SetEnable(!approaching);
-			led1.SetEnable(!isFirst);
+			led0.SetEnable(lastTime % 100 < 50);
+			led1.SetEnable(lastTime % 100 < 50);
+//			led0.SetEnable(!approaching);
+//			led1.SetEnable(!isFirst);
 			mag.TakeSample();
 			batterySum += batteryMeter.GetVoltage();
 			batteryCount++;
@@ -629,11 +628,9 @@ int main() {
 				slave_corner = m_master_bluetooth.get_slave_corner();
 				if((mpu_data > 3000 || mpu_data <- 3000)){
 					bumpy_road = true;
-					led0.SetEnable(0);
 				}
 				else{
 					bumpy_road = false;
-					led0.SetEnable(1);
 				}
 
 				float master_slope = 0;
