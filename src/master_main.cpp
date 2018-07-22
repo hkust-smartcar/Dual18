@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define Master
+#define Master
 
 #ifdef Master
 
@@ -40,10 +40,10 @@
 #include "bluetooth.h"
 #include "find_midline.h"
 #include "DualCar_UART.h"
+#include "DualCar_UART_Sim.h"
 #include "mag_func.h"
 #include "useful_functions.h"
 #include "menu.h"
-#include "BoardID.h"
 #include "DistanceModule.h"
 #include "MenuV2.h"
 #include "variable.h"
@@ -231,23 +231,20 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 	return state;
 }
 
-
-
 //main
 int main() {
 	System::Init();
 
 	FlashWrapper flashWrapper;
-	int boardID = flashWrapper.getBoardID();
+//	use this one instead la flashWrapper.imainboardID
+//	int boardID = flashWrapper.getBoardID();
 
-	BoardID board;
 	int cam_contrast = 0x40;
 	int pre_contrast = 0x40;
 
 	Ov7725 camera(myConfig::getCameraConfig(Width, Height, 0));
 	camera.Start();
 	camera.ChangeSecialDigitalEffect(0x00, cam_contrast);
-
 
 	Led led0(myConfig::GetLedConfig(0));
 	Led led1(myConfig::GetLedConfig(1));
@@ -257,7 +254,7 @@ int main() {
 
 	Mag mag;
 
-	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig());
+	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig(flashWrapper.getBoardID()));
 	float batteryVoltage = batteryMeter.GetVoltage();
 	PassiveBuzzer::Config config;
 	PassiveBuzzer buzz(config);
@@ -291,7 +288,7 @@ int main() {
 
 	//flash
 
-	if (boardID == 1) {
+	if (flashWrapper.imainboardID == 1) {
 		left_motor_pid[0] = 0.62;
 		left_motor_pid[1] = 0.03;
 		left_motor_pid[2] = 0.008;
@@ -361,17 +358,21 @@ int main() {
 	float voltL, voltR;
 	int32_t powerL, powerR;
 	float batterySum = 0;
-	uint16_t batteryCount = 0;
+	float batteryCount = 0;
 
 	// below sync data to the computer side
+	// DualCar_UART_Sim << a slim ver only capable of sending bool
+	// just change it to DualCar_UART if u want other function, it will do no harm
+	// due to other bug, i created it, but then i realized the act is useless...
 	DualCar_UART uart0(2); // << BT related
+	DualCar_UART_Sim uartToAnotherCar(1); // << BT related
 
 	// joseph: chnaged the 3 below to false, better send implicitly
-	uart0.add(DualCar_UART::BOOLEAN::b0, &approaching, false);
-	uart0.add(DualCar_UART::BOOLEAN::b1, &firstArrived, false);
-	uart0.add(DualCar_UART::BOOLEAN::b2, &secondArrived, false);
-	uart0.add(DualCar_UART::BOOLEAN::b3, &isFirst, false);
-	uart0.add(DualCar_UART::BOOLEAN::b4, &USsent, false);
+	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b0, &approaching, false);
+	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b1, &firstArrived, false);
+	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b2, &secondArrived, false);
+	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b3, &isFirst, false);
+	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b4, &USsent, false);
 
 
 	// motor & servo pid
@@ -399,6 +400,7 @@ int main() {
 //	uart0.add(DualCar_UART::FLOAT::f25, &angle, false);
 
 	uart0.parseValues();
+	uartToAnotherCar.parseValues();
 
 	DistanceModule UltrasonicSensor([&](float distanceInCm) {
 		if (distanceInCm < 30) {
@@ -407,7 +409,7 @@ int main() {
 				firstArrived = false;
 				secondArrived = false;
 				isFirst = false;
-				uart0.Send_bool(DualCar_UART::BOOLEAN::b4, true);
+				uartToAnotherCar.Send_bool(DualCar_UART_Config::BOOLEAN::b4, true);
 				approachTime = lastTime;
 			}
 		}
@@ -430,73 +432,100 @@ int main() {
 	DualCarMenu menuV2(&lcd, &writer, Width, Height);
 	DualCarMenu::SubMenu* current_page = &menuV2.home_page;
 
-	int temp = 5230;
-	float tempf = 23.24;
-	menuV2.AddItem("start", &boardID, &(menuV2.home_page), true);
-	menuV2.AddItem("OpenMotor", menuV2.home_page.submenu_items[0].next_page, true);
-	menuV2.AddItem("CloseMotor", menuV2.home_page.submenu_items[0].next_page, true);
+	menuV2.AddItem((char *) "start", &flashWrapper.imainboardID, &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "OpenMotor", menuV2.home_page.submenu_items[0].next_page, true);
+	menuV2.AddItem((char *) "CloseMotor", menuV2.home_page.submenu_items[0].next_page, true);
 
 	int left_corner_size = 0;
 	int right_corner_size = 0;
 	int dotted_lineV2 = 0;
-	menuV2.AddItem("camera", &(menuV2.home_page), true);
-	menuV2.AddItem("Ctr", &cam_contrast, menuV2.home_page.submenu_items[1].next_page, true);
-	menuV2.AddItem("Lcorner", &left_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
-	menuV2.AddItem("Rcorner", &right_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
-	menuV2.AddItem("ac", &accumulate_corner, menuV2.home_page.submenu_items[1].next_page, false);
+	menuV2.AddItem((char *) "camera", &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "Ctr", &cam_contrast, menuV2.home_page.submenu_items[1].next_page, true);
+	menuV2.AddItem((char *) "Lcorner", &left_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
+	menuV2.AddItem((char *) "Rcorner", &right_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
+	menuV2.AddItem((char *) "ac", &accumulate_corner, menuV2.home_page.submenu_items[1].next_page, false);
 
 
-	menuV2.AddItem("Magnetic", &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "Magnetic", &(menuV2.home_page), true);
 	int mag_xL = mag.GetMag(Mag::magPos::x_left);
 	int mag_xR = mag.GetMag(Mag::magPos::x_right);
 	int mag_yL = mag.GetMag(Mag::magPos::y_left);
 	int mag_yR = mag.GetMag(Mag::magPos::y_right);
 	int mag_xSum = mag.GetXSum();
 	int mag_ySum = mag.GetYSum();
-	menuV2.AddItem("XL", &mag_xL, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("XR", &mag_xR, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("YL", &mag_yL, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("YR", &mag_yR, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("SX", &mag_xSum, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("SY", &mag_ySum, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("AX", &angleX, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("AY", &angleY, menuV2.home_page.submenu_items[2].next_page, false);
-	menuV2.AddItem("A", &angle, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem((char *) "XL", &mag_xL, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem((char *) "XR", &mag_xR, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem((char *) "YL", &mag_yL, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem((char *) "YR", &mag_yR, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem((char *) "SX", &mag_xSum, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem((char *) "SY", &mag_ySum, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem((char *) "AX", &angleX, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem((char *) "AY", &angleY, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem((char *) "A", &angle, menuV2.home_page.submenu_items[2].next_page, false);
 
-	menuV2.AddItem("loop", &(menuV2.home_page), true);
-	menuV2.AddItem("state", &current_loop_state, menuV2.home_page.submenu_items[3].next_page, false);
-	menuV2.AddItem("cam_con", &camera_control, menuV2.home_page.submenu_items[3].next_page, false);
-	menuV2.AddItem("L1", &l1, menuV2.home_page.submenu_items[3].next_page, false);
-	menuV2.AddItem("L2", &l2, menuV2.home_page.submenu_items[3].next_page, false);
-	menuV2.AddItem("R1", &r1, menuV2.home_page.submenu_items[3].next_page, false);
-	menuV2.AddItem("R2", &r2, menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem((char *) "loop", &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "state", &current_loop_state, menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem((char *) "cam_con", &camera_control, menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem((char *) "L1", &l1, menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem((char *) "L2", &l2, menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem((char *) "R1", &r1, menuV2.home_page.submenu_items[3].next_page, false);
+	menuV2.AddItem((char *) "R2", &r2, menuV2.home_page.submenu_items[3].next_page, false);
 
 	int intmagState = (int)magState;
 	int* pmagState = &intmagState;
-	menuV2.AddItem("MagSt", pmagState, &(menuV2.home_page), false);
+	menuV2.AddItem((char *) "MagSt", pmagState, &(menuV2.home_page), false);
 
-	menuV2.AddItem("other", &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "other", &(menuV2.home_page), true);
 	float distance = UltrasonicSensor.getDistance();
-	menuV2.AddItem("Dist", &(distance), menuV2.home_page.submenu_items[5].next_page, false);
-	menuV2.AddItem("Volt", &(batteryVoltage), menuV2.home_page.submenu_items[5].next_page, false);
-	menuV2.AddItem("EncL", &(encoderLval), menuV2.home_page.submenu_items[5].next_page, false);
-	menuV2.AddItem("EncR", &(encoderRval), menuV2.home_page.submenu_items[5].next_page, false);
+	menuV2.AddItem((char *) "Dist", &(distance), menuV2.home_page.submenu_items[5].next_page, false);
+	menuV2.AddItem((char *) "Volt", &(batteryVoltage), menuV2.home_page.submenu_items[5].next_page, false);
+	menuV2.AddItem((char *) "EncL", &(encoderLval), menuV2.home_page.submenu_items[5].next_page, false);
+	menuV2.AddItem((char *) "EncR", &(encoderRval), menuV2.home_page.submenu_items[5].next_page, false);
 	int mpu_data = 0;
 	int* pmpu_data = &mpu_data;
-	menuV2.AddItem("mpu", pmpu_data, menuV2.home_page.submenu_items[5].next_page, false);
+	menuV2.AddItem((char *) "mpu", pmpu_data, menuV2.home_page.submenu_items[5].next_page, false);
 
-	menuV2.AddItem("Calibrate", &(menuV2.home_page), true);
-	menuV2.AddItem("Reset", [&mag](){mag.ResetMag();}, menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem((char *) "Calibrate", &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "Reset", [&mag](){mag.ResetMag();}, menuV2.home_page.submenu_items[6].next_page, false);
 	int mXL, mXR, mYL, mYR;
 	int rXL, rXR, rYL, rYR;
-	menuV2.AddItem("rXL", &(rXL), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("rXR", &(rXR), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("rYL", &(rYL), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("rYR", &(rYR), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("mXL", &(mXL), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("mXR", &(mXR), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("mYL", &(mYL), menuV2.home_page.submenu_items[6].next_page, false);
-	menuV2.AddItem("mYR", &(mYR), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem((char *) "rXL", &(rXL), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem((char *) "rXR", &(rXR), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem((char *) "rYL", &(rYL), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem((char *) "rYR", &(rYR), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem((char *) "mXL", &(mXL), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem((char *) "mXR", &(mXR), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem((char *) "mYL", &(mYL), menuV2.home_page.submenu_items[6].next_page, false);
+	menuV2.AddItem((char *) "mYR", &(mYR), menuV2.home_page.submenu_items[6].next_page, false);
+
+	menuV2.AddItem((char *) "Flash", &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "mainboard", &flashWrapper.imainboardID, menuV2.home_page.submenu_items[7].next_page, true);
+	menuV2.AddItem((char *) "SaveConfig", [&flashWrapper](){
+		flashWrapper.saveConfigFromMenu();
+	}, menuV2.home_page.submenu_items[7].next_page, false);
+	menuV2.AddItem((char *) "SaveFlash",[&flashWrapper, &camera](){
+		flashWrapper.writeFlash();
+	}, menuV2.home_page.submenu_items[7].next_page, false);
+	menuV2.AddItem((char *) "LoadFlash", [&flashWrapper](){
+		flashWrapper.readFlash();
+	}, menuV2.home_page.submenu_items[7].next_page, false);
+
+	menuV2.AddItem((char *) "BT", &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "connectA", [&uartToAnotherCar](){
+		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::connectToA);
+	}, menuV2.home_page.submenu_items[8].next_page, false);
+	menuV2.AddItem((char *) "connectB", [&uartToAnotherCar](){
+		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::connectToB);
+	}, menuV2.home_page.submenu_items[8].next_page, false);
+	menuV2.AddItem((char *) "connectC", [&uartToAnotherCar](){
+		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::connectToC);
+	}, menuV2.home_page.submenu_items[8].next_page, false);
+	menuV2.AddItem((char *) "connectD", [&uartToAnotherCar](){
+		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::connectToD);
+	}, menuV2.home_page.submenu_items[8].next_page, false);
+	menuV2.AddItem((char *) "setAsSlave", [&uartToAnotherCar](){
+		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::setAsSlave);
+	}, menuV2.home_page.submenu_items[8].next_page, false);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -531,8 +560,6 @@ int main() {
 
 	bool bumpy_road = false;
 
-
-
 	while (1) {
 		if (System::Time() != lastTime) {
 
@@ -554,7 +581,7 @@ int main() {
 
 			if (USsent) {
 				if (firstArrived || secondArrived){
-					uart0.Send_bool(DualCar_UART::BOOLEAN::b4, true);
+					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b4, true);
 				}
 				approaching = false;
 				isFirst = false;
@@ -565,6 +592,7 @@ int main() {
 			}
 
 			uart0.RunEveryMS();
+			uartToAnotherCar.RunEveryMS();
 			led0.SetEnable(lastTime % 100 < 50);
 			led1.SetEnable(lastTime % 100 < 50);
 //			led0.SetEnable(!approaching);
@@ -606,9 +634,9 @@ int main() {
 
 				if (approaching){
 					if (isFirst && firstArrived){
-						uart0.Send_bool(DualCar_UART::BOOLEAN::b1, true);
+						uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b1, true);
 					} else if (!isFirst && secondArrived){
-						uart0.Send_bool(DualCar_UART::BOOLEAN::b2, true);
+						uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b2, true);
 					}
 				}
 

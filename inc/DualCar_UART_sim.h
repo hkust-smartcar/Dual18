@@ -1,34 +1,12 @@
 /*
-
- NO NEED TO EDIT THIS HEADER
-
- >> add(mailbox, variable pointer, isAutoSend)
- (if isAutoSend is used, the value will send to the client when it has a new value)
-
- void add(UINT8_T mailbox, uint8_t * ref, bool isAutoSend);
- void add(FLOAT mailbox, float * ref, bool isAutoSend);
- void add(DOUBLE mailbox, double * ref, bool isAutoSend);
-
- mailbox naming:
- UINT8_T: u0 to u30
- FLOAT: f0 to f30
- DOUBLE: d0 to d30
-
- Sample:
- DualCar_UART uart0;
- uart0.add(DualCar_UART::UINT8_T::u0, &test, false);
-
- * run "uart0.parseValues();" once before in the while loop
- * run "uart0.RunEveryMS();" once every ms
-
- suggest usage with Processing:
- set isAutoSend true when using OutputValueTile, Chart and Line
- set isAutoSend false when using InputIncDecTile
-
+ * DualCar_UART_sim.h
+ *
+ *  Created on: 23 Jul 2018
+ *      Author: JosephYim
  */
 
-#ifndef INC_DUALCAR_UART_H_
-#define INC_DUALCAR_UART_H_
+#ifndef INC_DUALCAR_UART_SIM_H_
+#define INC_DUALCAR_UART_SIM_H_
 
 #include <cmath>
 #include <vector>
@@ -50,6 +28,7 @@
 #include <libbase/k60/mcg.h>
 #include <libsc/system.h>
 #include "libsc/k60/jy_mcu_bt_106.h"
+#include "DualCar_UART.h"
 
 using libsc::System;
 using libsc::k60::JyMcuBt106;
@@ -81,208 +60,7 @@ using std::vector;
 // no ack need
 #endif
 
-class DualCar_UART_Config {
-public:
-	/* 1)
-	 * suggested naming convention, for easier future integration with other people
-	 *
-	 * YourName_VaribaleName
-	 *
-	 * e.g. Joseph_testNum
-	 *
-	 * 2) make sure both side has the same set of list
-	 *
-	 */
-
-	enum class HM10ACT {
-		connectToA, connectToB, connectToC, connectToD, setAsSlave
-	};
-
-	enum class DOUBLE {
-		// nah, max support for 32 terms so far, tell me if you want more la ^^
-		d0,
-		d1,
-		d2,
-		d3,
-		d4,
-		d5,
-		d6,
-		d7,
-		d8,
-		d9,
-		d10,
-		d11,
-		d12,
-		d13,
-		d14,
-		d15,
-		d16,
-		d17,
-		d18,
-		d19,
-		d20,
-		d21,
-		d22,
-		d23,
-		d24,
-		d25,
-		d26,
-		d27,
-		d28,
-		d29,
-		d30,
-		MaxTerm // keep it as the last term
-	};
-
-	enum class FLOAT {
-		// nah, max support for 32 terms so far, tell me if you want more la ^^
-		f0,
-		f1,
-		f2,
-		f3,
-		f4,
-		f5,
-		f6,
-		f7,
-		f8,
-		f9,
-		f10,
-		f11,
-		f12,
-		f13,
-		f14,
-		f15,
-		f16,
-		f17,
-		f18,
-		f19,
-		f20,
-		f21,
-		f22,
-		f23,
-		f24,
-		f25,
-		f26,
-		f27,
-		f28,
-		f29,
-		f30,
-		MaxTerm // keep it as the last term
-	};
-
-	enum class UINT8_T {
-		// nah, max support for 32 terms so far, tell me if you want more la ^^
-		boolean,
-		u0,
-		u1,
-		u2,
-		u3,
-		u4,
-		u5,
-		u6,
-		u7,
-		u8,
-		u9,
-		u10,
-		u11,
-		u12,
-		u13,
-		u14,
-		u15,
-		u16,
-		u17,
-		u18,
-		u19,
-		u20,
-		u21,
-		u22,
-		u23,
-		u24,
-		u25,
-		u26,
-		u27,
-		u28,
-		u29,
-		MaxTerm
-	// keep it as the last term
-	};
-
-	enum class INT {
-		// nah, max support for 32 terms so far, tell me if you want more la ^^
-		i0,
-		i1,
-		i2,
-		i3,
-		i4,
-		i5,
-		i6,
-		i7,
-		i8,
-		i9,
-		i10,
-		i11,
-		i12,
-		i13,
-		i14,
-		i15,
-		i16,
-		i17,
-		i18,
-		i19,
-		i20,
-		i21,
-		i22,
-		i23,
-		i24,
-		i25,
-		i26,
-		i27,
-		i28,
-		i29,
-		i30,
-		MaxTerm
-	// keep it as the last term
-	};
-
-	enum class BOOLEAN {
-		// nah, max support for 32 terms so far, tell me bf you want more la ^^
-		b0,
-		b1,
-		b2,
-		b3,
-		b4,
-		b5,
-		b6,
-		b7,
-		b8,
-		b9,
-		b10,
-		b11,
-		b12,
-		b13,
-		b14,
-		b15,
-		b16,
-		b17,
-		b18,
-		b19,
-		b20,
-		b21,
-		b22,
-		b23,
-		b24,
-		b25,
-		b26,
-		b27,
-		b28,
-		b29,
-		b30,
-		MaxTerm
-	// keep it as the last term
-	};
-};
-
-class DualCar_UART: public DualCar_UART_Config {
+class DualCar_UART_Sim: public DualCar_UART_Config {
 public:
 	/*
 	 * init the class
@@ -299,7 +77,8 @@ public:
 	uint32_t sendsth = 0;
 
 #ifdef K60
-	DualCar_UART(const uint8_t &BT_id = 0, const Uart::Config::BaudRate &_BaudRate = Uart::Config::BaudRate::k115200) :
+	DualCar_UART_Sim(const uint8_t &BT_id = 0, const Uart::Config::BaudRate &_BaudRate =
+			Uart::Config::BaudRate::k115200) :
 			bt(GetBluetoothConfig(BT_id, _BaudRate, [&](const Byte *data, const size_t size) {
 				RxBuffer.emplace_back(*data);
 				getsth++;
@@ -316,9 +95,9 @@ public:
 //		SendBuffer.clear();
 
 		AutoSendWhenChanges_uint8_t.clear();
-		AutoSendWhenChanges_double.clear();
-		AutoSendWhenChanges_float.clear();
-		AutoSendWhenChanges_int.clear();
+//		AutoSendWhenChanges_double.clear();
+//		AutoSendWhenChanges_float.clear();
+//		AutoSendWhenChanges_int.clear();
 		AutoSendWhenChanges_bool.clear();
 
 		for (uint8_t t = 0; t < LOCAL_BUFFER_MAX; t++) {
@@ -337,31 +116,31 @@ public:
 #endif
 		}
 
-		DataCaller_uint8_t[(uint8_t) UINT8_T::boolean] = &booleanT;
-
-		for (uint8_t t = 0; t < static_cast<uint8_t>(DOUBLE::MaxTerm); t++) {
-#ifdef K60
-			DataCaller_double.emplace_back(nullptr);
-#else
-			DataCaller_double.push_back(nullptr);
-#endif
-		}
-
-		for (uint8_t t = 0; t < static_cast<uint8_t>(FLOAT::MaxTerm); t++) {
-#ifdef K60
-			DataCaller_float.emplace_back(nullptr);
-#else
-			DataCaller_float.push_back(nullptr);
-#endif
-		}
-
-		for (uint8_t t = 0; t < static_cast<uint8_t>(INT::MaxTerm); t++) {
-#ifdef K60
-			DataCaller_int.emplace_back(nullptr);
-#else
-			DataCaller_int.push_back(nullptr);
-#endif
-		}
+//		DataCaller_uint8_t[(uint8_t) UINT8_T::boolean] = &booleanT;
+//
+//		for (uint8_t t = 0; t < static_cast<uint8_t>(DOUBLE::MaxTerm); t++) {
+//#ifdef K60
+//			DataCaller_double.emplace_back(nullptr);
+//#else
+//			DataCaller_double.push_back(nullptr);
+//#endif
+//		}
+//
+//		for (uint8_t t = 0; t < static_cast<uint8_t>(FLOAT::MaxTerm); t++) {
+//#ifdef K60
+//			DataCaller_float.emplace_back(nullptr);
+//#else
+//			DataCaller_float.push_back(nullptr);
+//#endif
+//		}
+//
+//		for (uint8_t t = 0; t < static_cast<uint8_t>(INT::MaxTerm); t++) {
+//#ifdef K60
+//			DataCaller_int.emplace_back(nullptr);
+//#else
+//			DataCaller_int.push_back(nullptr);
+//#endif
+//		}
 
 		for (uint8_t t = 0; t < static_cast<uint8_t>(BOOLEAN::MaxTerm); t++) {
 #ifdef K60
@@ -429,29 +208,29 @@ public:
 				}
 			}
 
-			if (AutoSendWhenChanges_double.size() != 0) {
-				for (auto &temp : AutoSendWhenChanges_double) {
-					uint8_t id = (uint8_t) temp.first;
-					if ((DataCaller_double[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
-							&& (*DataCaller_double[id]) != temp.second) {
-						Send_double(temp.first, *DataCaller_double[id]);
-						temp.second = *DataCaller_double[id];
-						BUFFER_SENT += 16;
-					}
-				}
-			}
-
-			if (AutoSendWhenChanges_float.size() != 0) {
-				for (auto &temp : AutoSendWhenChanges_float) {
-					uint8_t id = (uint8_t) temp.first;
-					if ((DataCaller_float[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
-							&& (*DataCaller_float[id]) != temp.second) {
-						Send_float(temp.first, *DataCaller_float[id]);
-						temp.second = *DataCaller_float[id];
-						BUFFER_SENT += 8;
-					}
-				}
-			}
+//			if (AutoSendWhenChanges_double.size() != 0) {
+//				for (auto &temp : AutoSendWhenChanges_double) {
+//					uint8_t id = (uint8_t) temp.first;
+//					if ((DataCaller_double[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+//							&& (*DataCaller_double[id]) != temp.second) {
+//						Send_double(temp.first, *DataCaller_double[id]);
+//						temp.second = *DataCaller_double[id];
+//						BUFFER_SENT += 16;
+//					}
+//				}
+//			}
+//
+//			if (AutoSendWhenChanges_float.size() != 0) {
+//				for (auto &temp : AutoSendWhenChanges_float) {
+//					uint8_t id = (uint8_t) temp.first;
+//					if ((DataCaller_float[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+//							&& (*DataCaller_float[id]) != temp.second) {
+//						Send_float(temp.first, *DataCaller_float[id]);
+//						temp.second = *DataCaller_float[id];
+//						BUFFER_SENT += 8;
+//					}
+//				}
+//			}
 
 			if (AutoSendWhenChanges_bool.size() != 0) {
 				for (auto &temp : AutoSendWhenChanges_bool) {
@@ -464,17 +243,17 @@ public:
 				}
 			}
 
-			if (AutoSendWhenChanges_int.size() != 0) {
-				for (auto &temp : AutoSendWhenChanges_int) {
-					uint8_t id = (uint8_t) temp.first;
-					if ((DataCaller_int[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
-							&& (*DataCaller_int[id]) != temp.second) {
-						Send_int(temp.first, *DataCaller_int[id]);
-						temp.second = *DataCaller_int[id];
-						BUFFER_SENT += 8;
-					}
-				}
-			}
+//			if (AutoSendWhenChanges_int.size() != 0) {
+//				for (auto &temp : AutoSendWhenChanges_int) {
+//					uint8_t id = (uint8_t) temp.first;
+//					if ((DataCaller_int[id] != nullptr && BUFFER_SENT < BUFFER_SENT_MAX)
+//							&& (*DataCaller_int[id]) != temp.second) {
+//						Send_int(temp.first, *DataCaller_int[id]);
+//						temp.second = *DataCaller_int[id];
+//						BUFFER_SENT += 8;
+//					}
+//				}
+//			}
 		}
 
 		// handle incoming msg
@@ -501,49 +280,51 @@ public:
 							*DataCaller_uint8_t[MailBox_] = static_cast<uint8_t>(RxBuffer[2]);
 						}
 					}
-				} else if (DataType == DATA_TYPE::DOUBLE) {
-					if (DataCaller_double.size() > MailBox_ && DataCaller_double[MailBox_] != nullptr) {
-						Byte* doublePtr = new Byte[8];
-
-						for (uint8_t t = 0; t < 6; t++) {
-							*(doublePtr + t) = dataBuffer[t];
-						}
-						*(doublePtr + 6) = RxBuffer[2];
-						*(doublePtr + 7) = RxBuffer[3];
-						memcpy(DataCaller_double[MailBox_], doublePtr, 8);
-
-						delete[] (doublePtr);
-						doublePtr = nullptr;
-					}
-				} else if (DataType == DATA_TYPE::FLOAT) {
-					if (DataCaller_float.size() > MailBox_ && DataCaller_float[MailBox_] != nullptr) {
-						Byte* floatPtr = new Byte[4];
-
-						*(floatPtr + 0) = dataBuffer[0];
-						*(floatPtr + 1) = dataBuffer[1];
-						*(floatPtr + 2) = RxBuffer[2];
-						*(floatPtr + 3) = RxBuffer[3];
-
-						memcpy(DataCaller_float[MailBox_], floatPtr, 4);
-
-						delete[] (floatPtr);
-						floatPtr = nullptr;
-					}
-				} else if (DataType == DATA_TYPE::INT) {
-					if (DataCaller_int.size() > MailBox_ && DataCaller_int[MailBox_] != nullptr) {
-						Byte* intPtr = new Byte[4];
-
-						*(intPtr + 0) = dataBuffer[0];
-						*(intPtr + 1) = dataBuffer[1];
-						*(intPtr + 2) = RxBuffer[2];
-						*(intPtr + 3) = RxBuffer[3];
-
-						memcpy(DataCaller_int[MailBox_], intPtr, 4);
-
-						delete[] (intPtr);
-						intPtr = nullptr;
-					}
-				} else if (DataType == DATA_TYPE::SYSTEM) {
+				}
+//				else if (DataType == DATA_TYPE::DOUBLE) {
+//					if (DataCaller_double.size() > MailBox_ && DataCaller_double[MailBox_] != nullptr) {
+//						Byte* doublePtr = new Byte[8];
+//
+//						for (uint8_t t = 0; t < 6; t++) {
+//							*(doublePtr + t) = dataBuffer[t];
+//						}
+//						*(doublePtr + 6) = RxBuffer[2];
+//						*(doublePtr + 7) = RxBuffer[3];
+//						memcpy(DataCaller_double[MailBox_], doublePtr, 8);
+//
+//						delete[] (doublePtr);
+//						doublePtr = nullptr;
+//					}
+//				} else if (DataType == DATA_TYPE::FLOAT) {
+//					if (DataCaller_float.size() > MailBox_ && DataCaller_float[MailBox_] != nullptr) {
+//						Byte* floatPtr = new Byte[4];
+//
+//						*(floatPtr + 0) = dataBuffer[0];
+//						*(floatPtr + 1) = dataBuffer[1];
+//						*(floatPtr + 2) = RxBuffer[2];
+//						*(floatPtr + 3) = RxBuffer[3];
+//
+//						memcpy(DataCaller_float[MailBox_], floatPtr, 4);
+//
+//						delete[] (floatPtr);
+//						floatPtr = nullptr;
+//					}
+//				} else if (DataType == DATA_TYPE::INT) {
+//					if (DataCaller_int.size() > MailBox_ && DataCaller_int[MailBox_] != nullptr) {
+//						Byte* intPtr = new Byte[4];
+//
+//						*(intPtr + 0) = dataBuffer[0];
+//						*(intPtr + 1) = dataBuffer[1];
+//						*(intPtr + 2) = RxBuffer[2];
+//						*(intPtr + 3) = RxBuffer[3];
+//
+//						memcpy(DataCaller_int[MailBox_], intPtr, 4);
+//
+//						delete[] (intPtr);
+//						intPtr = nullptr;
+//					}
+//				}
+				else if (DataType == DATA_TYPE::SYSTEM) {
 					if (MailBox_ == (uint8_t) SYSTEM_MSG::ack) {
 						// it is an ack
 //						if (RxBuffer[2] == SendBuffer[0].COMMAND_CODE) {
@@ -663,65 +444,62 @@ public:
 	 * init float
 	 */
 
-	void add(FLOAT mailbox, float * ref, bool isAutoSend, float defaultValue) {
-		add(mailbox, ref, isAutoSend);
-		Send_float(mailbox, defaultValue);
-	}
-
-	void add(FLOAT mailbox, float * ref, bool isAutoSend) {
-		DataCaller_float[(uint8_t) mailbox] = ref;
-		if (isAutoSend) {
-#ifdef K60
-			AutoSendWhenChanges_float.emplace_back(mailbox, 0);
-#else
-			AutoSendWhenChanges_float.push_back(std::pair<FLOAT, float> {
-						mailbox, 0});
-#endif
-		}
-	}
-
+//	void add(FLOAT mailbox, float * ref, bool isAutoSend, float defaultValue) {
+//		add(mailbox, ref, isAutoSend);
+//		Send_float(mailbox, defaultValue);
+//	}
+//
+//	void add(FLOAT mailbox, float * ref, bool isAutoSend) {
+//		DataCaller_float[(uint8_t) mailbox] = ref;
+//		if (isAutoSend) {
+//#ifdef K60
+//			AutoSendWhenChanges_float.emplace_back(mailbox, 0);
+//#else
+//			AutoSendWhenChanges_float.push_back(std::pair<FLOAT, float> {
+//						mailbox, 0});
+//#endif
+//		}
+//	}
 	/*
 	 * init int
 	 */
 
-	void add(INT mailbox, int32_t * ref, bool isAutoSend, int32_t defaultValue) {
-		add(mailbox, ref, isAutoSend);
-		Send_int(mailbox, defaultValue);
-	}
-
-	void add(INT mailbox, int32_t * ref, bool isAutoSend) {
-		DataCaller_int[(uint8_t) mailbox] = ref;
-		if (isAutoSend) {
-#ifdef K60
-			AutoSendWhenChanges_int.emplace_back(mailbox, 0);
-#else
-			AutoSendWhenChanges_int.push_back(std::pair<INT, int32_t> {mailbox,
-						0});
-#endif
-		}
-	}
-
+//	void add(INT mailbox, int32_t * ref, bool isAutoSend, int32_t defaultValue) {
+//		add(mailbox, ref, isAutoSend);
+//		Send_int(mailbox, defaultValue);
+//	}
+//
+//	void add(INT mailbox, int32_t * ref, bool isAutoSend) {
+//		DataCaller_int[(uint8_t) mailbox] = ref;
+//		if (isAutoSend) {
+//#ifdef K60
+//			AutoSendWhenChanges_int.emplace_back(mailbox, 0);
+//#else
+//			AutoSendWhenChanges_int.push_back(std::pair<INT, int32_t> {mailbox,
+//						0});
+//#endif
+//		}
+//	}
 	/*
 	 * init double
 	 */
 
-	void add(DOUBLE mailbox, double * ref, bool isAutoSend, double defaultValue) {
-		add(mailbox, ref, isAutoSend);
-		Send_double(mailbox, defaultValue);
-	}
-
-	void add(DOUBLE mailbox, double * ref, bool isAutoSend) {
-		DataCaller_double[(uint8_t) mailbox] = ref;
-		if (isAutoSend) {
-#ifdef K60
-			AutoSendWhenChanges_double.emplace_back(mailbox, 0);
-#else
-			AutoSendWhenChanges_double.push_back(std::pair<DOUBLE, double> {
-						mailbox, 0});
-#endif
-		}
-	}
-
+//	void add(DOUBLE mailbox, double * ref, bool isAutoSend, double defaultValue) {
+//		add(mailbox, ref, isAutoSend);
+//		Send_double(mailbox, defaultValue);
+//	}
+//
+//	void add(DOUBLE mailbox, double * ref, bool isAutoSend) {
+//		DataCaller_double[(uint8_t) mailbox] = ref;
+//		if (isAutoSend) {
+//#ifdef K60
+//			AutoSendWhenChanges_double.emplace_back(mailbox, 0);
+//#else
+//			AutoSendWhenChanges_double.push_back(std::pair<DOUBLE, double> {
+//						mailbox, 0});
+//#endif
+//		}
+//	}
 	/*
 	 * send corners
 	 *
@@ -768,7 +546,7 @@ public:
 //	};
 //#endif
 #ifdef MORRIS_USING
-	inline void Send_corners(
+	void Send_corners(
 			std::vector<Corner> &vect) {
 
 		uint8_t vectorSize = vect.size();
@@ -787,26 +565,26 @@ public:
 	}
 #endif
 
-	inline void Send_log(std::string s_) {
-
-		uint8_t stringSize = s_.size();
-		if (stringSize % 2 == 1) {
-			s_ += " ";
-			stringSize = s_.size();
-		}
-		stringSize = stringSize > 64 ? 64 : stringSize;
-
-		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::log_StartSend, (uint8_t) s_[0], (uint8_t) s_[1]);
-
-		for (uint8_t i = 2; i < stringSize; i += 2) {
-			SendWrapper(DATA_TYPE::LOG, i / 2 - 1, (uint8_t) s_[i], (uint8_t) s_[i + 1]);
-		}
-
-		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::log_EndSend, stringSize, 0);
-	}
+//	void Send_log(std::string s_) {
+//
+//		uint8_t stringSize = s_.size();
+//		if (stringSize % 2 == 1) {
+//			s_ += " ";
+//			stringSize = s_.size();
+//		}
+//		stringSize = stringSize > 64 ? 64 : stringSize;
+//
+//		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::log_StartSend, (uint8_t) s_[0], (uint8_t) s_[1]);
+//
+//		for (uint8_t i = 2; i < stringSize; i += 2) {
+//			SendWrapper(DATA_TYPE::LOG, i / 2 - 1, (uint8_t) s_[i], (uint8_t) s_[i + 1]);
+//		}
+//
+//		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::log_EndSend, stringSize, 0);
+//	}
 
 #ifdef DEBUG_PHASE
-	inline void Send_camera(const Byte * b, const uint8_t &w, const uint8_t &h) {
+	void Send_camera(const Byte * b, const uint8_t &w, const uint8_t &h) {
 
 		SendWrapper(DATA_TYPE::SYSTEM, (uint8_t) SYSTEM_MSG::camera_StartSend,
 				w, h);
@@ -875,15 +653,15 @@ public:
 	uint8_t isConnectedTimeOut = 0;
 
 	std::vector<uint8_t*> DataCaller_uint8_t;
-	std::vector<double*> DataCaller_double;
-	std::vector<float*> DataCaller_float;
-	std::vector<int32_t*> DataCaller_int;
+//	std::vector<double*> DataCaller_double;
+//	std::vector<float*> DataCaller_float;
+//	std::vector<int32_t*> DataCaller_int;
 	std::vector<bool*> DataCaller_bool;
 
 	std::vector<std::pair<UINT8_T, uint8_t>> AutoSendWhenChanges_uint8_t;
-	std::vector<std::pair<DOUBLE, double>> AutoSendWhenChanges_double;
-	std::vector<std::pair<FLOAT, float>> AutoSendWhenChanges_float;
-	std::vector<std::pair<INT, int32_t>> AutoSendWhenChanges_int;
+//	std::vector<std::pair<DOUBLE, double>> AutoSendWhenChanges_double;
+//	std::vector<std::pair<FLOAT, float>> AutoSendWhenChanges_float;
+//	std::vector<std::pair<INT, int32_t>> AutoSendWhenChanges_int;
 	std::vector<std::pair<DualCar_UART_Config::BOOLEAN, bool>> AutoSendWhenChanges_bool;
 
 	/*
@@ -897,19 +675,18 @@ public:
 	 *
 	 */
 
-	inline void Send_double(const DOUBLE &MailBox, const double &num) {
-		Byte* doublePtr = new Byte[8];
-		memcpy(doublePtr, &num, 8);
-
-		SendWrapper(DATA_TYPE::BUFFER, 0, *(doublePtr + 0), *(doublePtr + 1));
-		SendWrapper(DATA_TYPE::BUFFER, 1, *(doublePtr + 2), *(doublePtr + 3));
-		SendWrapper(DATA_TYPE::BUFFER, 2, *(doublePtr + 4), *(doublePtr + 5));
-		SendWrapper(DATA_TYPE::DOUBLE, (uint8_t) MailBox, *(doublePtr + 6), *(doublePtr + 7));
-
-		delete[] (doublePtr);
-		doublePtr = nullptr;
-	}
-
+//	void Send_double(const DOUBLE &MailBox, const double &num) {
+//		Byte* doublePtr = new Byte[8];
+//		memcpy(doublePtr, &num, 8);
+//
+//		SendWrapper(DATA_TYPE::BUFFER, 0, *(doublePtr + 0), *(doublePtr + 1));
+//		SendWrapper(DATA_TYPE::BUFFER, 1, *(doublePtr + 2), *(doublePtr + 3));
+//		SendWrapper(DATA_TYPE::BUFFER, 2, *(doublePtr + 4), *(doublePtr + 5));
+//		SendWrapper(DATA_TYPE::DOUBLE, (uint8_t) MailBox, *(doublePtr + 6), *(doublePtr + 7));
+//
+//		delete[] (doublePtr);
+//		doublePtr = nullptr;
+//	}
 	/*
 	 * send float
 	 *
@@ -921,17 +698,16 @@ public:
 	 *
 	 */
 
-	inline void Send_float(const FLOAT &MailBox, const float &num) {
-		Byte* floatPtr = new Byte[4];
-		memcpy(floatPtr, &num, 4);
-
-		SendWrapper(DATA_TYPE::BUFFER, 0, *(floatPtr + 0), *(floatPtr + 1));
-		SendWrapper(DATA_TYPE::FLOAT, (uint8_t) MailBox, *(floatPtr + 2), *(floatPtr + 3));
-
-		delete[] (floatPtr);
-		floatPtr = nullptr;
-	}
-
+//	void Send_float(const FLOAT &MailBox, const float &num) {
+//		Byte* floatPtr = new Byte[4];
+//		memcpy(floatPtr, &num, 4);
+//
+//		SendWrapper(DATA_TYPE::BUFFER, 0, *(floatPtr + 0), *(floatPtr + 1));
+//		SendWrapper(DATA_TYPE::FLOAT, (uint8_t) MailBox, *(floatPtr + 2), *(floatPtr + 3));
+//
+//		delete[] (floatPtr);
+//		floatPtr = nullptr;
+//	}
 	/*
 	 * send int
 	 *
@@ -943,18 +719,17 @@ public:
 	 *
 	 */
 
-	inline void Send_int(const INT &MailBox, const int32_t &num) {
-//	inline void Send_int(const INT &MailBox, int32_t num) {
-		Byte* intPtr = new Byte[4];
-		memcpy(intPtr, &num, 4);
-
-		SendWrapper(DATA_TYPE::BUFFER, 0, *(intPtr + 0), *(intPtr + 1));
-		SendWrapper(DATA_TYPE::INT, (uint8_t) MailBox, *(intPtr + 2), *(intPtr + 3));
-
-		delete[] (intPtr);
-		intPtr = nullptr;
-	}
-
+//	void Send_int(const INT &MailBox, const int32_t &num) {
+////	void Send_int(const INT &MailBox, int32_t num) {
+//		Byte* intPtr = new Byte[4];
+//		memcpy(intPtr, &num, 4);
+//
+//		SendWrapper(DATA_TYPE::BUFFER, 0, *(intPtr + 0), *(intPtr + 1));
+//		SendWrapper(DATA_TYPE::INT, (uint8_t) MailBox, *(intPtr + 2), *(intPtr + 3));
+//
+//		delete[] (intPtr);
+//		intPtr = nullptr;
+//	}
 	/*
 	 * send uint8_t
 	 *
@@ -966,7 +741,7 @@ public:
 	 *
 	 */
 
-	inline void Send_uint8_t(const UINT8_T &MailBox, const uint8_t &num, const Byte &num0 = 0) {
+	void Send_uint8_t(const UINT8_T &MailBox, const uint8_t &num, const Byte &num0 = 0) {
 		SendWrapper(DATA_TYPE::UINT8_T, (uint8_t) MailBox, static_cast<Byte>(num), num0);
 	}
 
@@ -981,7 +756,7 @@ public:
 	 *
 	 */
 
-	inline void Send_bool(const DualCar_UART_Config::BOOLEAN &MailBox, const bool &num) {
+	void Send_bool(const DualCar_UART_Config::BOOLEAN &MailBox, const bool &num) {
 		Send_uint8_t(UINT8_T::boolean, (uint8_t) MailBox, (Byte) num ? 0b1 : 0b0);
 //		Send_uint8_t(UINT8_T::boolean, (uint8_t) MailBox, (Byte) num ? 0b1 : 0b0);
 	}
@@ -1001,7 +776,7 @@ public:
 	 * return false if it's an even number
 	 */
 
-	inline bool isOdd(uint8_t t0, uint8_t t1, uint8_t t2, uint8_t t3) {
+	bool isOdd(uint8_t t0, uint8_t t1, uint8_t t2, uint8_t t3) {
 
 		uint32_t t = 0;
 //		t ^= t0;
@@ -1055,7 +830,7 @@ public:
 	 *
 	 */
 
-	inline void SendWrapper(const DATA_TYPE &DataType, const uint8_t &MailBox, const Byte &byte0, const Byte &byte1) {
+	void SendWrapper(const DATA_TYPE &DataType, const uint8_t &MailBox, const Byte &byte0, const Byte &byte1) {
 
 		PACKAGE package;
 		package.START_CODE = StartCode0;
@@ -1067,7 +842,6 @@ public:
 		if (!isOdd(package.START_CODE, package.COMMAND_CODE, package.Data_0, package.Data_1)) {
 			package.START_CODE = StartCode1;
 		}
-
 #ifdef K60
 		SendImmediate.emplace_back(package);
 #else
@@ -1111,9 +885,6 @@ public:
 			}
 				break;
 		}
-
-		HM10sendMsg("RESET");
-		System::DelayMs(100);
 	}
 
 	void HM10sendMsg(char * msg) {
@@ -1135,7 +906,7 @@ public:
 	 * BT config
 	 */
 
-	inline JyMcuBt106::Config GetBluetoothConfig(const uint8_t &_id, const Uart::Config::BaudRate &_BaudRate,
+	JyMcuBt106::Config GetBluetoothConfig(const uint8_t &_id, const Uart::Config::BaudRate &_BaudRate,
 			const std::function<bool(const Byte *data, const size_t size)> &isr) {
 		JyMcuBt106::Config config;
 		config.baud_rate = _BaudRate;
@@ -1147,4 +918,4 @@ public:
 
 };
 
-#endif /* INC_DUALCAR_UART_H_ */
+#endif /* INC_DUALCAR_UART_SIM_H_ */

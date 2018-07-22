@@ -9,6 +9,7 @@
 #define INC_FLASHWRAPPER_H_
 
 #include "libbase/k60/flash.h"
+#include "libbase/k60/cmsis/mk60f15.h"
 #include <stdlib.h>
 
 using libbase::k60::Flash;
@@ -37,9 +38,6 @@ using libbase::k60::Flash;
 
 class FlashWrapper {
 public:
-	int iflashWrapperVer;
-	int iflashWrapperSubVer;
-	int imcuID;
 	int iMCUVer;
 	int imcuPos;
 	int imainboardID;
@@ -50,19 +48,13 @@ public:
 		// only read the config data
 		Flash::FlashStatus status = flash.Read(FlashData, 16);
 		if (status != Flash::FlashStatus::kSuccess) {
-			assert(true);
+			assert(false);
 		}
 
-		flashWrapperVer = &FlashData[0];
-		flashWrapperSubVer = &FlashData[1];
-		mcuID = &FlashData[2];
 		MCUVer = &FlashData[3];
 		mcuPos = &FlashData[4];
 		mainboardID = &FlashData[5];
 
-		iflashWrapperVer = (uint8_t) *flashWrapperVer;
-		iflashWrapperSubVer = (uint8_t) *flashWrapperSubVer;
-		imcuID = (uint8_t) *mcuID;
 		iMCUVer = (uint8_t) *MCUVer;
 		imcuPos = (uint8_t) *mcuPos;
 		imainboardID = (uint8_t) *mainboardID;
@@ -88,17 +80,20 @@ public:
 				memcpy(FlashData + 304 + i, boolData[i], 1);
 		}
 
+		__disable_irq();
 		Flash::FlashStatus status = flash.Write(FlashData, FLASH_USAGE);
 		libsc::System::DelayMs(100);
 		if (status != Flash::FlashStatus::kSuccess) {
-			assert(true);
+			assert(false);
 		}
+
+		__enable_irq();
 	}
 
 	void readFlash() {
 		Flash::FlashStatus status = flash.Read(FlashData, FLASH_USAGE);
 		if (status != Flash::FlashStatus::kSuccess) {
-			assert(true);
+			assert(false);
 		}
 		for (uint8_t i = 0; i < 32; i++) {
 			if (uin8_tData[i] != nullptr)
@@ -114,25 +109,25 @@ public:
 
 	inline void link_uint8_t(const uint8_t &id, uint8_t * var) {
 		if (id >= 32)
-			assert(true);
+			assert(false);
 		uin8_tData[id] = var;
 	}
 
 	inline void link_int(const uint8_t &id, int * var) {
 		if (id >= 32)
-			assert(true);
+			assert(false);
 		intData[id] = var;
 	}
 
 	inline void link_float(const uint8_t &id, float * var) {
 		if (id >= 32)
-			assert(true);
+			assert(false);
 		floatData[id] = var;
 	}
 
 	inline void link_bool(const uint8_t &id, bool * var) {
 		if (id >= 32)
-			assert(true);
+			assert(false);
 		boolData[id] = var;
 	}
 
@@ -171,19 +166,10 @@ public:
 	}
 
 	void saveConfigFromMenu() {
-//		*flashWrapperVer = (Byte) (uint8_t) iflashWrapperVer;
-//		*flashWrapperSubVer = (Byte) (uint8_t) iflashWrapperVer;
-//		*mcuID = (Byte) (uint8_t) imcuID;
-//		*MCUVer = (Byte) (uint8_t) iMCUVer;
-//		*mcuPos = (Byte) (uint8_t) imcuPos;
-//		*mainboardID = (Byte) (uint8_t) imainboardID;
 
-		*flashWrapperVer = 0;
-		*flashWrapperSubVer = 0;
-		*mcuID = 0;
-		*MCUVer = 0;
-		*mcuPos = 0;
-		*mainboardID = 0;
+		*MCUVer = (Byte) (uint8_t) iMCUVer;
+		*mcuPos = (Byte) (uint8_t) imcuPos;
+		*mainboardID = (Byte) (uint8_t) imainboardID;
 
 		saveConfig();
 	}
@@ -240,11 +226,13 @@ private:
 	bool * boolData[32];
 
 	inline void saveConfig() {
+		__disable_irq();
 		Flash::FlashStatus status = flash.Write(FlashData, 16);
 		libsc::System::DelayMs(100);
 		if (status != Flash::FlashStatus::kSuccess) {
-			assert(true);
+			assert(false);
 		}
+		__enable_irq();
 	}
 
 	libbase::k60::Flash::Config getFlashConfig() {

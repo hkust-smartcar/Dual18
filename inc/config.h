@@ -48,32 +48,32 @@ using libsc::AlternateMotor;
 using libsc::k60::Ov7725;
 using libsc::k60::Ov7725Configurator;
 
-class myConfig{
+class myConfig {
 public:
 
-	static Led::Config GetLedConfig(int id){
+	static Led::Config GetLedConfig(int id) {
 		Led::Config config;
 		config.id = id;
 		return config;
 	}
-	static LcdTypewriter::Config GetWriterConfig(St7735r *lcd){
+	static LcdTypewriter::Config GetWriterConfig(St7735r *lcd) {
 		LcdTypewriter::Config config;
 		config.lcd = lcd;
 		config.bg_color = 0x00ff;
 		return config;
 	}
-	static LcdConsole::Config GetConsoleConfig(St7735r *lcd){
+	static LcdConsole::Config GetConsoleConfig(St7735r *lcd) {
 		LcdConsole::Config config;
 		config.lcd = lcd;
-		config.region = Lcd::Rect(0,0,128,160);
+		config.region = Lcd::Rect(0, 0, 128, 160);
 		return config;
 	}
-    static Joystick::Config GetJoystickConfig(Joystick::Listener isr) {
-        //TODO: finish it
-    	Joystick::Config config;
-    	config.id = 0;
-    	config.is_active_low = true;
-    	config.dispatcher = isr;
+	static Joystick::Config GetJoystickConfig(Joystick::Listener isr) {
+		//TODO: finish it
+		Joystick::Config config;
+		config.id = 0;
+		config.is_active_low = true;
+		config.dispatcher = isr;
 //    	config.handlers[0] = isr;
 //    	config.handlers[1] = isr;
 //    	config.handlers[2] = isr;
@@ -82,107 +82,112 @@ public:
 //    	config.listener_triggers[1] = Joystick::Config::Trigger::kBoth;
 //    	config.listener_triggers[2] = Joystick::Config::Trigger::kBoth;
 //    	config.listener_triggers[3] = Joystick::Config::Trigger::kBoth;
-    	// ADD!
-    	return config;
-    }
+		// ADD!
+		return config;
+	}
 
-    static St7735r::Config GetLcdConfig() {
-        //TODO: finish it
-    	St7735r::Config config;
-    	config.fps = 20;
-    	return config;
-    }
+	static St7735r::Config GetLcdConfig() {
+		//TODO: finish it
+		St7735r::Config config;
+		config.fps = 20;
+		return config;
+	}
 
-    static JyMcuBt106::Config GetBluetoothConfig(std::function<bool(const Byte *data, const size_t size)> isr) {
-        //TODO: finish it
-    	JyMcuBt106::Config config;
-    	config.id = 0;
-    	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
-    	config.rx_isr = isr;
-    	return config;
-    }
+	static JyMcuBt106::Config GetBluetoothConfig(std::function<bool(const Byte *data, const size_t size)> isr) {
+		//TODO: finish it
+		JyMcuBt106::Config config;
+		config.id = 0;
+		config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
+		config.rx_isr = isr;
+		return config;
+	}
 
-    static JyMcuBt106::Config GetSlaveBluetoothConfig() {
-        //TODO: finish it
-    	JyMcuBt106::Config config;
-    	config.id = 0;
-    	config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
-    	return config;
-    }
+	static JyMcuBt106::Config GetSlaveBluetoothConfig() {
+		//TODO: finish it
+		JyMcuBt106::Config config;
+		config.id = 0;
+		config.baud_rate = libbase::k60::Uart::Config::BaudRate::k115200;
+		return config;
+	}
 
-    static Pit::Config GetBluetoothPitConfig(std::function<void(Pit*)> isr){
-    	//TODO: finish it
-    	Pit::Config pitConfig;
-    	pitConfig.channel = 0;
-    	pitConfig.count = 75000*10; //job executed once per 10ms
-    	pitConfig.isr = isr;
-    	return pitConfig;
-    }
+	static Pit::Config GetBluetoothPitConfig(std::function<void(Pit*)> isr) {
+		//TODO: finish it
+		Pit::Config pitConfig;
+		pitConfig.channel = 0;
+		pitConfig.count = 75000 * 10; //job executed once per 10ms
+		pitConfig.isr = isr;
+		return pitConfig;
+	}
 
-    static DirEncoder::Config GetEncoderConfig(int m_id){
-    	DirEncoder::Config config;
-    	config.id = m_id;
-    	return config;
-    }
+	static DirEncoder::Config GetEncoderConfig(int m_id) {
+		DirEncoder::Config config;
+		config.id = m_id;
+		return config;
+	}
 
-    static Adc::Config GetAdcConfig(int id){
-    	Adc::Config config;
-    	switch (id) {
-    			case 0:
-    				config.adc = Adc::Name::kAdc0Ad5B;
-    				break;
-    			case 1:
-    				config.adc = Adc::Name::kAdc0Ad7B;
-    				break;
-    			case 2:
-    				config.adc = Adc::Name::kAdc0Ad6B;
-    				break;
-    			case 3:
-   					config.adc = Adc::Name::kAdc0Ad18;
-    				break;
-    			case 4:
-   					config.adc = Adc::Name::kAdc0Ad17;
-    				break;
-    			default:
-    				break;
-    	}
-    	config.resolution = Adc::Config::Resolution::k8Bit;
-    	config.speed = Adc::Config::SpeedMode::kExSlow;
-    	config.is_continuous_mode =true;
-    	config.avg_pass =Adc::Config::AveragePass::k32;
-    	return config;
-    }
+	static Adc::Config GetAdcConfig(int id) {
+		Adc::Config config;
+		switch (id) {
+			case 0:
+				config.adc = Adc::Name::kAdc0Ad5B;
+				break;
+			case 1:
+				config.adc = Adc::Name::kAdc0Ad7B;
+				break;
+			case 2:
+				config.adc = Adc::Name::kAdc0Ad6B;
+				break;
+			case 3:
+				config.adc = Adc::Name::kAdc0Ad18;
+				break;
+			case 4:
+				config.adc = Adc::Name::kAdc0Ad17;
+				break;
+			default:
+				break;
+		}
+		config.resolution = Adc::Config::Resolution::k8Bit;
+		config.speed = Adc::Config::SpeedMode::kExSlow;
+		config.is_continuous_mode = true;
+		config.avg_pass = Adc::Config::AveragePass::k32;
+		return config;
+	}
 
-    static FutabaS3010::Config GetServoConfig(){
-    		FutabaS3010::Config config;
-    		config.id = 0;
-    		return config;
-    }
+	static FutabaS3010::Config GetServoConfig() {
+		FutabaS3010::Config config;
+		config.id = 0;
+		return config;
+	}
 
-    static AlternateMotor::Config GetMotorConfig(int id){
-    		AlternateMotor::Config config;
-    		config.id = id;
-    		config.multiplier = 100;
-    		return config;
-    }
+	static AlternateMotor::Config GetMotorConfig(int id) {
+		AlternateMotor::Config config;
+		config.id = id;
+		config.multiplier = 100;
+		return config;
+	}
 
-    static Ov7725::Config getCameraConfig(int width, int height, uint8_t id) {
-    		Ov7725::Config config;
-    		config.id = id;
-    		config.w = width;
-    		config.h = height;
-    		config.fps = Ov7725Configurator::Config::Fps::kHigh;
-    		return config;
-    }
+	static Ov7725::Config getCameraConfig(int width, int height, uint8_t id) {
+		Ov7725::Config config;
+		config.id = id;
+		config.w = width;
+		config.h = height;
+		config.fps = Ov7725Configurator::Config::Fps::kHigh;
+		return config;
+	}
 
-    static BatteryMeter::Config GetBatteryMeterConfig(){
-    	BatteryMeter::Config config;
+	static BatteryMeter::Config GetBatteryMeterConfig(uint8_t id) {
+		BatteryMeter::Config config;
+		if (id == 1) {
+			config.voltage_ratio = 1 / 2.8; // car 1
+		} else if (id == 2) {
+			config.voltage_ratio = 1 / 2.85; // car 2
+		}
+
 //    	config.voltage_ratio = 0.365;
 //    	config.voltage_ratio = 1 / 2.86; // car 1
-    	config.voltage_ratio = 1 / 2.97; // car 2
-    	return config;
-    }
-};
 
+		return config;
+	}
+};
 
 #endif /* INC_CONFIG_H_ */
