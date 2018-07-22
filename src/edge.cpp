@@ -358,7 +358,8 @@ vector<pair<int,int>> Edge::check_edge(const Byte* camBuffer, int topline, int b
 			}
 			traveling_left(start_point_i, start_point_j, Direction::Down, topline, bottomline, camBuffer);
 
-			if(m_edge[m_edge.size()-1].first<3){
+			int m_edge_size = m_edge.size();
+			if(m_edge_size != 0 && m_edge[m_edge_size-1].first<3){
 				found = false;
 				int last = m_edge[m_edge.size()-1].second;
 				for(int j =last; j>top_line; j--){
