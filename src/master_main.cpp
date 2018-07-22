@@ -48,6 +48,7 @@
 #include "MenuV2.h"
 #include "variable.h"
 #include "func.h"
+#include "FlashWrapper.h"
 
 #define pi 3.1415926
 
@@ -285,11 +286,13 @@ int main() {
 	Edge left_edge(false);
 
 	//pid value
-
 	float left_motor_pid[3],right_motor_pid[3],x_servo_pd[2],y_servo_pd[2],align_servo_pd[2];
 	bool forwardL, forwardR;
 	uint16_t middleServo, leftServo, rightServo;
 	float angle = 0, angleX = 0, angleY = 0;
+
+	//flash
+	FlashWrapper flashWrapper;
 
 	if (0) {//board.isCar1()
 	    left_motor_pid[0] = 0.55;
@@ -316,7 +319,7 @@ int main() {
 		leftServo = 1340;
 		rightServo = 710;
 
-		mag.InitMag(1);
+		mag.InitMag(1, &flashWrapper);
 	} else {
 	    left_motor_pid[0] = 0.62;
 	    left_motor_pid[1] = 0.03;
@@ -342,7 +345,7 @@ int main() {
 		leftServo = 1145;
 		rightServo = 540;
 
-		mag.InitMag(2);
+		mag.InitMag(2, &flashWrapper);
 	}
 
 	float camera_angle = 0;
@@ -478,6 +481,7 @@ int main() {
 	menuV2.AddItem("mpu", pmpu_data, menuV2.home_page.submenu_items[5].next_page, false);
 
 	menuV2.AddItem("Calibrate", &(menuV2.home_page), true);
+	menuV2.AddItem("Reset", [&mag](){mag.ResetMag();}, menuV2.home_page.submenu_items[6].next_page, false);
 	int mXL, mXR, mYL, mYR;
 	int rXL, rXR, rYL, rYR;
 	menuV2.AddItem("rXL", &(rXL), menuV2.home_page.submenu_items[6].next_page, false);
@@ -520,8 +524,9 @@ int main() {
 	right_motorPID.setkD(right_motor_pid[2]);
 	uint32_t dTime = 0;
 
-
 	bool bumpy_road = false;
+
+
 
 	while (1) {
 		if (System::Time() != lastTime) {
@@ -543,9 +548,6 @@ int main() {
 			}
 
 			if (USsent) {
-//				buzz.SetNote(1040);
-//				buzz.SetBeep(true);
-
 				if (firstArrived || secondArrived){
 					uart0.Send_bool(DualCar_UART::BOOLEAN::b4, true);
 				}
@@ -560,8 +562,6 @@ int main() {
 			uart0.RunEveryMS();
 			led0.SetEnable(!approaching);
 			led1.SetEnable(!isFirst);
-//			led2.SetEnable(!firstArrived);
-//			led3.SetEnable(!secondArrived);
 			mag.TakeSample();
 			batterySum += batteryMeter.GetVoltage();
 			batteryCount++;
@@ -620,7 +620,6 @@ int main() {
 					right_motorPID.setkD(right_motor_pid[2]);
 				}
 
-
 				//LOOP v2
 				master_edge = left_edge.check_edge(camBuffer, 25, 60);
 				vector<Corner> master_corner;
@@ -635,7 +634,6 @@ int main() {
 					led0.SetEnable(1);
 				}
 
-				//loop ver2
 				float master_slope = 0;
 				float slave_slope = 0;
 				int s_edge_xmid = m_master_bluetooth.get_edge_xmid();
@@ -660,15 +658,12 @@ int main() {
 
 				if(camera_control){
 					angle = camera_angle;
-//					buzz.SetNote(440);
-//					buzz.SetBeep(true);
 				} else{
 					if (current_page->identity == "Calibrate") {
 						angle = 0;
 					} else{
 						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop, in_loop, yTarget);
 					}
-//					buzz.SetBeep(false);
 				}
 
 				//alignment
@@ -705,7 +700,6 @@ int main() {
 				for(int i=0; i<35; i++){
 					if(junction_array[i]>2){
 						dotted_lineV2 = true;
-
 						break;
 					}
 				}
@@ -768,12 +762,6 @@ int main() {
 				}
 
 				/////print menu
-				if(left_loop){
-					led0.SetEnable(0);
-					led1.SetEnable(0);
-//					led2.SetEnable(0);
-//					led3.SetEnable(0);
-				}
 				*pmagState = (int)magState;
 				if (current_page->identity == "Magnetic"){
 					mag_xL = mag.GetMag(Mag::magPos::x_left);

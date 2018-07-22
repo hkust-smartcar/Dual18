@@ -33,18 +33,25 @@ void Mag::Update(){
 }
 
 void Mag::Calibrate(){
+	float changed = false;
 	for (int i = 0; i < 5; i++){
 		if (raw[i] < min[i]){
 			min[i] = raw[i];
+			changed = true;
 		}
 		if (raw[i] > max[i]){
 			max[i] = raw[i];
+			changed = true;
 		}
 	}
 	multi[Mag::magPos::x_left] = 80.0/(max[Mag::magPos::x_left]-min[Mag::magPos::x_left]);
 	multi[Mag::magPos::x_right] = 80.0/(max[Mag::magPos::y_right]-min[Mag::magPos::y_right]);
 	multi[Mag::magPos::y_left] = 80.0/(max[Mag::magPos::y_left]-min[Mag::magPos::y_left]);
 	multi[Mag::magPos::y_right] = 80.0/(max[Mag::magPos::y_right]-min[Mag::magPos::y_right]);
+
+//	if (changed){
+//		flash->writeFlash();
+//	}
 }
 
 bool Mag::noMagField(){
@@ -56,7 +63,20 @@ bool Mag::noMagField(){
 	return (b && (Mag::GetXSum()+Mag::GetYSum() < 40));
 }
 
- void Mag::InitMag(uint8_t car_id){
+ void Mag::InitMag(uint8_t car_id, FlashWrapper* flashWrapper){
+//	flash = flashWrapper;
+//
+//	flash->link_uint8_t(0, &min[Mag::magPos::x_left]);
+//	flash->link_uint8_t(1, &min[Mag::magPos::x_right]);
+//	flash->link_uint8_t(2, &max[Mag::magPos::x_left]);
+//	flash->link_uint8_t(3, &max[Mag::magPos::x_right]);
+//	flash->link_uint8_t(4, &min[Mag::magPos::y_left]);
+//	flash->link_uint8_t(5, &min[Mag::magPos::y_right]);
+//	flash->link_uint8_t(6, &max[Mag::magPos::y_left]);
+//	flash->link_uint8_t(7, &max[Mag::magPos::y_right]);
+//
+//	flash->readFlash();
+
 	if (car_id == 1){
 		min[Mag::magPos::x_left] = 9;
 		min[Mag::magPos::x_right] = 8;
@@ -68,42 +88,36 @@ bool Mag::noMagField(){
 		max[Mag::magPos::y_left] = 69;
 		max[Mag::magPos::y_right] = 68;
 
-//		min[Mag::magPos::x_left] = 255;
-//		min[Mag::magPos::x_right] = 255;
-//		max[Mag::magPos::x_left] = 0;
-//		max[Mag::magPos::x_right] = 0;
-//
-//		min[Mag::magPos::y_left] = 255;
-//		min[Mag::magPos::y_right] = 255;
-//		max[Mag::magPos::y_left] = 0;
-//		max[Mag::magPos::y_right] = 0;
-
 	}else if (car_id == 2){
 		min[Mag::magPos::x_left] = 9;
 		min[Mag::magPos::x_right] = 8;
 		max[Mag::magPos::x_left] = 65;
 		max[Mag::magPos::x_right] = 67;
-//8 9
+
 		min[Mag::magPos::y_left] = 9;
 		min[Mag::magPos::y_right] = 10;
 		max[Mag::magPos::y_left] = 70;
 		max[Mag::magPos::y_right] = 71;
-//initial value for calibration
-//		min[Mag::magPos::x_left] = 255;
-//		min[Mag::magPos::x_right] = 255;
-//		max[Mag::magPos::x_left] = 0;
-//		max[Mag::magPos::x_right] = 0;
-//
-//		min[Mag::magPos::y_left] = 255;
-//		min[Mag::magPos::y_right] = 255;
-//		max[Mag::magPos::y_left] = 0;
-//		max[Mag::magPos::y_right] = 0;
 	}
 	multi[Mag::magPos::x_left] = 80.0/(max[Mag::magPos::x_left]-min[Mag::magPos::x_left]);
 	multi[Mag::magPos::x_right] = 80.0/(max[Mag::magPos::x_right]-min[Mag::magPos::x_right]);
 	multi[Mag::magPos::y_left] = 80.0/(max[Mag::magPos::y_left]-min[Mag::magPos::y_left]);
 	multi[Mag::magPos::y_right] = 80.0/(max[Mag::magPos::y_right]-min[Mag::magPos::y_right]);
  }
+
+void Mag::ResetMag(){
+	min[Mag::magPos::x_left] = 255;
+	min[Mag::magPos::x_right] = 255;
+	max[Mag::magPos::x_left] = 0;
+	max[Mag::magPos::x_right] = 0;
+
+	min[Mag::magPos::y_left] = 255;
+	min[Mag::magPos::y_right] = 255;
+	max[Mag::magPos::y_left] = 0;
+	max[Mag::magPos::y_right] = 0;
+
+//	flash->writeFlash();
+}
 
 bool Mag::isLoop(){
 	return ((v[Mag::magPos::x_left] > 68 && v[Mag::magPos::x_right] > 68 && Mag::GetYSum() > 25) || Mag::GetXSum() > 160);
