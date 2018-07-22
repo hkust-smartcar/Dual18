@@ -22,13 +22,12 @@ public:
 		mag2(myConfig::GetAdcConfig(2)),
 		mag3(myConfig::GetAdcConfig(3)),
 		mag4(myConfig::GetAdcConfig(4)){
-
-		mag0.StartConvert();
-		mag1.StartConvert();
-		mag2.StartConvert();
-		mag3.StartConvert();
-		mag4.StartConvert();
-	};
+			mag0.StartConvert();
+			mag1.StartConvert();
+			mag2.StartConvert();
+			mag3.StartConvert();
+			mag4.StartConvert();
+		};
 	typedef enum{
 		x_left = 0,
 		x_right = 1,

@@ -48,7 +48,7 @@
 #include "MenuV2.h"
 #include "variable.h"
 #include "func.h"
-#include "FlashWrapper.h"
+//#include "FlashWrapper.h"
 
 #define pi 3.1415926
 
@@ -292,7 +292,7 @@ int main() {
 	float angle = 0, angleX = 0, angleY = 0;
 
 	//flash
-	FlashWrapper flashWrapper;
+//	FlashWrapper flashWrapper;
 
 	if (0) {//board.isCar1()
 	    left_motor_pid[0] = 0.55;
@@ -319,7 +319,8 @@ int main() {
 		leftServo = 1340;
 		rightServo = 710;
 
-		mag.InitMag(1, &flashWrapper);
+		mag.InitMag(1, nullptr);
+//		mag.InitMag(1, &flashWrapper);
 	} else {
 	    left_motor_pid[0] = 0.62;
 	    left_motor_pid[1] = 0.03;
@@ -345,7 +346,8 @@ int main() {
 		leftServo = 1145;
 		rightServo = 540;
 
-		mag.InitMag(2, &flashWrapper);
+		mag.InitMag(2, nullptr);
+//		mag.InitMag(2, &flashWrapper);
 	}
 
 	float camera_angle = 0;
