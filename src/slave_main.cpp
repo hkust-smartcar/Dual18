@@ -5,11 +5,12 @@
  *      Author: morristseng
  */
 
-//#define slave
+#define slave
 
 #ifdef slave
 
-#define temp_cam_fix
+//#define temp_cam_fix
+//#define use_mpu
 
 #include <cmath>
 #include <vector>
@@ -91,6 +92,10 @@ inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
 int main() {
 	System::Init();
 
+	FlashWrapper flash;
+//	flash.setAsSlave();
+//	flash.setMCUVer(2);
+
 	St7735r lcd(myConfig::GetLcdConfig());
 	lcd.SetRegion(Lcd::Rect(0, 0, 128, 160));
 	lcd.FillColor(0x00FF);
@@ -104,7 +109,7 @@ int main() {
 		writer.WriteBuffer(t, 15);
 	}
 
-	Ov7725 camera(myConfig::getCameraConfig(Width, Height));
+	Ov7725 camera(myConfig::getCameraConfig(Width, Height, 1));
 	camera.Start();
 
 	{
@@ -114,8 +119,12 @@ int main() {
 		writer.WriteBuffer(t, 15);
 	}
 
-	Led led0(myConfig::GetLedConfig(0));
-	Led led1(myConfig::GetLedConfig(1));
+	Led led0(myConfig::GetLedConfig(flash.getLEDConfig(0)));
+	Led led1(myConfig::GetLedConfig(flash.getLEDConfig(1)));
+
+//	Led led0(myConfig::GetLedConfig(2));
+//	Led led1(myConfig::GetLedConfig(0));
+
 //	Led led2(myConfig::GetLedConfig(2));
 //	Led led3(myConfig::GetLedConfig(3));
 
@@ -186,11 +195,14 @@ int main() {
 		writer.WriteBuffer(t, 15);
 	}
 
-//	Mpu6050::Config MpuConfig;
-//	MpuConfig.accel_range = Mpu6050::Config::Range::kExtreme;
-//	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
-//	MpuConfig.cal_drift = true;
-//	Mpu6050 mpu(MpuConfig);
+#ifdef use_mpu
+	Mpu6050::Config MpuConfig;
+	MpuConfig.accel_range = Mpu6050::Config::Range::kExtreme;
+	MpuConfig.gyro_range = Mpu6050::Config::Range::kExtreme;
+	MpuConfig.cal_drift = true;
+	Mpu6050 mpu(MpuConfig);
+#endif
+
 	bool led_toggle = true;
 
 	{
@@ -232,18 +244,21 @@ int main() {
 					*(camBuffer + i) = t << 3 | t >> 5;
 				}
 #else
-				const Byte* camBuffer_Original = camera.LockBuffer();
+				const Byte* camBuffer = camera.LockBuffer();
 				camera.UnlockBuffer();
 #endif
 
 // bluetooth send image
 
 				//mpu
-//				mpu.Update(1);
-//				std::array<int32_t, 3> mpuAccel = mpu.GetAccel();
-//				mpuAccel[2] -= 2630;
+#ifdef use_mpu
+				mpu.Update(1);
+				std::array<int32_t, 3> mpuAccel = mpu.GetAccel();
+				mpuAccel[2] -= 2630;
+#else
 				std::array<int32_t, 3> mpuAccel;
 				mpuAccel[2] = 0;
+#endif
 				//
 
 				float slave_slope;

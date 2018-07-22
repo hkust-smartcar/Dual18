@@ -166,9 +166,9 @@ public:
     		return config;
     }
 
-    static Ov7725::Config getCameraConfig(int width, int height) {
+    static Ov7725::Config getCameraConfig(int width, int height, uint8_t id) {
     		Ov7725::Config config;
-    		config.id = 0;
+    		config.id = id;
     		config.w = width;
     		config.h = height;
     		config.fps = Ov7725Configurator::Config::Fps::kHigh;

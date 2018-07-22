@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-#define Master
+//#define Master
 
 #ifdef Master
 
@@ -244,7 +244,7 @@ int main() {
 	int cam_contrast = 0x40;
 	int pre_contrast = 0x40;
 
-	Ov7725 camera(myConfig::getCameraConfig(Width, Height));
+	Ov7725 camera(myConfig::getCameraConfig(Width, Height, 0));
 	camera.Start();
 	camera.ChangeSecialDigitalEffect(0x00, cam_contrast);
 
