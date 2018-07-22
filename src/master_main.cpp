@@ -292,19 +292,25 @@ int main() {
 	//flash
 
 	if (boardID == 1) {
-	    left_motor_pid[0] = 0.55;
-	    left_motor_pid[1] = 0.012;
-	    left_motor_pid[2] = 0.03;
+		left_motor_pid[0] = 0.62;
+		left_motor_pid[1] = 0.03;
+		left_motor_pid[2] = 0.008;
 
-	    right_motor_pid[0] = 0.55;
-	    right_motor_pid[1] = 0.012;
-	    right_motor_pid[2] = 0.03;
+		right_motor_pid[0] = 0.62;
+		right_motor_pid[1] = 0.03;
+		right_motor_pid[2] = 0.008;
 
-	    x_servo_pd[0] = 9700;
-	    x_servo_pd[1] = 820000;
+//	    x_servo_pd[0] = 9700;
+//	    x_servo_pd[1] = 820000;
+//
+//	    y_servo_pd[0] = 3.85;
+//	    y_servo_pd[1] = 228.73725;
 
-	    y_servo_pd[0] = 3.85;
-	    y_servo_pd[1] = 228.73725;
+		x_servo_pd[0] = 12000;
+		x_servo_pd[1] = 1800000;
+
+		y_servo_pd[0] = 8;
+		y_servo_pd[1] = 280;
 
 		align_servo_pd[0] = 5.8;
 		align_servo_pd[1] = 750;
