@@ -155,7 +155,7 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 		}
 	} else if (magState == kBack && v[Mag::magPos::x_left] > 30){
 		magState = kNormal;
-		speed = 2;
+		speed = hSpeed;
 		isDotLine = false;
 		USsent = true;
 	}
@@ -163,15 +163,14 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 
 float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX, float &angleY, carState magState, bool left_loop, bool in_loop, float yTarget){
 	float servoAngle = 0;
-	static float lastX = 0;
 	if (magState == kNormal || magState == kLoop || magState == kExitLoop){
 		leaveCount = 0;
 		float target = 0.0;
 		if (magState == kLoop){
 			if (left_loop){
-				target = 0.008;
+				target = 0.005;
 			} else{
-				target = -0.008;
+				target = -0.005;
 			}
 		} else if (magState == kExitLoop){
 			if (left_loop){

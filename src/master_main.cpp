@@ -78,12 +78,17 @@ int mode = 0;
 carState magState = kNormal;
 
 const uint8_t cycle = 12;
-float loopSpeed = 9, highSpeed = 8.5, alignSpeed = 9;
+float highSpeed = 8;
 float speed = highSpeed;
 float yTarget = 0;
 bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false, anotherGG = false;
 bool noMag = false;
 bool left_loop = false;
+int loopSmallConst1 = 70;
+int loopBigConst1 = 170;
+int loopSmallConst2 = 100;
+int loopBigConst2 = 200;
+
 uint8_t leaveCount = 0;
 uint32_t lastTime = 0, approachTime = 0;
 float l1 = 100,l2 = 100,r1 = 100,r2 = 100, ry;
@@ -125,7 +130,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		if (rateY > 0){
 			magReady = true;
 		}
-		if (magReady && magnetic->GetYSum() > 27){
+		if (magReady && magnetic->GetYSum() > 15){
 			state = 2;
 			camera_control = true;
 			l2 = master_slope;
@@ -136,10 +141,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		if(left_loop){
 			float difference = (40 - m_edge_xmid)/40.0;
 			if(difference<0.5){
-				camera_angle = difference*100;
+				camera_angle = difference*loopSmallConst1;
 			}
 			else{
-				camera_angle = difference*200;
+				camera_angle = difference*loopBigConst1;
 			}
 			if(slave_edge_size<4){
 				state = 3;
@@ -149,10 +154,10 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		}else{
 			float difference = (40 - s_edge_xmid)/40.0;
 			if(difference>-0.5){
-				camera_angle = difference*100;
+				camera_angle = difference*loopSmallConst2;
 			}
 			else{
-				camera_angle = difference*200;
+				camera_angle = difference*loopBigConst2;
 			}
 			if(master_edge_size<4){
 				state = 3;
@@ -187,7 +192,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 				cameraReady = true;
 			}
 		}
-		if (magnetic->GetXSum() < 125){
+		if (magnetic->GetXSum() < 135){
 			magReady = true;
 		}
 		if(cameraReady && magReady){
@@ -217,7 +222,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		}
 		break;
 	case 6:
-		if (magnetic->GetXSum() < 140 && magnetic->GetYSum() < 35){
+		if ((magnetic->GetXSum() < 140 && magnetic->GetYSum() < 35)){
 			state = 0;
 			camera_control = false;
 			is_loop = false;
@@ -235,6 +240,8 @@ int main() {
 	System::Init();
 
 	FlashWrapper flashWrapper;
+//	flashWrapper.setBoardID(2);
+	flashWrapper.readFlash();
 
 	int cam_contrast = 0x40;
 	int pre_contrast = 0x40;
@@ -249,7 +256,7 @@ int main() {
 	led0.SetEnable(1);
 	led1.SetEnable(1);
 
-	Mag mag;
+	Mag mag(highSpeed);
 
 	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig(flashWrapper.imainboardID));
 	float batteryVoltage = batteryMeter.GetVoltage();
@@ -536,6 +543,7 @@ int main() {
 	menuV2.AddItem((char *) "oneCar", &oneCar, menuV2.home_page.submenu_items[10].next_page, true);
 	menuV2.AddItem((char *) "motorPID", menuV2.home_page.submenu_items[10].next_page, true);
 	menuV2.AddItem((char *) "servoPID", menuV2.home_page.submenu_items[10].next_page, true);
+	menuV2.AddItem((char *) "loopConst", menuV2.home_page.submenu_items[10].next_page, true);
 
 	menuV2.AddItem((char *) "LkP", left_motor_pid, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
 	menuV2.AddItem((char *) "LkI", left_motor_pid+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
@@ -548,6 +556,11 @@ int main() {
 	menuV2.AddItem((char *) "XkD", x_servo_pd+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
 	menuV2.AddItem((char *) "YkP", y_servo_pd, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
 	menuV2.AddItem((char *) "YkD", y_servo_pd+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
+
+	menuV2.AddItem((char *) "SC1", &loopSmallConst1, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
+	menuV2.AddItem((char *) "BC1", &loopBigConst1, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
+	menuV2.AddItem((char *) "SC2", &loopSmallConst2, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
+	menuV2.AddItem((char *) "BC2", &loopBigConst2, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -652,7 +665,7 @@ int main() {
 				mag.Update();
 				on9lastMain = lastTime;
 				if (mag.noMagField() && !noMag && magState == kNormal && current_page->identity == "OpenMotor") {
-					speed = 0;
+					speed = 3;
 //					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, true);
 					noMag = true;
 				}
@@ -662,6 +675,8 @@ int main() {
 					speed = highSpeed;
 					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, false);
 				}
+
+//				buzz.SetBeep(current_loop_state == 6);
 
 				//changes state for alignment
 				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived, anotherGG, isDotLine, USsent);
@@ -675,6 +690,10 @@ int main() {
 					magState = kNormal;
 					speed = highSpeed;
 					in_loop = false;
+					approaching = false;
+					isFirst = false;
+					firstArrived = false;
+					secondArrived = false;
 				}
 
 				if (approaching){
@@ -722,7 +741,7 @@ int main() {
 				master_slope = find_slope(master_edge);
 				slave_slope = m_master_bluetooth.get_m_slope();
 
-				if(mag.isLoop() && !in_loop && !bumpy_road){
+				if(!noLoop && mag.isLoop() && !in_loop && !bumpy_road){
 					in_loop = true;
 				}
 
@@ -734,11 +753,13 @@ int main() {
 					current_loop_state = loop_control(current_loop_state, in_loop, &mag, camera_control, camera_angle, master_edge.size(), slave_edge_size, m_edge_xmid, s_edge_xmid, master_corner.size(), slave_corner.size(),master_slope, slave_slope);
 				}
 
-				if(camera_control){
+				if (camera_control){
 					angle = camera_angle;
 				} else{
 					if (current_page->identity == "Calibrate") {
 						angle = 0;
+//					} else if (noMag){
+//						angle = mag.GetLastX()>0 ? 350 : -350;
 					} else{
 						angle = mag.GetAngle(servoPIDx, servoPIDy, servoPIDAlign, angleX, angleY, magState, left_loop, in_loop, yTarget);
 					}
@@ -746,43 +767,43 @@ int main() {
 
 				//alignment
 				//////use this as long as it sees at least one corner
-
 				vector<pair<int,int>> junction;
 				int junction_array[35];
-				for(int i=0; i<35; i++){
-					junction_array[i] = 0;
-				}
-				for(int i=0; i<master_edge.size(); i++){
-					if(junction.size() == 0){
-						junction.push_back(make_pair(master_edge[0].first,master_edge[0].second));
-						continue;
+				if (!oneCar){
+					for(int i=0; i<35; i++){
+						junction_array[i] = 0;
 					}
-					bool found = false;
-					for(int j=0; j<junction.size();j++){
-						if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)>5)){
-							junction[j].first = master_edge[i].first;
-							junction_array[master_edge[i].second-25]++;
-							found = true;
+					for(int i=0; i<master_edge.size(); i++){
+						if(junction.size() == 0){
+							junction.push_back(make_pair(master_edge[0].first,master_edge[0].second));
+							continue;
+						}
+						bool found = false;
+						for(int j=0; j<junction.size();j++){
+							if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)>5)){
+								junction[j].first = master_edge[i].first;
+								junction_array[master_edge[i].second-25]++;
+								found = true;
+								break;
+							}
+							else if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)<=5)){
+								found = true;
+								break;
+							}
+						}
+						if((master_edge[i].second<60)&&(master_edge[i].second>=25)&&(!found)){
+							junction_array[master_edge[i].second-25] += 1;
+							junction.push_back(make_pair(master_edge[i].first,master_edge[i].second));
+						}
+					}
+
+					for(int i=0; i<35; i++){
+						if(junction_array[i]>2){
+							dotted_lineV2 = true;
 							break;
 						}
-						else if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)<=5)){
-							found = true;
-							break;
-						}
-					}
-					if((master_edge[i].second<60)&&(master_edge[i].second>=25)&&(!found)){
-						junction_array[master_edge[i].second-25] += 1;
-						junction.push_back(make_pair(master_edge[i].first,master_edge[i].second));
 					}
 				}
-
-				for(int i=0; i<35; i++){
-					if(junction_array[i]>2){
-						dotted_lineV2 = true;
-						break;
-					}
-				}
-
 				//
 
 				if((dotted_lineV2)&&(master_corner.size()>0)
@@ -793,11 +814,11 @@ int main() {
 					start_count_corner = true;
 				}
 
-
 				if(start_count_corner){
 					dot_time++;
-					if(dot_time == 10 && accumulate_corner > 20){
+					if(dot_time == 10 && accumulate_corner > 15){
 						isDotLine = true;
+						dotted_lineV2 = false;
 						start_count_corner = false;
 						if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
 							approaching = true;
@@ -809,13 +830,14 @@ int main() {
 								secondArrived = true;
 								uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b2, true);
 							}
-							buzz.SetBeep(false);
+//							buzz.SetBeep(false);
 						}
 						accumulate_corner = 0;
 						dot_time = 0;
 					}else if (dot_time == 10){
 						accumulate_corner = 0;
 						dot_time = 0;
+						dotted_lineV2 = false;
 					}else{
 						accumulate_corner += master_corner.size();
 						accumulate_corner += slave_corner.size();
@@ -824,8 +846,6 @@ int main() {
 				//
 
 				(*pmpu_data) = m_master_bluetooth.get_mpu_data();
-
-
 
 				angle = 0.8*angle + 0.2*lastServo;
 				angle = Max(rightServo-middleServo, Min(leftServo-middleServo, angle));
@@ -911,7 +931,7 @@ int main() {
 						left_motor.SetClockwise(!forwardL);
 						left_motor.SetPower(Min(-powerL,1000));
 					}
-}
+				}
 				else{
 					encoderL.Update();
 					encoderR.Update();

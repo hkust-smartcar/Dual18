@@ -16,7 +16,7 @@
 
 class Mag{
 public:
-	Mag():
+	Mag(float highSpeed):
 		mag0(myConfig::GetAdcConfig(0)),
 		mag1(myConfig::GetAdcConfig(1)),
 		mag2(myConfig::GetAdcConfig(2)),
@@ -27,6 +27,8 @@ public:
 			mag2.StartConvert();
 			mag3.StartConvert();
 			mag4.StartConvert();
+
+			hSpeed = highSpeed;
 		};
 	typedef enum{
 		x_left = 0,
@@ -59,6 +61,7 @@ public:
 	bool isTwoLine();
 	void CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived, bool &anotherGG, bool &isDotLine, bool &USsent);
 	float GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX, float &angleY, carState magState, bool left_loop, bool in_loop, float yTarget);
+	float GetLastX(){return lastX;}
 
 private:
 	Adc mag0;
@@ -73,7 +76,8 @@ private:
 	float xLinear = 0, yLinear = 0;
 	uint8_t min[5] = {15,15,15,15,15}, max[5] = {0,0,0,0,0};
 	uint8_t leaveCount = 0;
-	float aSpeed = 7, hSpeed = 8;
+	float aSpeed = 7, hSpeed = 0;
+	float lastX;
 };
 
 #endif /* INC_MAG_FUNC_H_ */
