@@ -30,10 +30,6 @@ void DualCarMenu::AddItem(char* input_name, bool* input_data, SubMenu* under_men
 	item.can_change = can_change;
 	item.message_index = bool_data.size();
 	bool_data.push_back(input_data);
-	if ((can_change) && (under_menu != nullptr)) {
-		item.next_page = new SubMenu;
-		item.next_page->identity = "changed";
-	}
 	under_menu->submenu_items.push_back(item);
 	return;
 }
@@ -196,7 +192,10 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 					}
 //					strcat(change_number_newValue, (char*) (change_number_action+48)); // ascii conversion
 				}
-			} else {
+			}
+			else if((menu->submenu_items[current_line].type == MessageType::TypeBool)&&(menu->submenu_items[current_line].can_change)){
+				(*bool_data[menu->submenu_items[current_line].message_index]) = !(*bool_data[menu->submenu_items[current_line].message_index]);
+			}else {
 				if (selected > 0)
 					selected = 0;
 				else

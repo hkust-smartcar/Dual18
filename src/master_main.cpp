@@ -528,6 +528,28 @@ int main() {
 	menuV2.AddItem((char *) "dotLine", &isDotLine, menuV2.home_page.submenu_items[9].next_page, false);
 	menuV2.AddItem((char *) "approach", &approaching, menuV2.home_page.submenu_items[9].next_page, false);
 
+	/////
+	menuV2.AddItem((char *) "Change",&(menuV2.home_page), true);
+	float current_speed = speed;
+	bool noLoop = false;
+	bool oneCar = false;
+	menuV2.AddItem((char *) "speed", &current_speed, menuV2.home_page.submenu_items[10].next_page, true);
+	menuV2.AddItem((char *) "noLoop", &noLoop, menuV2.home_page.submenu_items[10].next_page, true);
+	menuV2.AddItem((char *) "oneCar", &oneCar, menuV2.home_page.submenu_items[10].next_page, true);
+	menuV2.AddItem((char *) "motorPID", menuV2.home_page.submenu_items[10].next_page, true);
+	menuV2.AddItem((char *) "servoPID", menuV2.home_page.submenu_items[10].next_page, true);
+
+	menuV2.AddItem((char *) "LkP", left_motor_pid, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
+	menuV2.AddItem((char *) "LkI", left_motor_pid+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
+	menuV2.AddItem((char *) "LkD", left_motor_pid+2,menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
+	menuV2.AddItem((char *) "RkP", right_motor_pid, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
+	menuV2.AddItem((char *) "RkI", right_motor_pid+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
+	menuV2.AddItem((char *) "RkD", right_motor_pid+2, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
+
+	menuV2.AddItem((char *) "XkP", x_servo_pd, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
+	menuV2.AddItem((char *) "XkD", x_servo_pd+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
+	menuV2.AddItem((char *) "YkP", y_servo_pd, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
+	menuV2.AddItem((char *) "YkD", y_servo_pd+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
