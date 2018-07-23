@@ -12,7 +12,7 @@
 #include "config.h"
 #include "variable.h"
 #include "PID.h"
-//#include "FlashWrapper.h"
+#include "FlashWrapper.h"
 
 class Mag{
 public:
@@ -43,7 +43,7 @@ public:
 	bool outLoop();
 	bool SmallerThanMin(uint8_t id, float t){return v[id] < min[id]*t*multi[id];}
 	bool isBigStraight(){return (xLinear > -0.005 && xLinear < 0.005);};
-	void InitMag(uint8_t car_id);
+	void InitMag(uint8_t car_id, FlashWrapper* flash);
 	void ResetMag();
 	float GetXLinear(){return xLinear;};
 	float GetYLinear(){return yLinear;};
@@ -66,7 +66,6 @@ private:
 	Adc mag2;
 	Adc mag3;
 	Adc mag4;
-//	FlashWrapper* flash;
 	uint16_t sum[5] = {0,0,0,0,0};
 	uint8_t filterCounter = 0;
 	uint8_t v[5] = {255,255,255,255,255}, raw[5] = {255,255,255,255,255};
