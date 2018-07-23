@@ -124,7 +124,8 @@ bool Mag::outLoop(){
 	return (Mag::GetXSum()+Mag::GetYSum() > 240);
 }
 
-void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived){
+void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived, bool &anotherGG, bool &isDotLine){
+	static uint32_t waitTime = 0;
 	if (magState == kNormal && approaching) {
 		magState = kLeave;
 		leaveCount = 0;
@@ -132,6 +133,7 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 		if (isFirst){
 			magState = kStop;
 			speed = 0;
+			waitTime = lastTime;
 		} else {
 			magState = kSide;
 			secondArrived = true;
@@ -140,6 +142,10 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 		magState = kSide;
 		speed = aSpeed;
 		approachTime = lastTime;
+	} else if (magState == kStop && lastTime - waitTime > 10000){
+		magState = kNormal;
+		isDotLine = false;
+		anotherGG = true;
 	} else if (magState == kAlign && abs(Mag::GetYDiff()) < 4){
 		magState = kSide;
 		approachTime = lastTime;
@@ -150,6 +156,7 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 			firstArrived = false;
 			secondArrived = false;
 		}
+		isDotLine = false;
 		speed = hSpeed;
 	}
 }

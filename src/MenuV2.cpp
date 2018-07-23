@@ -18,6 +18,26 @@ DualCarMenu::DualCarMenu(St7735r* lcd, LcdTypewriter* writer, uint8_t image_widt
 	change_number_newValue = (char*) malloc(20);
 }
 
+void DualCarMenu::AddItem(char* input_name, bool* input_data, SubMenu* under_menu, bool can_change) {
+	if (input_data == nullptr)
+		return;
+	Item item;
+	item.name = input_name;
+	string m_identity(input_name);
+	item.identity = m_identity;
+	item.type = MessageType::TypeBool;
+	item.next_page = nullptr;
+	item.can_change = can_change;
+	item.message_index = bool_data.size();
+	bool_data.push_back(input_data);
+	if ((can_change) && (under_menu != nullptr)) {
+		item.next_page = new SubMenu;
+		item.next_page->identity = "changed";
+	}
+	under_menu->submenu_items.push_back(item);
+	return;
+}
+
 void DualCarMenu::AddItem(char* input_name, float* input_data, SubMenu* under_menu, bool can_change) {
 	if (input_data == nullptr)
 		return;
@@ -106,6 +126,9 @@ void DualCarMenu::PrintItem(Item item, uint8_t row, bool isSelected) {
 			break;
 		case MessageType::TypeFloat:
 			sprintf(c, " %s: %.3f", item.name, *float_data[item.message_index]);
+			break;
+		case MessageType::TypeBool:
+			sprintf(c, " %s: %d", item.name, *bool_data[item.message_index]);
 			break;
 		case MessageType::TypeMessage:
 			sprintf(c, " %s", item.name);

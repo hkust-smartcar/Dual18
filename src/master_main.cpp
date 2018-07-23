@@ -81,7 +81,8 @@ const uint8_t cycle = 12;
 float loopSpeed = 9, highSpeed = 8.5, alignSpeed = 9;
 float speed = highSpeed;
 float yTarget = 0;
-bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false;
+bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false, anotherGG = true;
+bool noMag = false;
 bool left_loop = false;
 uint8_t leaveCount = 0;
 uint32_t lastTime = 0, approachTime = 0;
@@ -325,11 +326,11 @@ int main() {
 	    right_motor_pid[1] = 0.03;
 	    right_motor_pid[2] = 0.008;
 
-	    x_servo_pd[0] = 9700;
-	    x_servo_pd[1] = 2900000;
+	    x_servo_pd[0] = 12200;
+	    x_servo_pd[1] = 2350000;
 
-	    y_servo_pd[0] = 8.8;
-	    y_servo_pd[1] = 50;
+	    y_servo_pd[0] = 10.5;
+	    y_servo_pd[1] = 640;
 
 	    align_servo_pd[0] = 5.8;
 	    align_servo_pd[1] = 750;
@@ -367,6 +368,7 @@ int main() {
 	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b2, &secondArrived, false);
 	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b3, &isFirst, false);
 	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b4, &USsent, false);
+	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b5, &anotherGG, false);
 
 
 	// motor & servo pid
@@ -521,7 +523,10 @@ int main() {
 		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::setAsSlave);
 	}, menuV2.home_page.submenu_items[8].next_page, false);
 
-	menuV2.AddItem((char *) "test", &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "crossing",&(menuV2.home_page), true);
+	bool isDotLine = false;
+	menuV2.AddItem((char *) "dotLine", &isDotLine, menuV2.home_page.submenu_items[9].next_page, false);
+	menuV2.AddItem((char *) "approach", &approaching, menuV2.home_page.submenu_items[9].next_page, false);
 
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
@@ -554,6 +559,7 @@ int main() {
 	right_motorPID.setkI(right_motor_pid[1]);
 	right_motorPID.setkD(right_motor_pid[2]);
 	uint32_t dTime = 0;
+	bool reset_value =false;
 
 	bool bumpy_road = false;
 
@@ -620,12 +626,32 @@ int main() {
 
 				mag.Update();
 				on9lastMain = lastTime;
-				if (mag.noMagField() && current_page->identity == "OpenMotor") {
+				if (mag.noMagField() && !noMag && current_page->identity == "OpenMotor") {
 					speed = 0;
+					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, true);
+					noMag = true;
+				}
+
+				if (noMag && !mag.noMagField()){
+					noMag = false;
+					speed = highSpeed;
+					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, false);
 				}
 
 				//changes state for alignment
-				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived);
+				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived, anotherGG, isDotLine);
+
+				if(current_page->identity=="home_page"){
+					reset_value = true;
+				}
+
+				if((current_page->identity=="start")&&(reset_value)){
+					reset_value = false;
+					magState = kNormal;
+					speed = highSpeed;
+					in_loop = false;
+				}
+
 
 				buzz.SetBeep(approaching);
 
@@ -698,6 +724,7 @@ int main() {
 
 				//alignment
 				//////use this as long as it sees at least one corner
+
 				vector<pair<int,int>> junction;
 				int junction_array[35];
 				for(int i=0; i<35; i++){
@@ -748,14 +775,16 @@ int main() {
 				if(start_count_corner){
 					dot_time++;
 					if(dot_time == 10 && accumulate_corner > 20){
-						buzz.SetBeep(false);
+//						buzz.SetBeep(true);
+						isDotLine = true;
 						start_count_corner = false;
-						if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (lastTime - approachTime >= 10000 || approachTime == 0)){
+						if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
 							approaching = true;
 							if (!firstArrived){
 								isFirst = true;
 								firstArrived = true;
 							}
+							buzz.SetBeep(false);
 						}
 						accumulate_corner = 0;
 						dot_time = 0;

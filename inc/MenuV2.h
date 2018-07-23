@@ -35,7 +35,7 @@ public:
 	typedef std::function<void()> ACT;
 
 	enum MessageType {
-		TypeInt, TypeFloat, TypeMessage
+		TypeInt, TypeFloat, TypeBool, TypeMessage
 	};
 
 	struct SubMenu;
@@ -67,6 +67,8 @@ public:
 
 	void AddItem(char* input_name, float* input_data, SubMenu* under_menu, bool can_change);
 
+	void AddItem(char* input_name, bool* input_data, SubMenu* under_menu, bool can_change);
+
 	void AddItem(char* input_name, SubMenu* under_menu, bool HavSub);
 
 	void AddItem(char* input_name, ACT act_, SubMenu* under_menu, bool HavSub);
@@ -96,6 +98,7 @@ public:
 private:
 	vector<int*> int_data;
 	vector<float*> float_data;
+	vector<bool*> bool_data;
 	St7735r* lcd;
 	LcdTypewriter* writer;
 	const Byte* camBuffer;
