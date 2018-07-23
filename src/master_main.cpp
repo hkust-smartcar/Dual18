@@ -78,7 +78,7 @@ int mode = 0;
 carState magState = kNormal;
 
 const uint8_t cycle = 12;
-float loopSpeed = 9, highSpeed = 8.8, alignSpeed = 9;
+float loopSpeed = 9, highSpeed = 8.5, alignSpeed = 9;
 float speed = highSpeed;
 float yTarget = 0;
 bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false;
@@ -315,7 +315,6 @@ int main() {
 		leftServo = 1340;
 		rightServo = 710;
 
-//		mag.InitMag(1);
 		mag.InitMag(1, &flashWrapper);
 	} else {
 	    left_motor_pid[0] = 0.62;
@@ -342,7 +341,6 @@ int main() {
 		leftServo = 1145;
 		rightServo = 540;
 
-//		mag.InitMag(2);
 		mag.InitMag(2, &flashWrapper);
 	}
 
