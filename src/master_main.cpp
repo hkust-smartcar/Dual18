@@ -25,13 +25,11 @@
 #include <libsc/k60/ov7725_configurator.h>
 #include <libsc/system.h>
 #include <libsc/led.h>
-#include "libsc/led.h"
 #include "libsc/joystick.h"
 #include "libsc/st7735r.h"
 #include "libsc/battery_meter.h"
 #include "libsc/lcd_typewriter.h"
 #include "libsc/passive_buzzer.h"
-#include "libsc/battery_meter.h"
 #include "config.h"
 #include "PID.h"
 #include "corner.h"
@@ -236,8 +234,6 @@ int main() {
 	System::Init();
 
 	FlashWrapper flashWrapper;
-//	use this one instead la flashWrapper.imainboardID
-//	int boardID = flashWrapper.getBoardID();
 
 	int cam_contrast = 0x40;
 	int pre_contrast = 0x40;
@@ -254,7 +250,7 @@ int main() {
 
 	Mag mag;
 
-	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig(flashWrapper.getBoardID()));
+	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig(flashWrapper.imainboardID));
 	float batteryVoltage = batteryMeter.GetVoltage();
 	PassiveBuzzer::Config config;
 	PassiveBuzzer buzz(config);
@@ -319,8 +315,8 @@ int main() {
 		leftServo = 1340;
 		rightServo = 710;
 
-		mag.InitMag(1);
-//		mag.InitMag(1, &flashWrapper);
+//		mag.InitMag(1);
+		mag.InitMag(1, &flashWrapper);
 	} else {
 	    left_motor_pid[0] = 0.62;
 	    left_motor_pid[1] = 0.03;
@@ -346,8 +342,8 @@ int main() {
 		leftServo = 1145;
 		rightServo = 540;
 
-		mag.InitMag(2);
-//		mag.InitMag(2, &flashWrapper);
+//		mag.InitMag(2);
+		mag.InitMag(2, &flashWrapper);
 	}
 
 	float camera_angle = 0;
@@ -528,6 +524,7 @@ int main() {
 	}, menuV2.home_page.submenu_items[8].next_page, false);
 
 	menuV2.AddItem((char *) "test", &(menuV2.home_page), true);
+
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
@@ -842,6 +839,8 @@ int main() {
 				menuV2.SetCorner(master_corner);
 				current_page = menuV2.PrintSubMenu(current_page);
 				batteryVoltage = batterySum/batteryCount;
+				batterySum = 0;
+				batteryCount = 0;
 				if(current_page->identity == "OpenMotor"){
 					voltR = right_motorPID.getPID();
 					voltL = left_motorPID.getPID();
