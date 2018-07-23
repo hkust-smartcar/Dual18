@@ -81,7 +81,7 @@ const uint8_t cycle = 12;
 float loopSpeed = 9, highSpeed = 8.5, alignSpeed = 9;
 float speed = highSpeed;
 float yTarget = 0;
-bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false, anotherGG = true;
+bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false, anotherGG = false;
 bool noMag = false;
 bool left_loop = false;
 uint8_t leaveCount = 0;
@@ -360,8 +360,9 @@ int main() {
 	// just change it to DualCar_UART if u want other function, it will do no harm
 	// due to other bug, i created it, but then i realized the act is useless...
 	DualCar_UART uart0(2); // << BT related
-	DualCar_UART_Sim uartToAnotherCar(1); // << BT related
+	DualCar_UART uartToAnotherCar(1); // << BT related
 
+	int32_t conn = 0;
 	// joseph: chnaged the 3 below to false, better send implicitly
 	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b0, &approaching, false);
 	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b1, &firstArrived, false);
@@ -369,6 +370,7 @@ int main() {
 	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b3, &isFirst, false);
 	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b4, &USsent, false);
 	uartToAnotherCar.add(DualCar_UART_Config::BOOLEAN::b5, &anotherGG, false);
+	uartToAnotherCar.add(DualCar_UART_Config::INT::i0, &conn, false);
 
 
 	// motor & servo pid
@@ -522,11 +524,15 @@ int main() {
 	menuV2.AddItem((char *) "setAsSlave", [&uartToAnotherCar](){
 		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::setAsSlave);
 	}, menuV2.home_page.submenu_items[8].next_page, false);
+	menuV2.AddItem((char *) "conn", (int *) &conn, menuV2.home_page.submenu_items[8].next_page, false);
 
 	menuV2.AddItem((char *) "crossing",&(menuV2.home_page), true);
 	bool isDotLine = false;
 	menuV2.AddItem((char *) "dotLine", &isDotLine, menuV2.home_page.submenu_items[9].next_page, false);
 	menuV2.AddItem((char *) "approach", &approaching, menuV2.home_page.submenu_items[9].next_page, false);
+	menuV2.AddItem((char *) "isFirst", &isFirst, menuV2.home_page.submenu_items[9].next_page, false);
+	menuV2.AddItem((char *) "1stA", &firstArrived, menuV2.home_page.submenu_items[9].next_page, false);
+	menuV2.AddItem((char *) "2ndA", &secondArrived, menuV2.home_page.submenu_items[9].next_page, false);
 
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
@@ -580,6 +586,11 @@ int main() {
 				uart0.Send_float(DualCar_UART::FLOAT::f22, servoPIDx.getdTerm());
 				uart0.Send_float(DualCar_UART::FLOAT::f23, servoPIDy.getpTerm());
 				uart0.Send_float(DualCar_UART::FLOAT::f24, servoPIDy.getdTerm());
+
+				if (flashWrapper.getBoardID() == 1) {
+					conn++;
+					uartToAnotherCar.Send_int(DualCar_UART_Config::INT::i0, conn);
+				}
 			}
 
 			if (USsent) {
@@ -626,13 +637,13 @@ int main() {
 
 				mag.Update();
 				on9lastMain = lastTime;
-				if (mag.noMagField() && !noMag && current_page->identity == "OpenMotor") {
+				if (mag.noMagField() && !noMag && magState == kNormal && current_page->identity == "OpenMotor") {
 					speed = 0;
-					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, true);
+//					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, true);
 					noMag = true;
 				}
 
-				if (noMag && !mag.noMagField()){
+				if (noMag && !mag.noMagField() && magState == kNormal){
 					noMag = false;
 					speed = highSpeed;
 					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, false);
@@ -783,6 +794,10 @@ int main() {
 							if (!firstArrived){
 								isFirst = true;
 								firstArrived = true;
+								uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b1, true);
+							} else{
+								secondArrived = true;
+								uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b2, true);
 							}
 							buzz.SetBeep(false);
 						}
