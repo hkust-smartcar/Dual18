@@ -318,8 +318,19 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 			free(c);
 		}
 	} else {
-		for (uint16_t i = 0; i < (menu->submenu_items.size()) && (i < max_line); i++) {
-			PrintItem(menu->submenu_items[i], i, current_line == i);
+		uint8_t lines = menu->submenu_items.size();
+		uint8_t start_line  = 0;
+		if((lines>max_line)){
+			lines= 10;
+			if(current_line>9){
+				start_line = current_line - 9;
+				lines += start_line;
+			}
+		}
+
+		for (uint8_t i = start_line; i < lines; i++) {
+
+			PrintItem(menu->submenu_items[i], i-start_line, current_line == i);
 		}
 	}
 	menu->submenu_items.erase(menu->submenu_items.end());

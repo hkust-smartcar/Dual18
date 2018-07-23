@@ -181,7 +181,9 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 		}
 		angleY = y_servo.getPID(yTarget, yLinear);
 		if (Mag::isTwoLine() && magState == kNormal){
-			servoAngle = 0.3*angleX;
+			servoAngle = angleX;
+		} else if (v[Mag::magPos::y_left] < 10 && v[Mag::magPos::y_right] < 10){
+			servoAngle = angleX;
 		} else{
 			servoAngle = 0.5*angleX + 0.5*angleY;
 		}
