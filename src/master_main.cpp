@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define Master
+#define Master
 
 #ifdef Master
 
@@ -526,6 +526,8 @@ int main() {
 	menuV2.AddItem((char *) "setAsSlave", [&uartToAnotherCar](){
 		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::setAsSlave);
 	}, menuV2.home_page.submenu_items[8].next_page, false);
+
+	menuV2.AddItem((char *) "test", &(menuV2.home_page), true);
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {
