@@ -284,27 +284,20 @@ int main() {
 	float angle = 0, angleX = 0, angleY = 0;
 
 	//flash
-
 	if (flashWrapper.imainboardID == 1) {
 		left_motor_pid[0] = 0.62;
-		left_motor_pid[1] = 0.03;
-		left_motor_pid[2] = 0.008;
+		left_motor_pid[1] = 0.01;
+		left_motor_pid[2] = 0.03;
 
 		right_motor_pid[0] = 0.62;
-		right_motor_pid[1] = 0.03;
-		right_motor_pid[2] = 0.008;
+		right_motor_pid[1] = 0.015;
+		right_motor_pid[2] = 0.03;
 
-//	    x_servo_pd[0] = 9700;
-//	    x_servo_pd[1] = 820000;
-//
-//	    y_servo_pd[0] = 3.85;
-//	    y_servo_pd[1] = 228.73725;
+		x_servo_pd[0] = 12800;
+		x_servo_pd[1] = 1850000;
 
-		x_servo_pd[0] = 12000;
-		x_servo_pd[1] = 1800000;
-
-		y_servo_pd[0] = 8;
-		y_servo_pd[1] = 280;
+		y_servo_pd[0] = 12;
+		y_servo_pd[1] = 500;
 
 		align_servo_pd[0] = 5.8;
 		align_servo_pd[1] = 750;
@@ -326,11 +319,11 @@ int main() {
 	    right_motor_pid[1] = 0.03;
 	    right_motor_pid[2] = 0.008;
 
-	    x_servo_pd[0] = 12200;
-	    x_servo_pd[1] = 2350000;
+	    x_servo_pd[0] = 10000;
+	    x_servo_pd[1] = 1750000;
 
-	    y_servo_pd[0] = 10.5;
-	    y_servo_pd[1] = 640;
+	    y_servo_pd[0] = 10.3;
+	    y_servo_pd[1] = 480;
 
 	    align_servo_pd[0] = 5.8;
 	    align_servo_pd[1] = 750;
@@ -395,7 +388,6 @@ int main() {
 	uart0.add(DualCar_UART::FLOAT::f13, &encoderRval, true);
 
 	uart0.add(DualCar_UART::FLOAT::f20, &speed, false);
-//	uart0.add(DualCar_UART::FLOAT::f25, &angle, false);
 
 	uart0.parseValues();
 	uartToAnotherCar.parseValues();
@@ -672,7 +664,7 @@ int main() {
 				}
 
 				//changes state for alignment
-				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived, anotherGG, isDotLine);
+				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived, anotherGG, isDotLine, USsent);
 
 				if(current_page->identity=="home_page"){
 					reset_value = true;
@@ -684,9 +676,6 @@ int main() {
 					speed = highSpeed;
 					in_loop = false;
 				}
-
-
-				buzz.SetBeep(approaching);
 
 				if (approaching){
 					if (isFirst && firstArrived){
@@ -808,7 +797,6 @@ int main() {
 				if(start_count_corner){
 					dot_time++;
 					if(dot_time == 10 && accumulate_corner > 20){
-//						buzz.SetBeep(true);
 						isDotLine = true;
 						start_count_corner = false;
 						if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
@@ -893,7 +881,6 @@ int main() {
 					} else{
 						mYR = mag.GetMin(Mag::magPos::y_right);
 					}
-//					buzz.SetBeep(false);
 				}
 				distance = UltrasonicSensor.getDistance();
 				left_corner_size = master_corner.size();

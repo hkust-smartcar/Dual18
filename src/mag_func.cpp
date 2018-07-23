@@ -124,7 +124,7 @@ bool Mag::outLoop(){
 	return (Mag::GetXSum()+Mag::GetYSum() > 240);
 }
 
-void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived, bool &anotherGG, bool &isDotLine){
+void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived, bool &anotherGG, bool &isDotLine, bool &USsent){
 	static uint32_t waitTime = 0;
 	if (magState == kNormal && approaching) {
 		magState = kLeave;
@@ -137,7 +137,7 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 		} else {
 			magState = kSide;
 		}
-	} else if (magState == kStop && secondArrived){
+	} else if (magState == kStop && (secondArrived || !approaching)){
 		magState = kSide;
 		speed = aSpeed;
 		approachTime = lastTime;
@@ -145,17 +145,19 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 //		magState = kNormal;
 //		isDotLine = false;
 //		anotherGG = true;
-	} else if (magState == kSide && !approaching) {
+	} else if (magState == kSide && (!approaching)) {
+		approaching = false;
 		magState = kBack;
 		if (isFirst || firstArrived || secondArrived){
 			isFirst = false;
 			firstArrived = false;
 			secondArrived = false;
 		}
-		isDotLine = false;
-	} else if (magState == kBack && v[Mag::magPos::x_left] > 25){
+	} else if (magState == kBack && v[Mag::magPos::x_left] > 30){
 		magState = kNormal;
-		speed = hSpeed;
+		speed = 2;
+		isDotLine = false;
+		USsent = true;
 	}
 }
 
@@ -186,8 +188,8 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 		}
 		angleY = y_servo.getPID(yTarget, yLinear);
 		if (Mag::isTwoLine() && magState == kNormal){
-			servoAngle = angleX;
-		} else if (v[Mag::magPos::y_left] < 20 && v[Mag::magPos::y_right] < 20){
+			servoAngle = 0.5*angleX;
+		} else if (v[Mag::magPos::y_left] < 10 && v[Mag::magPos::y_right] < 10){
 			servoAngle = 0.5*angleX;
 		} else{
 			servoAngle = 0.5*angleX + 0.5*angleY;
@@ -206,7 +208,7 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 		angleY = y_servo.getPID(yTarget, yLinear);
 		servoAngle = 0.5*angleX + 0.25*angleY;
 	} else if (magState == kLeave){
-		servoAngle = Max(300-(leaveCount*10), 100);
+		servoAngle = Max(300-(leaveCount*15), 100);
 		leaveCount++;
 	} else if (magState == kStop){
 		servoAngle = -400;
@@ -221,8 +223,9 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 			}
 			angleX = servoAngle;
 		}
+//		servoAngle = -align_servo.getPID(40, v[Mag::magPos::x_right]);
 	} else if (magState == kBack){
-		servoAngle = -Max(300-(leaveCount*10), 100);
+		servoAngle = -Max(300-(leaveCount*15), 100);
 	}
 	return servoAngle;
  }
