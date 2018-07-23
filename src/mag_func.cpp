@@ -53,7 +53,7 @@ bool Mag::noMagField(){
 		if (i != 4)
 			b = b && (v[i] < 20);
 	}
-	return (b && (Mag::GetXSum()+Mag::GetYSum() < 25));
+	return (b && (Mag::GetXSum()+Mag::GetYSum() < 35));
 }
 
  void Mag::InitMag(uint8_t car_id, FlashWrapper* flash){
