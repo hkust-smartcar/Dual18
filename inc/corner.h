@@ -17,6 +17,7 @@
 #include <libsc/lcd.h>
 #include <vector>
 #include "edge.h"
+#include "useful_functions.h"
 using namespace std;
 
 enum CornerDirection{
@@ -47,8 +48,6 @@ vector<pair<int,int>>check_corner_edge(const Byte* camBuffer, int topline, int b
 Corner find_min(vector<Corner>);
 
 vector<Corner>check_corner(const Byte* camBuffer, int topline, int bottomline, vector<pair<int,int>> edge);
-
-float distance(int x1, int y1, int x2, int y2);
 
 vector<Corner> check_cornerv2(const Byte* camBuffer, int topline, int bottomline, vector<pair<int,int>> edge);
 

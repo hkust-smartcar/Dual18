@@ -377,6 +377,13 @@ vector<pair<int,int>> Edge::check_edge(const Byte* camBuffer, int topline, int b
 				}
 				traveling_left(start_point_i, start_point_j, Direction::Down, topline, bottomline, camBuffer);
 			}
+			if(m_edge.size()>0){
+				if(distance(m_edge[0].first, m_edge[0].second, m_edge[m_edge.size()-1].first, m_edge[m_edge.size()-1].second)<5){
+					m_edge.clear();
+				}else if(abs(m_edge[0].second - m_edge[m_edge.size()-1].second)<3){
+					m_edge.clear();
+				}
+			}
 		}
 		else{
 			return m_edge;
@@ -420,6 +427,13 @@ vector<pair<int,int>> Edge::check_edge(const Byte* camBuffer, int topline, int b
 						break;
 				}
 				traveling_right(start_point_i, start_point_j, Direction::Down, topline, bottomline, camBuffer);
+			}
+			if(m_edge.size()>0){
+				if(distance(m_edge[0].first, m_edge[0].second, m_edge[m_edge.size()-1].first, m_edge[m_edge.size()-1].second)<5){
+					m_edge.clear();
+				}else if(abs(m_edge[0].second - m_edge[m_edge.size()-1].second)<3){
+					m_edge.clear();
+				}
 			}
 		}
 		else{

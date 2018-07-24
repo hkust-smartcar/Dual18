@@ -365,17 +365,20 @@ DualCarMenu::SubMenu* DualCarMenu::PrintSubMenu(SubMenu* menu) {
 void DualCarMenu::PrintCamImage() {
 	lcd->SetRegion(Lcd::Rect(0, 0, image_width, image_height));
 	lcd->FillBits(0x0000, 0xFFFF, camBuffer, (image_width * image_height));
-
 	for (uint16_t i = 0; i < edge.size(); i++) {
 		lcd->SetRegion(Lcd::Rect(edge[i].first, edge[i].second, 2, 2));
-		lcd->FillColor(Lcd::kRed);
+		if(i==0){
+			lcd->FillColor(Lcd::kRed);
+		}else if(i==(edge.size()-1)){
+			lcd->FillColor(Lcd::kRed);
+		}else{
+			lcd->FillColor(Lcd::kYellow);
+		}
 	}
-
 	for (uint16_t i = 0; i < corner.size(); i++) {
 		lcd->SetRegion(Lcd::Rect(corner[i].get_xcoord(), corner[i].get_ycoord(), 2, 2));
 		lcd->FillColor(Lcd::kBlue);
 	}
-
 }
 
 inline char * DualCarMenu::change_number_getOpt(const int8_t &row, const int8_t &column, uint8_t &action) {

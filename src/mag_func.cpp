@@ -67,6 +67,8 @@ bool Mag::noMagField(){
 	flash->link_uint8_t(6, &max[Mag::magPos::y_left]);
 	flash->link_uint8_t(7, &max[Mag::magPos::y_right]);
 
+//	flash->readFlash();
+
 	if (car_id == 1){
 		min[Mag::magPos::x_left] = 9;
 		min[Mag::magPos::x_right] = 8;
@@ -124,7 +126,7 @@ bool Mag::outLoop(){
 	return (Mag::GetXSum()+Mag::GetYSum() > 240);
 }
 
-void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived, bool &anotherGG, bool &isDotLine, bool &USsent){
+void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magState, float &speed, bool &approaching, bool &isFirst, bool &firstArrived, bool &secondArrived, bool &anotherGG, bool &USsent){
 	static uint32_t waitTime = 0;
 	if (magState == kNormal && approaching) {
 		magState = kLeave;
@@ -141,10 +143,9 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 		magState = kSide;
 		speed = aSpeed;
 		approachTime = lastTime;
-//	} else if (magState == kStop && lastTime - waitTime > 10000){
-//		magState = kNormal;
-//		isDotLine = false;
-//		anotherGG = true;
+	} else if (magState == kStop && lastTime - waitTime > 10000){
+		magState = kNormal;
+		speed = hSpeed;
 	} else if (magState == kSide && (!approaching)) {
 		approaching = false;
 		magState = kBack;
@@ -156,7 +157,6 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 	} else if (magState == kBack && v[Mag::magPos::x_left] > 30){
 		magState = kNormal;
 		speed = hSpeed;
-		isDotLine = false;
 		USsent = true;
 	}
 }

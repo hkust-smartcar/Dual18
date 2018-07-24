@@ -28,6 +28,7 @@ std::vector<std::pair<int,int>> susan_corner_detection(const Byte* camBuffer);
 
 float sqrt(int num);//less resource-intensive (in return of less accuracy) implementation of square root
 
+float distance(int x1, int y1, int x2, int y2);
 
 
 #endif /* INC_USEFUL_FUNCTIONS_H_ */

@@ -78,7 +78,7 @@ int mode = 0;
 carState magState = kNormal;
 
 const uint8_t cycle = 12;
-float highSpeed = 8;
+float highSpeed = 0;//get from flash, cant change here
 float speed = highSpeed;
 float yTarget = 0;
 bool approaching = false, isFirst = false, firstArrived = false, secondArrived = false, USsent = false, anotherGG = false;
@@ -90,7 +90,7 @@ int loopSmallConst2 = 100;
 int loopBigConst2 = 200;
 
 uint8_t leaveCount = 0;
-uint32_t lastTime = 0, approachTime = 0;
+uint32_t lastTime = 0, approachTime = 0, noMagTime = 0;
 float l1 = 100,l2 = 100,r1 = 100,r2 = 100, ry;
 
 inline bool ret_cam_bit(int x, int y, const Byte* camBuffer) {
@@ -240,8 +240,7 @@ int main() {
 	System::Init();
 
 	FlashWrapper flashWrapper;
-//	flashWrapper.setBoardID(2);
-	flashWrapper.readFlash();
+//	flashWrapper.setBoardID(1);
 
 	int cam_contrast = 0x40;
 	int pre_contrast = 0x40;
@@ -318,19 +317,19 @@ int main() {
 
 		mag.InitMag(1, &flashWrapper);
 	} else {
-	    left_motor_pid[0] = 0.62;
-	    left_motor_pid[1] = 0.03;
-	    left_motor_pid[2] = 0.008;
+	    left_motor_pid[0] = 0.8;
+	    left_motor_pid[1] = 0.02;
+	    left_motor_pid[2] = 0.016;
 
-	    right_motor_pid[0] = 0.62;
-	    right_motor_pid[1] = 0.03;
-	    right_motor_pid[2] = 0.008;
+	    right_motor_pid[0] = 0.8;
+	    right_motor_pid[1] = 0.02;
+	    right_motor_pid[2] = 0.016;
 
-	    x_servo_pd[0] = 10000;
-	    x_servo_pd[1] = 1750000;
+	    x_servo_pd[0] = 87000;
+	    x_servo_pd[1] = 1200000;
 
-	    y_servo_pd[0] = 10.3;
-	    y_servo_pd[1] = 480;
+	    y_servo_pd[0] = 12.5;
+	    y_servo_pd[1] = 340;
 
 	    align_servo_pd[0] = 5.8;
 	    align_servo_pd[1] = 750;
@@ -535,10 +534,9 @@ int main() {
 
 	/////
 	menuV2.AddItem((char *) "Change",&(menuV2.home_page), true);
-	float current_speed = speed;
 	bool noLoop = false;
 	bool oneCar = false;
-	menuV2.AddItem((char *) "speed", &current_speed, menuV2.home_page.submenu_items[10].next_page, true);
+	menuV2.AddItem((char *) "speed", &highSpeed, menuV2.home_page.submenu_items[10].next_page, true);
 	menuV2.AddItem((char *) "noLoop", &noLoop, menuV2.home_page.submenu_items[10].next_page, true);
 	menuV2.AddItem((char *) "oneCar", &oneCar, menuV2.home_page.submenu_items[10].next_page, true);
 	menuV2.AddItem((char *) "motorPID", menuV2.home_page.submenu_items[10].next_page, true);
@@ -595,6 +593,11 @@ int main() {
 	bool reset_value =false;
 
 	bool bumpy_road = false;
+
+	flashWrapper.link_float(0, &highSpeed);
+	flashWrapper.link_int(0, &cam_contrast);
+//	flashWrapper.writeFlash();
+	flashWrapper.readFlash();
 
 	while (1) {
 		if (System::Time() != lastTime) {
@@ -665,21 +668,25 @@ int main() {
 				mag.Update();
 				on9lastMain = lastTime;
 				if (mag.noMagField() && !noMag && magState == kNormal && current_page->identity == "OpenMotor") {
-					speed = 3;
-//					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, true);
+					speed = 5;
 					noMag = true;
+					noMagTime = lastTime;
+				}
+
+				if (noMag && lastTime-noMagTime > 10000){
+					speed = 0;
+					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, true);
 				}
 
 				if (noMag && !mag.noMagField() && magState == kNormal){
 					noMag = false;
 					speed = highSpeed;
-					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, false);
 				}
 
 //				buzz.SetBeep(current_loop_state == 6);
 
 				//changes state for alignment
-				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived, anotherGG, isDotLine, USsent);
+				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived, anotherGG, USsent);
 
 				if(current_page->identity=="home_page"){
 					reset_value = true;
@@ -767,40 +774,42 @@ int main() {
 
 				//alignment
 				//////use this as long as it sees at least one corner
-				vector<pair<int,int>> junction;
-				int junction_array[35];
-				if (!oneCar){
-					for(int i=0; i<35; i++){
-						junction_array[i] = 0;
-					}
-					for(int i=0; i<master_edge.size(); i++){
-						if(junction.size() == 0){
-							junction.push_back(make_pair(master_edge[0].first,master_edge[0].second));
-							continue;
+				if(master_edge.size()>0){
+					vector<pair<int,int>> junction;
+					int junction_array[35];
+					if (!oneCar){
+						for(int i=0; i<35; i++){
+							junction_array[i] = 0;
 						}
-						bool found = false;
-						for(int j=0; j<junction.size();j++){
-							if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)>5)){
-								junction[j].first = master_edge[i].first;
-								junction_array[master_edge[i].second-25]++;
-								found = true;
-								break;
+						for(int i=0; i<master_edge.size(); i++){
+							if(junction.size() == 0){
+								junction.push_back(make_pair(master_edge[0].first,master_edge[0].second));
+								continue;
 							}
-							else if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)<=5)){
-								found = true;
-								break;
+							bool found = false;
+							for(int j=0; j<junction.size();j++){
+								if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)>5)){
+									junction[j].first = master_edge[i].first;
+									junction_array[master_edge[i].second-25]++;
+									found = true;
+									break;
+								}
+								else if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)<=5)){
+									found = true;
+									break;
+								}
+							}
+							if((master_edge[i].second<60)&&(master_edge[i].second>=25)&&(!found)){
+								junction_array[master_edge[i].second-25] += 1;
+								junction.push_back(make_pair(master_edge[i].first,master_edge[i].second));
 							}
 						}
-						if((master_edge[i].second<60)&&(master_edge[i].second>=25)&&(!found)){
-							junction_array[master_edge[i].second-25] += 1;
-							junction.push_back(make_pair(master_edge[i].first,master_edge[i].second));
-						}
-					}
 
-					for(int i=0; i<35; i++){
-						if(junction_array[i]>2){
-							dotted_lineV2 = true;
-							break;
+						for(int i=0; i<35; i++){
+							if(junction_array[i] >= 3 && junction_array[i] <= 4){
+								dotted_lineV2 = true;
+								break;
+							}
 						}
 					}
 				}
@@ -830,7 +839,7 @@ int main() {
 								secondArrived = true;
 								uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b2, true);
 							}
-//							buzz.SetBeep(false);
+							buzz.SetBeep(false);
 						}
 						accumulate_corner = 0;
 						dot_time = 0;
@@ -838,6 +847,7 @@ int main() {
 						accumulate_corner = 0;
 						dot_time = 0;
 						dotted_lineV2 = false;
+						buzz.SetBeep(false);
 					}else{
 						accumulate_corner += master_corner.size();
 						accumulate_corner += slave_corner.size();

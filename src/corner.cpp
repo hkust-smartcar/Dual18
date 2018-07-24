@@ -234,13 +234,10 @@ float slope(uint8_t originx, uint8_t originy, uint8_t x2, uint8_t y2){
 	return slope;
 }
 
-float distance(int x1, int y1, int x2, int y2){
-	return sqrt((((x2-x1)*(x2-x1))+((y2-y1)*(y2-y1))));
-}
 
 vector<Corner> check_cornerv2(const Byte* camBuffer, int topline, int bottomline, vector<pair<int,int>> edge){
 	vector<Corner> m_corner;
-	if(edge.size()<6){
+	if(edge.size()<=6){
 		return m_corner;
 	}
 	for(int i=3; i<edge.size()-3; i++){
