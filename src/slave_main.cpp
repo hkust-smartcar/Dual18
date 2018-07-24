@@ -109,7 +109,7 @@ int main() {
 		writer.WriteBuffer(t, 15);
 	}
 
-	Ov7725 camera(myConfig::getCameraConfig(Width, Height, 1));
+	Ov7725 camera(myConfig::getCameraConfig(Width, Height, flash.getCameraConfig()));
 	camera.Start();
 
 	{

@@ -95,7 +95,7 @@ public:
 	 */
 
 	enum class HM10ACT {
-		connectToA, connectToB, connectToC, connectToD, setAsSlave
+		connectToA, connectToB, connectToC, connectToD, connectToE, setAsSlave
 	};
 
 	enum class DOUBLE {
@@ -1084,12 +1084,12 @@ public:
 				System::DelayMs(100);
 			}
 				break;
-//			case HM10ACT::connectToB: {
-//				HM10sendMsg("AT+ROLE1");
-//				System::DelayMs(100);
-//				HM10sendMsg("AT+CON341513879A13");
-//				System::DelayMs(100);
-//			}
+			case HM10ACT::connectToB: {
+				HM10sendMsg("AT+ROLE1");
+				System::DelayMs(100);
+				HM10sendMsg("AT+CON341513DB76D6");
+				System::DelayMs(100);
+			}
 				break;
 			case HM10ACT::connectToC: {
 				HM10sendMsg("AT+ROLE1");
@@ -1102,6 +1102,12 @@ public:
 				HM10sendMsg("AT+ROLE1");
 				System::DelayMs(100);
 				HM10sendMsg("AT+CON341513879A13");
+				System::DelayMs(100);
+			}
+			case HM10ACT::connectToE: {
+				HM10sendMsg("AT+ROLE1");
+				System::DelayMs(100);
+				HM10sendMsg("AT+COND43639DAF9EE");
 				System::DelayMs(100);
 			}
 				break;

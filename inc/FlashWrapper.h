@@ -210,6 +210,14 @@ public:
 		return 0;
 	}
 
+	inline uint8_t getBTtoComputerID() {
+		if (*MCUVer == 1) {
+			return 2;
+		} else if (*MCUVer == 2) {
+			return 3;
+		}
+	}
+
 private:
 	libbase::k60::Flash flash;
 	Byte * FlashData = new Byte[FLASH_USAGE];

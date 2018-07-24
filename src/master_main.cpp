@@ -38,7 +38,6 @@
 #include "bluetooth.h"
 #include "find_midline.h"
 #include "DualCar_UART.h"
-#include "DualCar_UART_Sim.h"
 #include "mag_func.h"
 #include "useful_functions.h"
 #include "menu.h"
@@ -241,16 +240,17 @@ int main() {
 
 	FlashWrapper flashWrapper;
 //	flashWrapper.setBoardID(1);
+//	flashWrapper.setMCUVer(1);
 
 	int cam_contrast = 0x40;
 	int pre_contrast = 0x40;
 
-	Ov7725 camera(myConfig::getCameraConfig(Width, Height, 0));
+	Ov7725 camera(myConfig::getCameraConfig(Width, Height, flashWrapper.getCameraConfig()));
 	camera.Start();
 	camera.ChangeSecialDigitalEffect(0x00, cam_contrast);
 
-	Led led0(myConfig::GetLedConfig(0));
-	Led led1(myConfig::GetLedConfig(1));
+	Led led0(myConfig::GetLedConfig(flashWrapper.getLEDConfig(0)));
+	Led led1(myConfig::GetLedConfig(flashWrapper.getLEDConfig(1)));
 
 	led0.SetEnable(1);
 	led1.SetEnable(1);
@@ -358,6 +358,7 @@ int main() {
 	// DualCar_UART_Sim << a slim ver only capable of sending bool
 	// just change it to DualCar_UART if u want other function, it will do no harm
 	// due to other bug, i created it, but then i realized the act is useless...
+//	DualCar_UART uart0(flashWrapper.getBTtoComputerID()); // << BT related
 	DualCar_UART uart0(2); // << BT related
 	DualCar_UART uartToAnotherCar(1); // << BT related
 
@@ -496,6 +497,7 @@ int main() {
 
 	menuV2.AddItem((char *) "Flash", &(menuV2.home_page), true);
 	menuV2.AddItem((char *) "mainboard", &flashWrapper.imainboardID, menuV2.home_page.submenu_items[7].next_page, true);
+	menuV2.AddItem((char *) "MCUver", &flashWrapper.iMCUVer, menuV2.home_page.submenu_items[7].next_page, true);
 	menuV2.AddItem((char *) "SaveConfig", [&flashWrapper](){
 		flashWrapper.saveConfigFromMenu();
 	}, menuV2.home_page.submenu_items[7].next_page, false);
@@ -518,6 +520,9 @@ int main() {
 	}, menuV2.home_page.submenu_items[8].next_page, false);
 	menuV2.AddItem((char *) "connectD", [&uartToAnotherCar](){
 		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::connectToD);
+	}, menuV2.home_page.submenu_items[8].next_page, false);
+	menuV2.AddItem((char *) "connectE", [&uartToAnotherCar](){
+		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::connectToE);
 	}, menuV2.home_page.submenu_items[8].next_page, false);
 	menuV2.AddItem((char *) "setAsSlave", [&uartToAnotherCar](){
 		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::setAsSlave);
@@ -646,19 +651,38 @@ int main() {
 			batteryCount++;
 
 			if (lastTime - on9lastMain >= cycle) {
-#ifdef temp_cam_fix
+
 				const Byte* camBuffer_Original = camera.LockBuffer();
 				camera.UnlockBuffer();
 
 				Byte * camBuffer = new Byte [Width * Height / 8];
-				for (uint16_t i = 0; i < Width * Height / 8; i++) {
-					Byte t = *(camBuffer_Original + i);
-					*(camBuffer + i) = t << 3 | t >> 5;
+				if (flashWrapper.getMCUVer() == 1) {
+					for (uint16_t i = 0; i < Width * Height / 8; i++) {
+						Byte t = *(camBuffer_Original + i);
+						*(camBuffer + i) = t << 3 | t >> 5;
+
+					}
+				} else if (flashWrapper.getMCUVer() == 2) {
+					for (uint16_t i = 0; i < Width * Height / 8; i++) {
+						*(camBuffer + i) = *(camBuffer_Original + i);
+
+					}
 				}
-#else
-				const Byte* camBuffer_Original = camera.LockBuffer();
-				camera.UnlockBuffer();
-#endif
+
+
+//#ifdef temp_cam_fix
+//				const Byte* camBuffer_Original = camera.LockBuffer();
+//				camera.UnlockBuffer();
+//
+//				Byte * camBuffer = new Byte [Width * Height / 8];
+//				for (uint16_t i = 0; i < Width * Height / 8; i++) {
+//					Byte t = *(camBuffer_Original + i);
+//					*(camBuffer + i) = t << 3 | t >> 5;
+//				}
+//#else
+//				const Byte* camBuffer_Original = camera.LockBuffer();
+//				camera.UnlockBuffer();
+//#endif
 
 				if(pre_contrast!=cam_contrast){
 					camera.ChangeSecialDigitalEffect(0x00, cam_contrast);
