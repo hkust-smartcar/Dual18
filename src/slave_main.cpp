@@ -128,7 +128,7 @@ int main() {
 //	Led led2(myConfig::GetLedConfig(2));
 //	Led led3(myConfig::GetLedConfig(3));
 
-	Edge right_edge(true);
+	Edge right_edge(true, 25, 60);
 
 	led0.SetEnable(1);
 	led1.SetEnable(1);
@@ -263,7 +263,7 @@ int main() {
 
 				float slave_slope;
 				bool right_fail;
-				m_slave_vector = right_edge.check_edge(camBuffer, 25, 60);
+				m_slave_vector = right_edge.check_edge(camBuffer);
 				vector<Corner> m_corner;
 				m_corner = check_cornerv2(camBuffer, 25, 60, m_slave_vector);
 				slave_slope = find_slope(m_slave_vector);
@@ -329,7 +329,7 @@ int main() {
 						lcd.SetRegion(
 								Lcd::Rect(m_slave_vector[i].first,
 										m_slave_vector[i].second, 2, 2));
-						lcd.FillColor(Lcd::kRed);
+						lcd.FillColor(Lcd::kYellow);
 					}
 
 					for (int i = 0; i < m_corner.size(); i++) {
@@ -339,6 +339,12 @@ int main() {
 						lcd.FillColor(Lcd::kBlue);
 					}
 
+					if(m_slave_vector.size()>0){
+						lcd.SetRegion(Lcd::Rect(m_slave_vector[0].first,m_slave_vector[0].second, 2, 2));
+						lcd.FillColor(Lcd::kRed);
+						lcd.SetRegion(Lcd::Rect(m_slave_vector[m_slave_vector.size()-1].first,m_slave_vector[m_slave_vector.size()-1].second, 2, 2));
+						lcd.FillColor(Lcd::kGreen);
+					}
 					for (int i = 0;
 							i < menu.m_menu[menu.get_mode()]->get_max_line();
 							i++) {

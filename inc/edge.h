@@ -25,33 +25,65 @@ public:
 		Up, UpRight, Right, DownRight, Down, DownLeft, Left, UpLeft
 	};
 
-	Edge(bool clockwise):type(clockwise){
-		for(int j=0; j<30; j++){
+
+	Edge(bool clockwise, uint8_t topline, uint8_t bottomline):type(clockwise), topline(topline), bottomline(bottomline){
+		lines = bottomline-topline;
+		for(int i = 0; i < 80; ++i) {
+		    canvas[i] = new uint8_t[lines];
+		}
+		for(int j=0; j<lines; j++){
 			for(int i=0; i<80; i++){
-				traveled[i][j]=0;
+				canvas[i][j] = 0;
+			}
+		}
+
+	}
+
+	void traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, const Byte* camBuffer);
+
+	void traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, const Byte* camBuffer);
+
+
+	vector<pair<int,int>>check_edge(const Byte* camBuffer);
+
+	uint8_t check_junctions(uint8_t ycoord){
+		uint8_t junctions = 0;
+		if(m_edge.size()==0){
+			return junctions;
+		}
+		for(int i= 0; i<m_edge.size(); i++){
+			if((m_edge[i].second == ycoord)&&(abs(m_edge[i].first-junction_arry[ycoord-topline])>5)){
+				junction_arry[ycoord-topline] = m_edge[i].first;
+				junctions++;
+			}
+		}
+		return junctions;
+	}
+
+	void reset_canvas(){
+		for(int j=0; j<lines; j++){
+			for(int i=0; i<80; i++){
+				canvas[i][j] = 0;
 			}
 		}
 	}
 
-	void traveling_left(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, int topline, int bottomline, const Byte* camBuffer);
-
-	void traveling_right(uint8_t xcoord, uint8_t ycoord, uint8_t last_direction_from, int topline, int bottomline, const Byte* camBuffer);
-
-
-	vector<pair<int,int>>check_edge(const Byte* camBuffer, int topline, int bottomline);
-
-	void reset_traveled(){
-		for(int j=0; j<30; j++){
-			for(int i=0; i<80; i++){
-				traveled[i][j]=0;
-			}
+	void reset_junction_arry(){
+		for(int i=0; i<lines; i++){
+			junction_arry[i] = 0;
 		}
 	}
 
 private:
-	bool traveled[80][30];//30 rolls
+	const uint8_t topline;
+	const uint8_t bottomline;
+	uint8_t lines;
+	uint8_t** canvas = new uint8_t*[80];
+	int* junction_arry = new int[lines];
 	bool type;
+	bool fail = false;
 	vector<pair<int,int>> m_edge;
+
 };
 
 

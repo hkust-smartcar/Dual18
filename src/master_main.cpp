@@ -281,7 +281,7 @@ int main() {
 	PID left_motorPID(0, 0, 0, &encoderL, false);
 	PID right_motorPID(0, 0, 0, &encoderR, true);
 
-	Edge left_edge(false);
+	Edge left_edge(false, 25, 60);
 
 	//pid value
 	float left_motor_pid[3],right_motor_pid[3],x_servo_pd[2],y_servo_pd[2],align_servo_pd[2];
@@ -292,18 +292,18 @@ int main() {
 	//flash
 	if (flashWrapper.imainboardID == 1) {
 		left_motor_pid[0] = 0.62;
-		left_motor_pid[1] = 0.01;
-		left_motor_pid[2] = 0.03;
+		left_motor_pid[1] = 0.05;
+		left_motor_pid[2] = 0.015;
 
 		right_motor_pid[0] = 0.62;
-		right_motor_pid[1] = 0.015;
-		right_motor_pid[2] = 0.03;
+		right_motor_pid[1] = 0.05;
+		right_motor_pid[2] = 0.015;
 
-		x_servo_pd[0] = 12800;
-		x_servo_pd[1] = 1850000;
+		x_servo_pd[0] = 13000;
+		x_servo_pd[1] = 1540000;
 
 		y_servo_pd[0] = 12;
-		y_servo_pd[1] = 500;
+		y_servo_pd[1] = 228;
 
 		align_servo_pd[0] = 5.8;
 		align_servo_pd[1] = 750;
@@ -317,19 +317,19 @@ int main() {
 
 		mag.InitMag(1, &flashWrapper);
 	} else {
-	    left_motor_pid[0] = 0.8;
-	    left_motor_pid[1] = 0.02;
-	    left_motor_pid[2] = 0.016;
+	    left_motor_pid[0] = 0.62;
+	    left_motor_pid[1] = 0.05;
+	    left_motor_pid[2] = 0.015;
 
-	    right_motor_pid[0] = 0.8;
-	    right_motor_pid[1] = 0.02;
-	    right_motor_pid[2] = 0.016;
+	    right_motor_pid[0] = 0.62;
+	    right_motor_pid[1] = 0.05;
+	    right_motor_pid[2] = 0.015;
 
-	    x_servo_pd[0] = 87000;
-	    x_servo_pd[1] = 1200000;
+	    x_servo_pd[0] = 12000;
+	    x_servo_pd[1] = 1450000;
 
 	    y_servo_pd[0] = 12.5;
-	    y_servo_pd[1] = 340;
+	    y_servo_pd[1] = 400;
 
 	    align_servo_pd[0] = 5.8;
 	    align_servo_pd[1] = 750;
@@ -727,7 +727,7 @@ int main() {
 				}
 
 				//LOOP v2
-				master_edge = left_edge.check_edge(camBuffer, 25, 60);
+				master_edge = left_edge.check_edge(camBuffer);
 				vector<Corner> master_corner;
 				master_corner = check_cornerv2(camBuffer, 25, 60, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
@@ -772,47 +772,60 @@ int main() {
 					}
 				}
 
+
+
 				//alignment
 				//////use this as long as it sees at least one corner
-				if(master_edge.size()>0){
-					vector<pair<int,int>> junction;
-					int junction_array[35];
-					if (!oneCar){
-						for(int i=0; i<35; i++){
-							junction_array[i] = 0;
-						}
-						for(int i=0; i<master_edge.size(); i++){
-							if(junction.size() == 0){
-								junction.push_back(make_pair(master_edge[0].first,master_edge[0].second));
-								continue;
-							}
-							bool found = false;
-							for(int j=0; j<junction.size();j++){
-								if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)>5)){
-									junction[j].first = master_edge[i].first;
-									junction_array[master_edge[i].second-25]++;
-									found = true;
-									break;
-								}
-								else if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)<=5)){
-									found = true;
-									break;
-								}
-							}
-							if((master_edge[i].second<60)&&(master_edge[i].second>=25)&&(!found)){
-								junction_array[master_edge[i].second-25] += 1;
-								junction.push_back(make_pair(master_edge[i].first,master_edge[i].second));
-							}
-						}
+//				if(master_edge.size()>0){
+//					vector<pair<int,int>> junction;
+//					int junction_array[35];
+//					if (!oneCar){
+//						for(int i=0; i<35; i++){
+//							junction_array[i] = 0;
+//						}
+//						for(int i=0; i<master_edge.size(); i++){
+//							if(junction.size() == 0){
+//								junction.push_back(make_pair(master_edge[0].first,master_edge[0].second));
+//								continue;
+//							}
+//							bool found = false;
+//							for(int j=0; j<junction.size();j++){
+//								if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)>5)){
+//									junction[j].first = master_edge[i].first;
+//									junction_array[master_edge[i].second-25]++;
+//									found = true;
+//									break;
+//								}
+//								else if((master_edge[i].second==junction[j].second)&&(abs(junction[j].first-master_edge[i].first)<=5)){
+//									found = true;
+//									break;
+//								}
+//							}
+//							if((master_edge[i].second<60)&&(master_edge[i].second>=25)&&(!found)){
+//								junction_array[master_edge[i].second-25] += 1;
+//								junction.push_back(make_pair(master_edge[i].first,master_edge[i].second));
+//							}
+//						}
+//
+//						for(int i=0; i<35; i++){
+//							if(junction_array[i] >= 3 && junction_array[i] <= 4){
+//								dotted_lineV2 = true;
+//								break;
+//							}
+//						}
+//					}
+//				}
 
-						for(int i=0; i<35; i++){
-							if(junction_array[i] >= 3 && junction_array[i] <= 4){
-								dotted_lineV2 = true;
-								break;
-							}
-						}
+				int junctions = 0;
+				left_edge.reset_junction_arry();
+				for(int i=0; i<35; i++){
+					junctions = left_edge.check_junctions(i);
+					if(junctions==3){
+						dotted_lineV2 = true;
+						break;
 					}
 				}
+
 				//
 
 				if((dotted_lineV2)&&(master_corner.size()>0)
