@@ -426,6 +426,7 @@ int main() {
 	//
 
 	//menu v2
+	Joystick::State* joystick_state = nullptr;
 	DualCarMenu menuV2(&lcd, &writer, Width, Height);
 	DualCarMenu::SubMenu* current_page = &menuV2.home_page;
 
@@ -564,6 +565,7 @@ int main() {
 	menuV2.AddItem((char *) "BC1", &loopBigConst1, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
 	menuV2.AddItem((char *) "SC2", &loopSmallConst2, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
 	menuV2.AddItem((char *) "BC2", &loopBigConst2, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
+
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
 	(const uint8_t id, const Joystick::State state) {

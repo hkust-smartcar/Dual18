@@ -78,10 +78,12 @@ public:
 //    	config.handlers[1] = isr;
 //    	config.handlers[2] = isr;
 //    	config.handlers[3] = isr;
-//    	config.listener_triggers[0] = Joystick::Config::Trigger::kBoth;
+//    	config.handlers[4] = isr;
+//    	config.listener_triggers[0] = Joystick::Config::Trigger::k;
 //    	config.listener_triggers[1] = Joystick::Config::Trigger::kBoth;
 //    	config.listener_triggers[2] = Joystick::Config::Trigger::kBoth;
 //    	config.listener_triggers[3] = Joystick::Config::Trigger::kBoth;
+//    	config.listener_triggers[4] = Joystick::Config::Trigger::kBoth;
 		// ADD!
 		return config;
 	}
