@@ -502,10 +502,10 @@ int main() {
 	menuV2.AddItem((char *) "SaveConfig", [&flashWrapper](){
 		flashWrapper.saveConfigFromMenu();
 	}, menuV2.home_page.submenu_items[7].next_page, false);
-	menuV2.AddItem((char *) "SaveFlash",[&flashWrapper, &camera](){
+	menuV2.AddItem((char *) "SaveFlash",[&](){
 		flashWrapper.writeFlash();
 	}, menuV2.home_page.submenu_items[7].next_page, false);
-	menuV2.AddItem((char *) "LoadFlash", [&flashWrapper](){
+	menuV2.AddItem((char *) "LoadFlash", [&](){
 		flashWrapper.readFlash();
 	}, menuV2.home_page.submenu_items[7].next_page, false);
 
