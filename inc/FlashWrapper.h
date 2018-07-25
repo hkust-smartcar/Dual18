@@ -91,10 +91,13 @@ public:
 	}
 
 	void readFlash() {
+		__disable_irq();
 		Flash::FlashStatus status = flash.Read(FlashData, FLASH_USAGE);
+		libsc::System::DelayMs(100);
 		if (status != Flash::FlashStatus::kSuccess) {
 			assert(false);
 		}
+		__enable_irq();
 		for (uint8_t i = 0; i < 32; i++) {
 			if (uin8_tData[i] != nullptr)
 				memcpy(uin8_tData[i], FlashData + 16 + i, 1);

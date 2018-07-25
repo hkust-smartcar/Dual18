@@ -239,7 +239,7 @@ int main() {
 	System::Init();
 
 	FlashWrapper flashWrapper;
-//	flashWrapper.setBoardID(1);
+//	flashWrapper.setBoardID(2);
 //	flashWrapper.setMCUVer(1);
 
 	int cam_contrast = 0x40;
@@ -606,6 +606,8 @@ int main() {
 //	flashWrapper.writeFlash();
 	flashWrapper.readFlash();
 
+	int t = cam_contrast;
+
 	while (1) {
 		if (System::Time() != lastTime) {
 
@@ -654,6 +656,7 @@ int main() {
 
 			if (lastTime - on9lastMain >= cycle) {
 
+				int t1 = cam_contrast;
 				const Byte* camBuffer_Original = camera.LockBuffer();
 				camera.UnlockBuffer();
 
