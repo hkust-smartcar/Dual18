@@ -255,7 +255,7 @@ int main() {
 	led0.SetEnable(1);
 	led1.SetEnable(1);
 
-	Mag mag(highSpeed);
+	Mag mag();
 
 	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig(flashWrapper.imainboardID));
 	float batteryVoltage = batteryMeter.GetVoltage();
@@ -712,12 +712,12 @@ int main() {
 					uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b5, true);
 				}
 
-				if (noMag && !mag.noMagField() && magState == kNormal){
+				if (noMag && !mag.noMagField()){// && magState == kNormal
 					noMag = false;
 					speed = highSpeed;
 				}
 
-//				buzz.SetBeep(current_loop_state == 6);
+				buzz.SetBeep(noMag);
 
 				//changes state for alignment
 				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived, anotherGG, USsent);

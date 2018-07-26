@@ -16,7 +16,7 @@
 
 class Mag{
 public:
-	Mag(float highSpeed):
+	Mag():
 		mag0(myConfig::GetAdcConfig(0)),
 		mag1(myConfig::GetAdcConfig(1)),
 		mag2(myConfig::GetAdcConfig(2)),
@@ -27,8 +27,6 @@ public:
 			mag2.StartConvert();
 			mag3.StartConvert();
 			mag4.StartConvert();
-
-			hSpeed = highSpeed;
 		};
 	typedef enum{
 		x_left = 0,
