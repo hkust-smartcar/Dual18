@@ -95,7 +95,7 @@ public:
 	 */
 
 	enum class HM10ACT {
-		connectToA, connectToB, connectToC, connectToD, connectToE, setAsSlave
+		connectToA, connectToB, connectToC, connectToD, connectToE, connectToF, setAsSlave
 	};
 
 	enum class DOUBLE {
@@ -1108,6 +1108,13 @@ public:
 				HM10sendMsg("AT+ROLE1");
 				System::DelayMs(100);
 				HM10sendMsg("AT+COND43639DAF9EE");
+				System::DelayMs(100);
+			}
+				break;
+			case HM10ACT::connectToF: {
+				HM10sendMsg("AT+ROLE1");
+				System::DelayMs(100);
+				HM10sendMsg("AT+CONC8FD1997E64D");
 				System::DelayMs(100);
 			}
 				break;

@@ -430,6 +430,7 @@ int main() {
 	DualCarMenu menuV2(&lcd, &writer, Width, Height);
 	DualCarMenu::SubMenu* current_page = &menuV2.home_page;
 
+//	menuV2.AddItem((char *) __TIME__, &(menuV2.home_page), false);
 	menuV2.AddItem((char *) "start", &flashWrapper.imainboardID, &(menuV2.home_page), true);
 	menuV2.AddItem((char *) "OpenMotor", menuV2.home_page.submenu_items[0].next_page, true);
 	menuV2.AddItem((char *) "CloseMotor", menuV2.home_page.submenu_items[0].next_page, true);
@@ -497,6 +498,7 @@ int main() {
 	menuV2.AddItem((char *) "mYR", &(mYR), menuV2.home_page.submenu_items[6].next_page, false);
 
 	menuV2.AddItem((char *) "Flash", &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "FlashAct:", &flashWrapper.actID, menuV2.home_page.submenu_items[7].next_page, false);
 	menuV2.AddItem((char *) "mainboard", &flashWrapper.imainboardID, menuV2.home_page.submenu_items[7].next_page, true);
 	menuV2.AddItem((char *) "MCUver", &flashWrapper.iMCUVer, menuV2.home_page.submenu_items[7].next_page, true);
 	menuV2.AddItem((char *) "SaveConfig", [&flashWrapper](){
@@ -524,6 +526,9 @@ int main() {
 	}, menuV2.home_page.submenu_items[8].next_page, false);
 	menuV2.AddItem((char *) "connectE", [&uartToAnotherCar](){
 		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::connectToE);
+	}, menuV2.home_page.submenu_items[8].next_page, false);
+	menuV2.AddItem((char *) "connectF", [&uartToAnotherCar](){
+		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::connectToF);
 	}, menuV2.home_page.submenu_items[8].next_page, false);
 	menuV2.AddItem((char *) "setAsSlave", [&uartToAnotherCar](){
 		uartToAnotherCar.HM10Func(DualCar_UART_Config::HM10ACT::setAsSlave);

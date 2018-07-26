@@ -41,6 +41,7 @@ public:
 	int iMCUVer;
 	int imcuPos;
 	int imainboardID;
+	int actID = 0;;
 
 	FlashWrapper() :
 			flash(getFlashConfig()) {
@@ -70,6 +71,8 @@ public:
 				|| (sizeof(bool) != 1);
 		if (sizeCheck)
 			assert(false);
+
+		actID++;
 	}
 
 	void writeFlash() {
@@ -86,17 +89,20 @@ public:
 		}
 
 		__disable_irq();
-		Flash::FlashStatus status = flash.Write(FlashData, FLASH_USAGE);
 		libsc::System::DelayMs(100);
+		Flash::FlashStatus status = flash.Write(FlashData, FLASH_USAGE);
+		libsc::System::DelayMs(500);
 		if (status != Flash::FlashStatus::kSuccess) {
 			assert(false);
 		}
 
 		__enable_irq();
+		actID++;
 	}
 
 	void readFlash() {
 		__disable_irq();
+		libsc::System::DelayMs(100);
 		Flash::FlashStatus status = flash.Read(FlashData, FLASH_USAGE);
 		libsc::System::DelayMs(100);
 		if (status != Flash::FlashStatus::kSuccess) {
@@ -113,6 +119,7 @@ public:
 			if (boolData[i] != nullptr)
 				memcpy(boolData[i], FlashData + 304 + i, 1);
 		}
+		actID++;
 	}
 
 	inline void link_uint8_t(const uint8_t &id, uint8_t * var) {
@@ -249,6 +256,7 @@ private:
 			assert(false);
 		}
 		__enable_irq();
+		actID++;
 	}
 
 	libbase::k60::Flash::Config getFlashConfig() {
