@@ -878,7 +878,6 @@ int main() {
 						start_count_corner = false;
 						if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
 							approaching = true;
-							firstArrived = true;
 							if (!firstArrived){
 								isFirst = true;
 								firstArrived = true;

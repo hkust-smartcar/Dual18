@@ -131,7 +131,7 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 	if (magState == kNormal && approaching) {
 		magState = kLeave;
 		leaveCount = 0;
-	} else if (magState == kLeave && v[Mag::magPos::x_left] < 25){// && v[Mag::magPos::x_right] < 50
+	} else if (magState == kLeave && v[Mag::magPos::x_left] < 35){// && v[Mag::magPos::x_right] < 50
 		if (isFirst){
 			magState = kStop;
 			speed = 0;
@@ -143,9 +143,8 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 		magState = kSide;
 		speed = aSpeed;
 		approachTime = lastTime;
-	} else if (magState == kStop && lastTime - waitTime > 10000){
-		magState = kNormal;
-		speed = hSpeed;
+	} else if (magState == kStop && lastTime - waitTime > 5000){
+		magState = kBack;
 	} else if (magState == kSide && (!approaching)) {
 		approaching = false;
 		magState = kBack;
@@ -154,7 +153,7 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 			firstArrived = false;
 			secondArrived = false;
 		}
-	} else if (magState == kBack && v[Mag::magPos::x_left] > 30){
+	} else if (magState == kBack && v[Mag::magPos::x_left] > 20){
 		magState = kNormal;
 		speed = hSpeed;
 		USsent = true;
@@ -212,17 +211,17 @@ float Mag::GetAngle(PID &x_servo, PID &y_servo, PID &align_servo, float &angleX,
 	} else if (magState == kStop){
 		servoAngle = -400;
 	} else if (magState == kSide){
-		if (Mag::GetYSum() > 15){
-			servoAngle = 100 - 5 * align_servo.getPID(0, v[Mag::magPos::x_left]);
-			angleY = servoAngle;
-		} else{
-			servoAngle = -align_servo.getPID(40, v[Mag::magPos::x_right]);
-			if (v[Mag::magPos::x_right] < 25){
-				servoAngle *= 1 + ((25-v[Mag::magPos::x_right]) * 0.005);
-			}
-			angleX = servoAngle;
-		}
-//		servoAngle = -align_servo.getPID(40, v[Mag::magPos::x_right]);
+//		if (Mag::GetYSum() > 15){
+//			servoAngle = 100 - 5 * align_servo.getPID(0, v[Mag::magPos::x_left]);
+//			angleY = servoAngle;
+//		} else{
+//			servoAngle = -align_servo.getPID(40, v[Mag::magPos::x_right]);
+//			if (v[Mag::magPos::x_right] < 25){
+//				servoAngle *= 1 + ((25-v[Mag::magPos::x_right]) * 0.005);
+//			}
+//			angleX = servoAngle;
+//		}
+		servoAngle = -align_servo.getPID(50, v[Mag::magPos::x_right]);
 	} else if (magState == kBack){
 		servoAngle = -Max(300-(leaveCount*15), 100);
 	}

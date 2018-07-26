@@ -76,7 +76,7 @@ private:
 	float xLinear = 0, yLinear = 0;
 	uint8_t min[5] = {15,15,15,15,15}, max[5] = {0,0,0,0,0};
 	uint8_t leaveCount = 0;
-	float aSpeed = 7, hSpeed = 0;
+	float aSpeed = 7, hSpeed = 8;
 	float lastX;
 };
 

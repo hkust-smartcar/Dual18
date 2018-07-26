@@ -242,6 +242,9 @@ int main() {
 	}
 	lcd.Clear();
 
+	flash.link_int(0, &cam_contrast);
+	flash.readFlash();
+
 	while (1) {
 		if (System::Time() != lastTime) {
 
@@ -302,8 +305,10 @@ int main() {
 
 				////
 				right_corner_size = m_corner.size();
+				menuV2.SetCamBuffer(camBuffer);
+				menuV2.SetEdge(m_slave_vector);
+				menuV2.SetCorner(m_corner);
 				current_page = menuV2.PrintSubMenu(current_page);
-
 //				if(m_corner.size()>0){
 //					int is_breakpoint;
 //					is_breakpoint =1;
@@ -311,9 +316,6 @@ int main() {
 				m_corner.clear();
 				m_slave_vector.clear();
 
-				menuV2.SetCamBuffer(camBuffer);
-//				menuV2.SetEdge(master_edge);
-//				menuV2.SetCorner(master_corner);
 
 #ifdef temp_cam_fix
 				delete[] camBuffer;
