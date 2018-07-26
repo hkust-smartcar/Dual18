@@ -65,6 +65,11 @@ public:
 			floatData[i] = nullptr;
 			boolData[i] = nullptr;
 		}
+
+		bool sizeCheck = (sizeof(uint8_t) != 1) || (sizeof(int) != 4) || (sizeof(float) != 4)
+				|| (sizeof(bool) != 1);
+		if (sizeCheck)
+			assert(false);
 	}
 
 	void writeFlash() {
@@ -134,7 +139,7 @@ public:
 		boolData[id] = var;
 	}
 
-	// mainboardID
+// mainboardID
 	inline void setBoardID(uint8_t id) {
 		*mainboardID = (Byte) id;
 		saveConfig();
@@ -144,7 +149,7 @@ public:
 		return (uint8_t) *mainboardID;
 	}
 
-	// MCUVer
+// MCUVer
 	inline void setMCUVer(uint8_t id) {
 		*MCUVer = (Byte) id;
 		saveConfig();
@@ -154,8 +159,8 @@ public:
 		return (uint8_t) *MCUVer;
 	}
 
-	// mcuPos
-	// 1 for master, 0 for slave
+// mcuPos
+// 1 for master, 0 for slave
 	inline void setAsMaster() {
 		*mcuPos = 1;
 	}
