@@ -853,7 +853,7 @@ int main() {
 				int junctions = 0;
 				left_edge.reset_junction_arry();
 				for(int i=0; i<35; i++){
-					junctions = left_edge.check_junctions(i);
+					junctions = left_edge.check_junctions(i+25);
 					if(junctions==3){
 						dotted_lineV2 = true;
 						break;
@@ -878,6 +878,7 @@ int main() {
 						start_count_corner = false;
 						if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
 							approaching = true;
+							firstArrived = true;
 							if (!firstArrived){
 								isFirst = true;
 								firstArrived = true;

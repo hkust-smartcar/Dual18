@@ -153,24 +153,26 @@ int main() {
 
 	menuV2.AddItem((char *) __TIME__, &(menuV2.home_page), false);
 	menuV2.AddItem((char *) "start", &flash.imainboardID, &(menuV2.home_page), true);
+	menuV2.AddItem((char *) "OpenMotor", menuV2.home_page.submenu_items[1].next_page, true);
+
 	menuV2.AddItem((char *) "camera", &(menuV2.home_page), true);
 	int right_corner_size = 0;
-	menuV2.AddItem((char *) "Ctr", &cam_contrast, menuV2.home_page.submenu_items[1].next_page, true);
-	menuV2.AddItem((char *) "Rcorner", &right_corner_size, menuV2.home_page.submenu_items[1].next_page, false);
+	menuV2.AddItem((char *) "Ctr", &cam_contrast, menuV2.home_page.submenu_items[2].next_page, true);
+	menuV2.AddItem((char *) "Rcorner", &right_corner_size, menuV2.home_page.submenu_items[2].next_page, false);
 
 	menuV2.AddItem((char *) "Flash", &(menuV2.home_page), true);
-	menuV2.AddItem((char *) "mainboard", &flash.imainboardID, menuV2.home_page.submenu_items[2].next_page,
+	menuV2.AddItem((char *) "mainboard", &flash.imainboardID, menuV2.home_page.submenu_items[3].next_page,
 			true);
-	menuV2.AddItem((char *) "MCUver", &flash.iMCUVer, menuV2.home_page.submenu_items[2].next_page, true);
+	menuV2.AddItem((char *) "MCUver", &flash.iMCUVer, menuV2.home_page.submenu_items[3].next_page, true);
 	menuV2.AddItem((char *) "SaveConfig", [&flash]() {
 		flash.saveConfigFromMenu();
-	}, menuV2.home_page.submenu_items[2].next_page, false);
+	}, menuV2.home_page.submenu_items[3].next_page, false);
 	menuV2.AddItem((char *) "SaveFlash", [&]() {
 		flash.writeFlash();
-	}, menuV2.home_page.submenu_items[2].next_page, false);
+	}, menuV2.home_page.submenu_items[3].next_page, false);
 	menuV2.AddItem((char *) "LoadFlash", [&]() {
 		flash.readFlash();
-	}, menuV2.home_page.submenu_items[2].next_page, false);
+	}, menuV2.home_page.submenu_items[3].next_page, false);
 
 	//joystick value
 
