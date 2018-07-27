@@ -126,7 +126,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		rateY = 0.5*rateY + 0.5*prevRateY;
 		ry = rateY;
 		lastY = currY;
-		if (rateY > 0.5){
+		if (rateY > 0.2){
 			magReady = true;
 		}
 		if (magReady && magnetic->GetYSum() > 15){
@@ -325,10 +325,10 @@ int main() {
 	    right_motor_pid[1] = 0.05;
 	    right_motor_pid[2] = 0.015;
 
-	    x_servo_pd[0] = 12000;
+	    x_servo_pd[0] = 13000;
 	    x_servo_pd[1] = 1450000;
 
-	    y_servo_pd[0] = 12.5;
+	    y_servo_pd[0] = 14.5;
 	    y_servo_pd[1] = 400;
 
 	    align_servo_pd[0] = 5.8;
@@ -483,7 +483,7 @@ int main() {
 	int mpu_data = 0;
 	int* pmpu_data = &mpu_data;
 	bool bumpy_road = false;
-	int bumpy_const = 1500;
+	int bumpy_const = 6600;
 	uint32_t bumpy_time = 0;
 	menuV2.AddItem((char *) "mpu", menuV2.home_page.submenu_items[5].next_page, true);
 	menuV2.AddItem((char *) "data", pmpu_data, menuV2.home_page.submenu_items[5].next_page->submenu_items[4].next_page, false);
@@ -612,6 +612,7 @@ int main() {
 
 	flashWrapper.link_float(0, &highSpeed);
 	flashWrapper.link_int(0, &cam_contrast);
+	flashWrapper.link_int(1, &bumpy_const);
 //	flashWrapper.writeFlash();
 	flashWrapper.readFlash();
 
@@ -721,7 +722,7 @@ int main() {
 					speed = highSpeed;
 				}
 
-				buzz.SetBeep(noMag);
+				buzz.SetBeep(bumpy_road);
 
 				//changes state for alignment
 				mag.CheckState(lastTime, approachTime, magState, speed, approaching, isFirst, firstArrived, secondArrived, anotherGG, USsent);
@@ -777,7 +778,7 @@ int main() {
 				if(bumpy_road){
 					bumpy_time++;
 				}
-				if((bumpy_time>100)&&(mpu_data<bumpy_const)&&(mpu_data>-bumpy_const)){
+				if((bumpy_time>3)&&(mpu_data<bumpy_const)&&(mpu_data>-bumpy_const)){
 					bumpy_time = 0;
 					bumpy_road = false;
 				}
@@ -875,8 +876,8 @@ int main() {
 				if((dotted_lineV2)&&(master_corner.size()>0)
 						&& (slave_corner.size()>0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)&&(!approaching)){
 					dot_time = 0;
-					buzz.SetNote(440);
-					buzz.SetBeep(true);
+//					buzz.SetNote(440);
+//					buzz.SetBeep(true);
 					start_count_corner = true;
 				}
 
@@ -886,7 +887,7 @@ int main() {
 						accumulate_corner = 0;
 						dot_time = 0;
 						dotted_lineV2 = false;
-						buzz.SetBeep(false);
+//						buzz.SetBeep(false);
 					}else if((dot_time == 10 && accumulate_corner > 15)&&(!in_loop)){
 						isDotLine = true;
 						dotted_lineV2 = false;
@@ -901,7 +902,7 @@ int main() {
 								secondArrived = true;
 								uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b2, true);
 							}
-							buzz.SetBeep(false);
+//							buzz.SetBeep(false);
 						}
 						accumulate_corner = 0;
 						dot_time = 0;
@@ -909,7 +910,7 @@ int main() {
 						accumulate_corner = 0;
 						dot_time = 0;
 						dotted_lineV2 = false;
-						buzz.SetBeep(false);
+//						buzz.SetBeep(false);
 					}else{
 						accumulate_corner += master_corner.size();
 						accumulate_corner += slave_corner.size();
