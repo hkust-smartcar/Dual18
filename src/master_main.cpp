@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-#define Master
+//#define Master
 
 #ifdef Master
 
@@ -730,6 +730,7 @@ int main() {
 					reset_value = false;
 					magState = kNormal;
 					speed = highSpeed;
+					current_loop_state = 0;
 					in_loop = false;
 					approaching = false;
 					isFirst = false;
@@ -872,7 +873,7 @@ int main() {
 
 				if(start_count_corner){
 					dot_time++;
-					if(dot_time == 10 && accumulate_corner > 15){
+					if((dot_time == 10 && accumulate_corner > 15)&&(!in_loop)){
 						isDotLine = true;
 						dotted_lineV2 = false;
 						start_count_corner = false;
@@ -900,6 +901,7 @@ int main() {
 						accumulate_corner += slave_corner.size();
 					}
 				}
+
 				//
 
 				(*pmpu_data) = m_master_bluetooth.get_mpu_data();

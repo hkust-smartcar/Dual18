@@ -5,12 +5,12 @@
  *      Author: morristseng
  */
 
-//#define slave
+#define slave
 
 #ifdef slave
 
 //#define temp_cam_fix
-//#define use_mpu
+#define use_mpu
 
 #include <cmath>
 #include <vector>
@@ -204,7 +204,7 @@ int main() {
 	{
 		lcd.SetRegion(Lcd::Rect(0, 30, 80, 15));
 		char t[15];
-		sprintf(t, "init mpu");
+		sprintf(t, "init mpu  ");
 		writer.WriteBuffer(t, 15);
 	}
 
@@ -216,6 +216,7 @@ int main() {
 	Mpu6050 mpu(MpuConfig);
 #endif
 
+	System::DelayMs(100);
 	bool led_toggle = true;
 
 	{
