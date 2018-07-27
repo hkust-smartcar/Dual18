@@ -126,7 +126,7 @@ int loop_control(int state, bool &is_loop, Mag* magnetic, int &camera_control, f
 		rateY = 0.5*rateY + 0.5*prevRateY;
 		ry = rateY;
 		lastY = currY;
-		if (rateY > 0){
+		if (rateY > 0.5){
 			magReady = true;
 		}
 		if (magReady && magnetic->GetYSum() > 15){
