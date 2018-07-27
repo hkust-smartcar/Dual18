@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define Master
+#define Master
 
 #ifdef Master
 
@@ -482,7 +482,13 @@ int main() {
 	menuV2.AddItem((char *) "EncR", &(encoderRval), menuV2.home_page.submenu_items[5].next_page, false);
 	int mpu_data = 0;
 	int* pmpu_data = &mpu_data;
-	menuV2.AddItem((char *) "mpu", pmpu_data, menuV2.home_page.submenu_items[5].next_page, false);
+	bool bumpy_road = false;
+	int bumpy_const = 1500;
+	uint32_t bumpy_time = 0;
+	menuV2.AddItem((char *) "mpu", menuV2.home_page.submenu_items[5].next_page, true);
+	menuV2.AddItem((char *) "data", pmpu_data, menuV2.home_page.submenu_items[5].next_page->submenu_items[4].next_page, false);
+	menuV2.AddItem((char *) "bumpy", &bumpy_road, menuV2.home_page.submenu_items[5].next_page->submenu_items[4].next_page, false);
+	menuV2.AddItem((char *) "bpCst", &bumpy_const, menuV2.home_page.submenu_items[5].next_page->submenu_items[4].next_page, true);
 
 	menuV2.AddItem((char *) "Calibrate", &(menuV2.home_page), true);
 	menuV2.AddItem((char *) "Reset", [&mag](){mag.ResetMag();}, menuV2.home_page.submenu_items[6].next_page, false);
@@ -603,8 +609,6 @@ int main() {
 	right_motorPID.setkD(right_motor_pid[2]);
 	uint32_t dTime = 0;
 	bool reset_value =false;
-
-	bool bumpy_road = false;
 
 	flashWrapper.link_float(0, &highSpeed);
 	flashWrapper.link_int(0, &cam_contrast);
@@ -766,10 +770,15 @@ int main() {
 				vector<Corner> master_corner;
 				master_corner = check_cornerv2(camBuffer, 25, 60, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
-				if((mpu_data > 3000 || mpu_data <- 3000)){
+				if((mpu_data > bumpy_const || mpu_data < -bumpy_const)){
 					bumpy_road = true;
 				}
-				else{
+
+				if(bumpy_road){
+					bumpy_time++;
+				}
+				if((bumpy_time>100)&&(mpu_data<bumpy_const)&&(mpu_data>-bumpy_const)){
+					bumpy_time = 0;
 					bumpy_road = false;
 				}
 
@@ -873,7 +882,12 @@ int main() {
 
 				if(start_count_corner){
 					dot_time++;
-					if((dot_time == 10 && accumulate_corner > 15)&&(!in_loop)){
+					if(in_loop){
+						accumulate_corner = 0;
+						dot_time = 0;
+						dotted_lineV2 = false;
+						buzz.SetBeep(false);
+					}else if((dot_time == 10 && accumulate_corner > 15)&&(!in_loop)){
 						isDotLine = true;
 						dotted_lineV2 = false;
 						start_count_corner = false;
