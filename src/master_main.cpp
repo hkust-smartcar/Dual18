@@ -255,7 +255,7 @@ int main() {
 	led0.SetEnable(1);
 	led1.SetEnable(1);
 
-	Mag mag();
+	Mag mag;
 
 	BatteryMeter batteryMeter(myConfig::GetBatteryMeterConfig(flashWrapper.imainboardID));
 	float batteryVoltage = batteryMeter.GetVoltage();
