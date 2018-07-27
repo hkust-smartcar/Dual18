@@ -111,7 +111,7 @@ void Mag::ResetMag(){
 }
 
 bool Mag::isLoop(){
-	return ((v[Mag::magPos::x_left] > 68 && v[Mag::magPos::x_right] > 68 && Mag::GetYSum() > 25) || Mag::GetXSum() > 160);
+	return ((v[Mag::magPos::x_left] > 73 && v[Mag::magPos::x_right] > 73 && Mag::GetYSum() > 25) || Mag::GetXSum() > 160);
 }
 
 bool Mag::isTwoLine(){
