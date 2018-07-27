@@ -484,6 +484,7 @@ int main() {
 	int* pmpu_data = &mpu_data;
 	bool bumpy_road = false;
 	int bumpy_const = 6600;
+	int lastBumpy = 0;
 	uint32_t bumpy_time = 0;
 	menuV2.AddItem((char *) "mpu", menuV2.home_page.submenu_items[5].next_page, true);
 	menuV2.AddItem((char *) "data", pmpu_data, menuV2.home_page.submenu_items[5].next_page->submenu_items[4].next_page, false);
@@ -613,6 +614,12 @@ int main() {
 	flashWrapper.link_float(0, &highSpeed);
 	flashWrapper.link_int(0, &cam_contrast);
 	flashWrapper.link_int(1, &bumpy_const);
+
+	flashWrapper.link_int(2, &loopSmallConst1);
+	flashWrapper.link_int(3, &loopSmallConst2);
+	flashWrapper.link_int(4, &loopBigConst1);
+	flashWrapper.link_int(5, &loopBigConst2);
+
 //	flashWrapper.writeFlash();
 	flashWrapper.readFlash();
 
@@ -771,9 +778,10 @@ int main() {
 				vector<Corner> master_corner;
 				master_corner = check_cornerv2(camBuffer, 25, 60, master_edge);
 				slave_corner = m_master_bluetooth.get_slave_corner();
-				if((mpu_data > bumpy_const || mpu_data < -bumpy_const)){
+				if(abs(mpu_data - lastBumpy) > bumpy_const){
 					bumpy_road = true;
 				}
+				lastBumpy = mpu_data;
 
 				if(bumpy_road){
 					bumpy_time++;
@@ -1021,7 +1029,6 @@ int main() {
 #ifdef temp_cam_fix
 				delete[] camBuffer;
 #endif
-
 				master_edge.clear();
 				slave_edge.clear();
 				midline.clear();

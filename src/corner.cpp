@@ -255,7 +255,7 @@ vector<Corner> check_cornerv2(const Byte* camBuffer, int topline, int bottomline
 
 		cos = ((distance1*distance1)+(distance2*distance2)-(distance3*distance3))/(2*((distance1*distance2)));
 
-		if(cos>-0.5){
+		if(cos>-0.4){
 			Corner temp(edge[i].first,edge[i].second, cos);
 			m_corner.push_back(temp);
 		}
