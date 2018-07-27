@@ -145,6 +145,7 @@ void Mag::CheckState(uint32_t lastTime, uint32_t &approachTime, carState &magSta
 		approachTime = lastTime;
 	} else if (magState == kStop && lastTime - waitTime > 8000){
 		magState = kBack;
+		speed = aSpeed;
 	} else if (magState == kSide && (!approaching)) {
 		approaching = false;
 		magState = kBack;

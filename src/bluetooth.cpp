@@ -39,6 +39,11 @@ void M_Bluetooth::change_message(const Byte* m_buff) {
 		information_types = Informations::corner;
 	}
 
+	if ((*m_buff == Informations::dotLine) && (buffer.size() == 0)) {
+		buffer.clear();
+		information_types = Informations::dotLine;
+	}
+
 }
 
 void M_Bluetooth::build_message(const Byte* m_buff) {
@@ -99,6 +104,20 @@ void M_Bluetooth::build_message(const Byte* m_buff) {
 				edge_size = buffer[2];
 			} else {
 				edge_size = 0;
+			}
+			buffer.clear();
+		}
+	}
+
+	else if ((information_types == Informations::dotLine)) {
+		this->buffer.push_back(*m_buff);
+		if (((*m_buff) == Informations::end)) {
+			dotLine = 0;
+			int size = buffer[1];
+			if (buffer.size() == size) {
+				dotLine = buffer[2];
+			} else {
+				dotLine = 0;
 			}
 			buffer.clear();
 		}

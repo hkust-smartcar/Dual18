@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-//#define slave
+#define slave
 
 #ifdef slave
 
@@ -157,8 +157,10 @@ int main() {
 
 	menuV2.AddItem((char *) "camera", &(menuV2.home_page), true);
 	int right_corner_size = 0;
+	int right_get = 0;
 	menuV2.AddItem((char *) "Ctr", &cam_contrast, menuV2.home_page.submenu_items[2].next_page, true);
 	menuV2.AddItem((char *) "Rcorner", &right_corner_size, menuV2.home_page.submenu_items[2].next_page, false);
+	menuV2.AddItem((char *) "dotLine", &right_get, menuV2.home_page.submenu_items[2].next_page, false);
 
 	menuV2.AddItem((char *) "Flash", &(menuV2.home_page), true);
 	menuV2.AddItem((char *) "mainboard", &flash.imainboardID, menuV2.home_page.submenu_items[3].next_page,
@@ -292,11 +294,25 @@ int main() {
 					led0.Switch();
 				}
 
+				int junctions = 0;
+				right_edge.reset_junction_arry();
+				for(int i=0; i<35; i++){
+					junctions = right_edge.check_junctions(i+25);
+					if(junctions==3){
+						right_get = true;
+						break;
+					}
+					else{
+						right_get = false;
+					}
+				}
+
 //				m_slave_bluetooth.send_edge(m_slave_vector);
 				m_slave_bluetooth.send_slope(slave_slope);
 				m_slave_bluetooth.send_corner(m_corner);
 				m_slave_bluetooth.send_int_data(m_slave_vector.size(), Informations::edge_size);
 				m_slave_bluetooth.send_int_data(mpuAccel[2], Informations::mpu);
+				m_slave_bluetooth.send_int_data((int)right_get, Informations::dotLine);
 				if (m_slave_vector.size() > 0) {
 					m_slave_bluetooth.send_int_data(m_slave_vector[m_slave_vector.size() / 2].first,
 							Informations::edge_xmid);

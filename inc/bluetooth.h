@@ -28,7 +28,7 @@ using libsc::System;
 using namespace std;
 
 enum Informations {
-	edge = 200, slope, corner, edge_size, edge_xmid, mpu, end, unclear
+	edge = 200, slope, corner, edge_size, edge_xmid, mpu, end, dotLine, unclear
 };
 
 class M_Bluetooth {
@@ -75,6 +75,10 @@ public:
 	int get_mpu_data() {
 		return mpu_data;
 	}
+	int get_dotLine_data() {
+		return dotLine;
+	}
+
 private:
 	JyMcuBt106 m_bt;
 	vector<Byte> buffer;
@@ -82,6 +86,7 @@ private:
 	int edge_mid= 0;
 	int edge_size = 0;
 	int mpu_data = 0;
+	int dotLine = 0;
 	float m_slope = 0;
 	std::vector<int> y_coord();
 	std::vector<std::pair<int, int>> m_edge;

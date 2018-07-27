@@ -5,7 +5,7 @@
  *      Author: morristseng
  */
 
-#define Master
+//#define Master
 
 #ifdef Master
 
@@ -240,7 +240,7 @@ int main() {
 
 	FlashWrapper flashWrapper;
 //	flashWrapper.setBoardID(2);
-//	flashWrapper.setMCUVer(1);
+//	flashWrapper.setMCUVer(2);
 
 	int cam_contrast = 0x40;
 	int pre_contrast = 0x40;
@@ -544,7 +544,11 @@ int main() {
 
 	menuV2.AddItem((char *) "crossing",&(menuV2.home_page), true);
 	bool isDotLine = false;
+	bool right_get = false;
+	bool left_get = false;
 	menuV2.AddItem((char *) "dotLine", &isDotLine, menuV2.home_page.submenu_items[9].next_page, false);
+	menuV2.AddItem((char *) "LeftGet", &left_get, menuV2.home_page.submenu_items[9].next_page, false);
+	menuV2.AddItem((char *) "RightGet", &right_get, menuV2.home_page.submenu_items[9].next_page, false);
 	menuV2.AddItem((char *) "approach", &approaching, menuV2.home_page.submenu_items[9].next_page, false);
 	menuV2.AddItem((char *) "isFirst", &isFirst, menuV2.home_page.submenu_items[9].next_page, false);
 	menuV2.AddItem((char *) "1stA", &firstArrived, menuV2.home_page.submenu_items[9].next_page, false);
@@ -554,29 +558,33 @@ int main() {
 	menuV2.AddItem((char *) "Change",&(menuV2.home_page), true);
 	bool noLoop = false;
 	bool oneCar = false;
+	bool giveUp = false;
+	bool newDotLineMethod = false;//original
 	menuV2.AddItem((char *) "speed", &highSpeed, menuV2.home_page.submenu_items[10].next_page, true);
 	menuV2.AddItem((char *) "noLoop", &noLoop, menuV2.home_page.submenu_items[10].next_page, true);
 	menuV2.AddItem((char *) "oneCar", &oneCar, menuV2.home_page.submenu_items[10].next_page, true);
+	menuV2.AddItem((char *) "giveUp", &giveUp, menuV2.home_page.submenu_items[10].next_page, true);
+	menuV2.AddItem((char *) "dotMethod", &newDotLineMethod, menuV2.home_page.submenu_items[10].next_page, true);
 	menuV2.AddItem((char *) "motorPID", menuV2.home_page.submenu_items[10].next_page, true);
 	menuV2.AddItem((char *) "servoPID", menuV2.home_page.submenu_items[10].next_page, true);
 	menuV2.AddItem((char *) "loopConst", menuV2.home_page.submenu_items[10].next_page, true);
 
-	menuV2.AddItem((char *) "LkP", left_motor_pid, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
-	menuV2.AddItem((char *) "LkI", left_motor_pid+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
-	menuV2.AddItem((char *) "LkD", left_motor_pid+2,menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
-	menuV2.AddItem((char *) "RkP", right_motor_pid, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
-	menuV2.AddItem((char *) "RkI", right_motor_pid+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
-	menuV2.AddItem((char *) "RkD", right_motor_pid+2, menuV2.home_page.submenu_items[10].next_page->submenu_items[3].next_page, true);
+	menuV2.AddItem((char *) "LkP", left_motor_pid, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
+	menuV2.AddItem((char *) "LkI", left_motor_pid+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
+	menuV2.AddItem((char *) "LkD", left_motor_pid+2,menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
+	menuV2.AddItem((char *) "RkP", right_motor_pid, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
+	menuV2.AddItem((char *) "RkI", right_motor_pid+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
+	menuV2.AddItem((char *) "RkD", right_motor_pid+2, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
 
-	menuV2.AddItem((char *) "XkP", x_servo_pd, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
-	menuV2.AddItem((char *) "XkD", x_servo_pd+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
-	menuV2.AddItem((char *) "YkP", y_servo_pd, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
-	menuV2.AddItem((char *) "YkD", y_servo_pd+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[4].next_page, true);
+	menuV2.AddItem((char *) "XkP", x_servo_pd, menuV2.home_page.submenu_items[10].next_page->submenu_items[6].next_page, true);
+	menuV2.AddItem((char *) "XkD", x_servo_pd+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[6].next_page, true);
+	menuV2.AddItem((char *) "YkP", y_servo_pd, menuV2.home_page.submenu_items[10].next_page->submenu_items[6].next_page, true);
+	menuV2.AddItem((char *) "YkD", y_servo_pd+1, menuV2.home_page.submenu_items[10].next_page->submenu_items[6].next_page, true);
 
-	menuV2.AddItem((char *) "SC1", &loopSmallConst1, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
-	menuV2.AddItem((char *) "BC1", &loopBigConst1, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
-	menuV2.AddItem((char *) "SC2", &loopSmallConst2, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
-	menuV2.AddItem((char *) "BC2", &loopBigConst2, menuV2.home_page.submenu_items[10].next_page->submenu_items[5].next_page, true);
+	menuV2.AddItem((char *) "SC1", &loopSmallConst1, menuV2.home_page.submenu_items[10].next_page->submenu_items[7].next_page, true);
+	menuV2.AddItem((char *) "BC1", &loopBigConst1, menuV2.home_page.submenu_items[10].next_page->submenu_items[7].next_page, true);
+	menuV2.AddItem((char *) "SC2", &loopSmallConst2, menuV2.home_page.submenu_items[10].next_page->submenu_items[7].next_page, true);
+	menuV2.AddItem((char *) "BC2", &loopBigConst2, menuV2.home_page.submenu_items[10].next_page->submenu_items[7].next_page, true);
 
 
 	Joystick js(myConfig::GetJoystickConfig(Joystick::Listener([&]
@@ -620,9 +628,16 @@ int main() {
 	flashWrapper.link_int(4, &loopBigConst1);
 	flashWrapper.link_int(5, &loopBigConst2);
 
-//	flashWrapper.writeFlash();
+	flashWrapper.link_bool(0, &newDotLineMethod);
+
 	flashWrapper.readFlash();
 
+//	newDotLineMethod = false;
+//	flashWrapper.writeFlash();
+
+//	flashWrapper.writeFlash();
+
+	uint32_t giveUpTime = 0;
 	int t = cam_contrast;
 
 	while (1) {
@@ -748,6 +763,9 @@ int main() {
 					isFirst = false;
 					firstArrived = false;
 					secondArrived = false;
+					if (giveUp){
+						giveUpTime = lastTime;
+					}
 				}
 
 				if (approaching){
@@ -813,7 +831,14 @@ int main() {
 					current_loop_state = loop_control(current_loop_state, in_loop, &mag, camera_control, camera_angle, master_edge.size(), slave_edge_size, m_edge_xmid, s_edge_xmid, master_corner.size(), slave_corner.size(),master_slope, slave_slope);
 				}
 
-				if (camera_control){
+				if (giveUp){
+					angle = 0;
+					if (lastTime - giveUpTime > 2000){
+						speed = 0;
+					} else{
+						speed = 5;
+					}
+				}else if (camera_control){
 					angle = camera_angle;
 				} else{
 					if (current_page->identity == "Calibrate") {
@@ -874,54 +899,104 @@ int main() {
 				for(int i=0; i<35; i++){
 					junctions = left_edge.check_junctions(i+25);
 					if(junctions==3){
-						dotted_lineV2 = true;
+						left_get = true;
 						break;
+					}
+					else{
+						left_get = false;
 					}
 				}
 
+				right_get = (bool)(m_master_bluetooth.get_dotLine_data());
+
 				//
-
-				if((dotted_lineV2)&&(master_corner.size()>0)
-						&& (slave_corner.size()>0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)&&(!approaching)){
-					dot_time = 0;
-//					buzz.SetNote(440);
-//					buzz.SetBeep(true);
-					start_count_corner = true;
-				}
-
-				if(start_count_corner){
-					dot_time++;
-					if(in_loop){
-						accumulate_corner = 0;
+				if(!newDotLineMethod){
+					if((left_get)&&(master_corner.size()>0)
+							&& (slave_corner.size()>0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)&&(!approaching)){
 						dot_time = 0;
-						dotted_lineV2 = false;
-//						buzz.SetBeep(false);
-					}else if((dot_time == 10 && accumulate_corner > 15)&&(!in_loop)){
-						isDotLine = true;
-						dotted_lineV2 = false;
-						start_count_corner = false;
-						if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
-							approaching = true;
-							if (!firstArrived){
-								isFirst = true;
-								firstArrived = true;
-								uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b1, true);
-							} else{
-								secondArrived = true;
-								uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b2, true);
+	//					buzz.SetNote(440);
+	//					buzz.SetBeep(true);
+						start_count_corner = true;
+					}
+
+					if(start_count_corner){
+						dot_time++;
+						if(in_loop){
+							accumulate_corner = 0;
+							dot_time = 0;
+							left_get = false;
+	//						buzz.SetBeep(false);
+						}else if((dot_time == 10 && accumulate_corner > 15)&&(!in_loop)){
+							isDotLine = true;
+							left_get = false;
+							start_count_corner = false;
+							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
+								approaching = true;
+								if (!firstArrived){
+									isFirst = true;
+									firstArrived = true;
+									uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b1, true);
+								} else{
+									secondArrived = true;
+									uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b2, true);
+								}
+	//							buzz.SetBeep(false);
 							}
-//							buzz.SetBeep(false);
+							accumulate_corner = 0;
+							dot_time = 0;
+						}else if (dot_time == 10){
+							accumulate_corner = 0;
+							dot_time = 0;
+							left_get = false;
+	//						buzz.SetBeep(false);
+						}else{
+							accumulate_corner += master_corner.size();
+							accumulate_corner += slave_corner.size();
 						}
-						accumulate_corner = 0;
+					}
+				}else{
+					if((left_get)&&(right_get)&&(master_corner.size()>0)
+							&& (slave_corner.size()>0) && (!start_count_corner)&&(!bumpy_road)&&(!in_loop)&&(!approaching)){
 						dot_time = 0;
-					}else if (dot_time == 10){
-						accumulate_corner = 0;
-						dot_time = 0;
-						dotted_lineV2 = false;
-//						buzz.SetBeep(false);
-					}else{
-						accumulate_corner += master_corner.size();
-						accumulate_corner += slave_corner.size();
+	//					buzz.SetNote(440);
+	//					buzz.SetBeep(true);
+						start_count_corner = true;
+					}
+
+					if(start_count_corner){
+						dot_time++;
+						if(in_loop){
+							accumulate_corner = 0;
+							dot_time = 0;
+							left_get = false;
+	//						buzz.SetBeep(false);
+						}else if((dot_time == 10 && accumulate_corner > 10)&&(!in_loop)){
+							isDotLine = true;
+							left_get = false;
+							start_count_corner = false;
+							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
+								approaching = true;
+								if (!firstArrived){
+									isFirst = true;
+									firstArrived = true;
+									uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b1, true);
+								} else{
+									secondArrived = true;
+									uartToAnotherCar.Send_bool(DualCar_UART::BOOLEAN::b2, true);
+								}
+	//							buzz.SetBeep(false);
+							}
+							accumulate_corner = 0;
+							dot_time = 0;
+						}else if (dot_time == 10){
+							accumulate_corner = 0;
+							dot_time = 0;
+							left_get = false;
+	//						buzz.SetBeep(false);
+						}else{
+							accumulate_corner += master_corner.size();
+							accumulate_corner += slave_corner.size();
+						}
 					}
 				}
 
