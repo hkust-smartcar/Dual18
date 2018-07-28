@@ -763,9 +763,6 @@ int main() {
 					isFirst = false;
 					firstArrived = false;
 					secondArrived = false;
-					if (giveUp){
-						giveUpTime = lastTime;
-					}
 				}
 
 				if (approaching){
@@ -833,11 +830,7 @@ int main() {
 
 				if (giveUp){
 					angle = 0;
-					if (lastTime - giveUpTime > 2000){
-						speed = 0;
-					} else{
-						speed = 5;
-					}
+					speed = 5;
 				}else if (camera_control){
 					angle = camera_angle;
 				} else{
@@ -974,7 +967,7 @@ int main() {
 							isDotLine = true;
 							left_get = false;
 							start_count_corner = false;
-							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
+							if(!oneCar && !approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
 								approaching = true;
 								if (!firstArrived){
 									isFirst = true;
