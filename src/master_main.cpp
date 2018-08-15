@@ -637,7 +637,6 @@ int main() {
 
 //	flashWrapper.writeFlash();
 
-	uint32_t giveUpTime = 0;
 	int t = cam_contrast;
 
 	while (1) {
@@ -923,7 +922,7 @@ int main() {
 							isDotLine = true;
 							left_get = false;
 							start_count_corner = false;
-							if(!approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
+							if(!oneCar && !approaching && !mag.isTwoLine() && mag.unlikelyCrossRoad() && (!anotherGG) && (lastTime - approachTime >= 10000 || approachTime == 0)){
 								approaching = true;
 								if (!firstArrived){
 									isFirst = true;
